@@ -17,20 +17,23 @@
         "checker",
         "oss"
     ],
-    "main": "./lib/index.js",
-    "types": "./lib/index.d.ts",
+    "main": "./dist/lib/index.js",
+    "types": "./dist/lib/index.d.ts",
     "bin": {
-        "license-checker-rseidelsohn": "./bin/license-checker-rseidelsohn.js"
+        "license-checker-rseidelsohn": "./dist/bin/license-checker-rseidelsohn.js"
     },
     "scripts": {
+        "build": "tsc",
+        "prebuild": "rimraf dist",
+        "prepublishOnly": "npm run build",
         "changes": "github-changes -o RSeidelsohn -r license-checker-rseidelsohn",
         "contrib": "node ./scripts/contrib.js",
-        "pretest": "eslint --fix .",
+        "pretest": "npm run build && eslint --fix .",
         "test": "jenkins-mocha ./tests/*.js",
         "posttest": "nyc check-coverage && nyc report -r lcov -r text -r text-summary",
-        "lint": "npx eslint --ext js .",
+        "lint": "npx eslint --ext ts,js .",
         "lint:fix": "npm run lint -- --fix",
-        "prettier": "npx prettier lib --check && npx prettier bin/license-checker-rseidelsohn.js --check && npx prettier scripts --check",
+        "prettier": "npx prettier src --check && npx prettier scripts --check",
         "prettier:fix": "npm run prettier -- --write",
         "format": "npm run prettier:fix && npm run lint:fix",
         "format:dry": "npm run prettier && npm run lint"
@@ -128,8 +131,8 @@
         "zodiac403 <zodiac403@gmx.de>"
     ],
     "files": [
-        "bin",
-        "lib",
+        "dist",
+        "src",
         "CHANGELOG.md",
         "SECURITY.md"
     ],
@@ -150,7 +153,10 @@
         "@types/mkdirp": "^1.0.2",
         "@types/mssql": "8.1.1",
         "@types/node": "^16.18.11",
+        "@types/nopt": "^3.0.32",
         "@types/spdx-expression-parse": "^3.0.5",
+        "@typescript-eslint/eslint-plugin": "^8.38.0",
+        "@typescript-eslint/parser": "^8.38.0",
         "detectionizr": "*",
         "eslint": "^9.25.1",
         "eslint-config-prettier": "^10.1.2",
@@ -165,6 +171,8 @@
         "prettier": "^3.5.3",
         "queue": "^6.0.2",
         "request": "^2.88.2",
-        "rimraf": "^3.0.2"
+        "rimraf": "^3.0.2",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.3"
     }
 }
