@@ -1,11 +1,16 @@
-import { describe, test, beforeAll, afterAll, expect } from '@jest/globals';
+import { describe, test, beforeAll, afterAll, expect, it } from '@jest/globals';
 import path from 'path';
 import util from 'util';
 import * as checker from '../lib/index.js';
 import * as args from '../lib/args.js';
 import chalk from 'chalk';
 import fs from 'fs';
-const pkgPath = path.join(import.meta.dirname, '../package.json');
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const pkgPath = path.join(__dirname, '../package.json');
 const pkgJson = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 
 describe('main tests', () => {
@@ -331,7 +336,7 @@ describe('main tests', () => {
 
     describe('should not exit on complete list', function () {
         let result = {};
-        before(
+        beforeAll(
             parseAndFailOn(
                 'onlyAllow',
                 '../',
@@ -370,7 +375,7 @@ describe('main tests', () => {
 
     describe('should parse local and handle private modules', function () {
         let output;
-        before(function (done) {
+        beforeAll(function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, './fixtures/privateModule'),
@@ -396,7 +401,7 @@ describe('main tests', () => {
     });
 
     describe('should treat license file over custom urls', function () {
-        it('should recognise a custom license at a url', function (done) {
+        test('should recognise a custom license at a url', function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, '../node_modules/locale'),
@@ -412,7 +417,7 @@ describe('main tests', () => {
 
     describe('should treat URLs as custom licenses', function () {
         let output;
-        before(function (done) {
+        beforeAll(function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, './fixtures/custom-license-url'),
@@ -424,7 +429,7 @@ describe('main tests', () => {
             );
         });
 
-        it('should recognise a custom license at a url', function () {
+        test('should recognise a custom license at a url', function () {
             let foundCustomLicense = false;
             Object.keys(output).forEach(function (item) {
                 if (output[item].licenses && output[item].licenses === 'Custom: http://example.com/dummy-license')
@@ -436,7 +441,7 @@ describe('main tests', () => {
 
     describe('should treat file references as custom licenses', function () {
         let output;
-        before(function (done) {
+        beforeAll(function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, './fixtures/custom-license-file'),
@@ -448,7 +453,7 @@ describe('main tests', () => {
             );
         });
 
-        it('should recognise a custom license in a file', function () {
+        test('should recognise a custom license in a file', function () {
             let foundCustomLicense = false;
             Object.keys(output).forEach(function (item) {
                 if (output[item].licenses && output[item].licenses === 'Custom: MY-LICENSE.md')
@@ -459,7 +464,7 @@ describe('main tests', () => {
     });
 
     describe('error handler', function () {
-        it('should init without errors', function (done) {
+        test('should init without errors', function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, '../'),
@@ -472,7 +477,7 @@ describe('main tests', () => {
             );
         });
 
-        it('should init with errors (npm packages not found)', function (done) {
+        test('should init with errors (npm packages not found)', function (done) {
             checker.init(
                 {
                     start: 'C:\\',
@@ -536,7 +541,7 @@ describe('main tests', () => {
     });
 
     describe('custom formats', function () {
-        it('should create a custom format using customFormat successfully', function (done) {
+        test('should create a custom format using customFormat successfully', function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, '../'),
@@ -558,7 +563,7 @@ describe('main tests', () => {
             );
         });
 
-        it('should create a custom format using customPath', function (done) {
+        test('should create a custom format using customPath', function (done) {
             process.argv.push('--customPath');
             process.argv.push('./customFormatExample.json');
 
@@ -589,7 +594,7 @@ describe('main tests', () => {
             });
         });
 
-        it('should return data for keys with different names in json vs custom format', function (done) {
+        test('should return data for keys with different names in json vs custom format', function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, './fixtures/author'),
@@ -607,7 +612,7 @@ describe('main tests', () => {
     });
 
     describe('should output the module location', function () {
-        it('as absolute path', function (done) {
+        test('as absolute path', function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, '../'),
@@ -623,7 +628,7 @@ describe('main tests', () => {
             );
         });
 
-        it('using only relative paths if the option relativeModulePath is being used', function (done) {
+        test('using only relative paths if the option relativeModulePath is being used', function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, '../'),
@@ -646,7 +651,7 @@ describe('main tests', () => {
     });
 
     describe('should output the location of the license files', function () {
-        it('as absolute paths', function (done) {
+        test('as absolute paths', function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, '../'),
@@ -669,7 +674,7 @@ describe('main tests', () => {
             );
         });
 
-        it('as relative paths when using relativeLicensePath', function (done) {
+        test('as relative paths when using relativeLicensePath', function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, '../'),
@@ -693,7 +698,7 @@ describe('main tests', () => {
     });
 
     describe('handle copytight statement', function () {
-        it('should output copyright statements when configured in custom format', function (done) {
+        test('should output copyright statements when configured in custom format', function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, '../'),
@@ -716,7 +721,7 @@ describe('main tests', () => {
 
     describe('should only list UNKNOWN or guessed licenses successful', function () {
         let output;
-        before(function (done) {
+        beforeAll(function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, '../'),
@@ -729,7 +734,7 @@ describe('main tests', () => {
             );
         });
 
-        it('so we check if there is no license with a star or UNKNOWN found', function () {
+        test('so we check if there is no license with a star or UNKNOWN found', function () {
             let onlyStarsFound = true;
             Object.keys(output).forEach(function (item) {
                 if (output[item].licenses && output[item].licenses.indexOf('UNKNOWN') !== -1) {
@@ -761,9 +766,9 @@ describe('main tests', () => {
 
     describe('should list given packages', function () {
         let result = {};
-        before(parseAndInclude('./fixtures/includeBSD', 'BSD', result));
+        beforeAll(parseAndInclude('./fixtures/includeBSD', 'BSD', result));
 
-        it('should include only BSD', function () {
+        test('should include only BSD', function () {
             const output = result.output;
             assert.ok(Object.keys(output).length === 1);
         });
@@ -771,9 +776,9 @@ describe('main tests', () => {
 
     describe('should not list not given packages', function () {
         let result = {};
-        before(parseAndInclude('./fixtures/includeApache', 'BSD', result));
+        beforeAll(parseAndInclude('./fixtures/includeApache', 'BSD', result));
 
-        it('should not include Apache', function () {
+        test('should not include Apache', function () {
             const output = result.output;
             assert.ok(Object.keys(output).length === 0);
         });
@@ -781,7 +786,7 @@ describe('main tests', () => {
 
     describe('should only list UNKNOWN or guessed licenses with errors (argument missing)', function () {
         let output;
-        before(function (done) {
+        beforeAll(function (done) {
             checker.init(
                 {
                     start: path.join(__dirname, '../'),
@@ -794,7 +799,7 @@ describe('main tests', () => {
             );
         });
 
-        it('so we check if there is no license with a star or UNKNOWN found', function () {
+        test('so we check if there is no license with a star or UNKNOWN found', function () {
             let onlyStarsFound = true;
 
             Object.keys(output).forEach(function (item) {
@@ -811,7 +816,7 @@ describe('main tests', () => {
     });
 
     describe('should export', function () {
-        it('print a tree', function () {
+        test('print a tree', function () {
             const log = console.log;
             console.log = function (data) {
                 assert.ok(data);
@@ -821,13 +826,13 @@ describe('main tests', () => {
             console.log = log;
         });
 
-        it('as tree', function () {
+        test('as tree', function () {
             const data = checker.asTree([{}]);
             assert.ok(data);
             assert.ok(data.indexOf('└─') > -1);
         });
 
-        it('as csv', function () {
+        test('as csv', function () {
             const data = checker.asCSV({
                 foo: {
                     licenses: 'MIT',
@@ -838,7 +843,7 @@ describe('main tests', () => {
             assert.ok(data.indexOf('"foo","MIT","/path/to/foo"') > -1);
         });
 
-        it('as csv with partial data', function () {
+        test('as csv with partial data', function () {
             const data = checker.asCSV({
                 foo: {},
             });
@@ -846,7 +851,7 @@ describe('main tests', () => {
             assert.ok(data.indexOf('"foo","",""') > -1);
         });
 
-        it('as markdown', function () {
+        test('as markdown', function () {
             const data = checker.asMarkDown({
                 foo: {
                     licenses: 'MIT',
@@ -857,7 +862,7 @@ describe('main tests', () => {
             assert.ok(data.indexOf('[foo](/path/to/foo) - MIT') > -1);
         });
 
-        it('as summary', function () {
+        test('as summary', function () {
             const data = checker.asSummary({
                 foo: {
                     licenses: 'MIT',
@@ -868,7 +873,7 @@ describe('main tests', () => {
             assert.ok(data.indexOf('└─') > -1);
         });
 
-        it('as files', function () {
+        test('as files', function () {
             const out = path.join(require('os').tmpdir(), 'lc');
             let files = null;
             checker.asFiles(
@@ -894,8 +899,7 @@ describe('main tests', () => {
     describe('should export', function () {
         let output;
 
-        before(function (done) {
-            this.timeout(5000);
+        beforeAll(function (done) {
 
             checker.init(
                 {
@@ -908,7 +912,7 @@ describe('main tests', () => {
             );
         });
 
-        it('an Angular CLI like plain vertical format', function () {
+        test('an Angular CLI like plain vertical format', function () {
             const data = checker.asPlainVertical(output);
             assert.ok(data);
             assert.equal(
@@ -921,7 +925,7 @@ BSD-3-Clause
     });
 
     describe('json parsing', function () {
-        it('should parse json successfully (File exists + was json)', function () {
+        test('should parse json successfully (File exists + was json)', function () {
             const path = './tests/config/custom_format_correct.json';
             const json = checker.parseJson(path);
             assert.notEqual(json, undefined);
@@ -930,26 +934,26 @@ BSD-3-Clause
             assert.ok(json.licenseText);
         });
 
-        it('should parse json with errors (File exists + no json)', function () {
+        test('should parse json with errors (File exists + no json)', function () {
             const path = './tests/config/custom_format_broken.json';
             const json = checker.parseJson(path);
             assert.ok(json instanceof Error);
         });
 
-        it('should parse json with errors (File not found)', function () {
+        test('should parse json with errors (File not found)', function () {
             const path = './NotExitingFile.json';
             const json = checker.parseJson(path);
             assert.ok(json instanceof Error);
         });
 
-        it('should parse json with errors (null passed)', function () {
+        test('should parse json with errors (null passed)', function () {
             const json = checker.parseJson(null);
             assert.ok(json instanceof Error);
         });
     });
 
     describe('limit attributes', function () {
-        it('should filter attributes based on limitAttributes defined', function () {
+        test('should filter attributes based on limitAttributes defined', function () {
             const path = './tests/config/custom_format_correct.json';
             const json = checker.parseJson(path);
 
@@ -964,7 +968,7 @@ BSD-3-Clause
             assert.strictEqual(filteredJson.licenseModified, undefined);
         });
 
-        it('should keep json as is if no outputColumns defined', function () {
+        test('should keep json as is if no outputColumns defined', function () {
             const path = './tests/config/custom_format_correct.json';
             const json = checker.parseJson(path);
 

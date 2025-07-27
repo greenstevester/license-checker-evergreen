@@ -1,13 +1,17 @@
-const assert = require('assert');
-const path = require('path');
-const spawn = require('child_process').spawnSync;
+import { describe, test, expect } from '@jest/globals';
+import path from 'path';
+import { spawnSync as spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-describe('bin/license-checker-evergreen', function () {
-    this.timeout(8000);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-    it('should restrict the output to the provided packages', function () {
-        var restrictedPackages = ['@types/node@16.18.11'];
-        var output = spawn(
+describe('bin/license-checker-evergreen', () => {
+
+    test('should restrict the output to the provided packages', () => {
+        const restrictedPackages = ['@types/node@16.18.11'];
+        const output = spawn(
             'node',
             [
                 path.join(__dirname, '../bin/license-checker-evergreen'),
@@ -21,12 +25,12 @@ describe('bin/license-checker-evergreen', function () {
         );
 
         console.log(output.stderr.toString());
-        assert.deepEqual(Object.keys(JSON.parse(output.stdout.toString())), restrictedPackages);
+        expect(Object.keys(JSON.parse(output.stdout.toString()))).toEqual(restrictedPackages);
     });
 
-    it('should exclude provided excludedPackages from the output', function () {
-        var excludedPackages = ['@types/node@15.0.1', 'spdx-satisfies@5.0.0', 'y18n@3.2.1'];
-        var output = spawn(
+    test('should exclude provided excludedPackages from the output', () => {
+        const excludedPackages = ['@types/node@15.0.1', 'spdx-satisfies@5.0.0', 'y18n@3.2.1'];
+        const output = spawn(
             'node',
             [
                 path.join(__dirname, '../bin/license-checker-evergreen'),
@@ -39,13 +43,13 @@ describe('bin/license-checker-evergreen', function () {
             },
         );
 
-        var packages = Object.keys(JSON.parse(output.stdout.toString()));
-        excludedPackages.forEach(function (pkg) {
-            assert.ok(!packages.includes(pkg));
+        const packages = Object.keys(JSON.parse(output.stdout.toString()));
+        excludedPackages.forEach((pkg) => {
+            expect(packages.includes(pkg)).toBe(false);
         });
     });
 
-    it('should exclude packages starting with', function () {
+    test('should exclude packages starting with', () => {
         const excludedPackages = ['@types', 'spdx'];
         const output = spawn(
             'node',
@@ -65,8 +69,8 @@ describe('bin/license-checker-evergreen', function () {
         let illegalPackageFound = false;
 
         // Loop through all packages and check if they start with one of the excluded packages
-        packages.forEach(function (p) {
-            excludedPackages.forEach(function (excludedPackage) {
+        packages.forEach((p) => {
+            excludedPackages.forEach((excludedPackage) => {
                 if (p.startsWith(excludedPackage)) {
                     illegalPackageFound = true;
                 }
@@ -74,11 +78,11 @@ describe('bin/license-checker-evergreen', function () {
         });
 
         // If an illegal package was found, the test fails
-        assert.ok(!illegalPackageFound);
+        expect(illegalPackageFound).toBe(false);
     });
 
 
-    it('should combine various types of inclusion and exclusions', function () {
+    test('should combine various types of inclusion and exclusions', () => {
         const excludedPrefix = ['@types', 'spdx'];
         const excludedNames = ['rimraf'];
         const output = spawn(
@@ -99,8 +103,8 @@ describe('bin/license-checker-evergreen', function () {
 
         let illegalPackageFound = false;
 
-        packages.forEach(function (p) {
-            excludedNames.forEach(function (pkgName) {
+        packages.forEach((p) => {
+            excludedNames.forEach((pkgName) => {
                 if(pkgName.indexOf('@')>1){
                     // check for the exact version
                     if(p === pkgName) illegalPackageFound = true;
@@ -108,7 +112,7 @@ describe('bin/license-checker-evergreen', function () {
                     illegalPackageFound = true;
                 }
             });
-            excludedPrefix.forEach(function (prefix) {
+            excludedPrefix.forEach((prefix) => {
                 if (p.startsWith(prefix)) {
                     illegalPackageFound = true;
                 }
@@ -116,11 +120,11 @@ describe('bin/license-checker-evergreen', function () {
         });
 
         // If an illegal package was found, the test fails
-        assert.ok(!illegalPackageFound);
+        expect(illegalPackageFound).toBe(false);
     });
 
-    it('should exclude private packages from the output', function () {
-        var output = spawn(
+    test('should exclude private packages from the output', () => {
+        const output = spawn(
             'node',
             [path.join(__dirname, '../bin/license-checker-evergreen'), '--json', '--excludePrivatePackages'],
             {
@@ -128,7 +132,7 @@ describe('bin/license-checker-evergreen', function () {
             },
         );
 
-        var packages = Object.keys(JSON.parse(output.stdout.toString()));
-        assert.equal(packages.length, 0);
+        const packages = Object.keys(JSON.parse(output.stdout.toString()));
+        expect(packages.length).toBe(0);
     });
 });

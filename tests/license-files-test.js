@@ -1,25 +1,25 @@
-const assert = require('assert');
-const licenseFiles = require('../lib/license-files');
+import { describe, test, expect } from '@jest/globals';
+import { licenseFiles } from '../lib/license-files.js';
 
-describe('license files detector', function () {
-    it('should export a function', function () {
-        assert.equal(typeof licenseFiles, 'function');
+describe('license files detector', () => {
+    test('should export a function', () => {
+        expect(typeof licenseFiles).toBe('function');
     });
 
-    it('no files', function () {
-        assert.deepEqual(licenseFiles([]), []);
+    test('no files', () => {
+        expect(licenseFiles([])).toEqual([]);
     });
 
-    it('no license files', function () {
-        assert.deepEqual(licenseFiles(['.gitignore', '.travis.yml', 'TODO']), []);
+    test('no license files', () => {
+        expect(licenseFiles(['.gitignore', '.travis.yml', 'TODO'])).toEqual([]);
     });
 
-    it('one license candidate', function () {
-        assert.deepEqual(licenseFiles(['LICENSE', '.gitignore', 'src']), ['LICENSE']);
+    test('one license candidate', () => {
+        expect(licenseFiles(['LICENSE', '.gitignore', 'src'])).toEqual(['LICENSE']);
     });
 
-    it('multiple license candidates detected in the right order', function () {
-        assert.deepEqual(licenseFiles(['COPYING', '.gitignore', 'LICENCE', 'LICENSE', 'src', 'README']), [
+    test('multiple license candidates detected in the right order', () => {
+        expect(licenseFiles(['COPYING', '.gitignore', 'LICENCE', 'LICENSE', 'src', 'README'])).toEqual([
             'LICENSE',
             'LICENCE',
             'COPYING',
@@ -27,19 +27,19 @@ describe('license files detector', function () {
         ]);
     });
 
-    it('extensions have no effect', function () {
-        assert.deepEqual(licenseFiles(['LICENCE.txt', '.gitignore', 'src']), ['LICENCE.txt']);
+    test('extensions have no effect', () => {
+        expect(licenseFiles(['LICENCE.txt', '.gitignore', 'src'])).toEqual(['LICENCE.txt']);
     });
 
-    it('lower/upper case has no effect', function () {
-        assert.deepEqual(licenseFiles(['LiCeNcE', '.gitignore', 'src']), ['LiCeNcE']);
+    test('lower/upper case has no effect', () => {
+        expect(licenseFiles(['LiCeNcE', '.gitignore', 'src'])).toEqual(['LiCeNcE']);
     });
 
-    it('LICENSE-MIT gets matched', function () {
-        assert.deepEqual(licenseFiles(['LICENSE', '.gitignore', 'LICENSE-MIT', 'src']), ['LICENSE', 'LICENSE-MIT']);
+    test('LICENSE-MIT gets matched', () => {
+        expect(licenseFiles(['LICENSE', '.gitignore', 'LICENSE-MIT', 'src'])).toEqual(['LICENSE', 'LICENSE-MIT']);
     });
 
-    it('only the first LICENSE-* file gets matched', function () {
-        assert.deepEqual(licenseFiles(['license-foobar.txt', '.gitignore', 'LICENSE-MIT']), ['license-foobar.txt']);
+    test('only the first LICENSE-* file gets matched', () => {
+        expect(licenseFiles(['license-foobar.txt', '.gitignore', 'LICENSE-MIT'])).toEqual(['license-foobar.txt']);
     });
 });

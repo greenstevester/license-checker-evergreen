@@ -1,44 +1,47 @@
-const assert = require('assert');
-const path = require('path');
-const spawn = require('child_process').spawn;
+import { describe, test, expect } from '@jest/globals';
+import path from 'path';
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-describe('bin/license-checker-evergreen', function () {
-    this.timeout(8000);
-    it('should exit 1 if it finds a single license type (MIT) license due to --failOn MIT', function (done) {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+describe('bin/license-checker-evergreen', () => {
+    test('should exit 1 if it finds a single license type (MIT) license due to --failOn MIT', (done) => {
         spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--failOn', 'MIT'], {
             cwd: path.join(__dirname, '../'),
             stdio: 'ignore',
-        }).on('exit', function (code) {
-            assert.equal(code, 1);
+        }).on('exit', (code) => {
+            expect(code).toBe(1);
             done();
         });
     });
 
-    it('should exit 1 if it finds forbidden licenses license due to --failOn MIT;ISC', function (done) {
+    test('should exit 1 if it finds forbidden licenses license due to --failOn MIT;ISC', (done) => {
         spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--failOn', 'MIT;ISC'], {
             cwd: path.join(__dirname, '../'),
             stdio: 'ignore',
-        }).on('exit', function (code) {
-            assert.equal(code, 1);
+        }).on('exit', (code) => {
+            expect(code).toBe(1);
             done();
         });
     });
 
-    it('should give warning about commas if --failOn MIT,ISC is provided', function (done) {
-        var proc = spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--failOn', 'MIT,ISC'], {
+    test('should give warning about commas if --failOn MIT,ISC is provided', (done) => {
+        const proc = spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--failOn', 'MIT,ISC'], {
             cwd: path.join(__dirname, '../'),
             stdio: 'pipe',
         });
-        var stderr = '';
-        proc.stdout.on('data', function () {});
-        proc.stderr.on('data', function (data) {
+        let stderr = '';
+        proc.stdout.on('data', () => {});
+        proc.stderr.on('data', (data) => {
             stderr += data.toString();
         });
-        proc.on('close', function () {
-            assert.equal(
+        proc.on('close', () => {
+            expect(
                 stderr.indexOf('--failOn argument takes semicolons as delimeters instead of commas') >= 0,
-                true,
-            );
+            ).toBe(true);
             done();
         });
     });

@@ -1,16 +1,19 @@
-const assert = require('assert');
-const path = require('path');
-const spawn = require('child_process').spawn;
+import { describe, test, expect } from '@jest/globals';
+import path from 'path';
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-describe('bin/license-checker-evergreen', function () {
-    this.timeout(8000);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-    it('should exit 0', function (done) {
+describe('bin/license-checker-evergreen', () => {
+    test('should exit 0', (done) => {
         spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen')], {
             cwd: path.join(__dirname, '../'),
             stdio: 'ignore',
         }).on('exit', function (code) {
-            assert.equal(code, 0);
+            expect(code).toBe(0);
             done();
         });
     });

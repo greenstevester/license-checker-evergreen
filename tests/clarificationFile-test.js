@@ -1,11 +1,15 @@
-const assert = require('assert');
-const path = require('path');
-const checker = require('../lib/index');
-const { describe } = require('node:test');
-const spawn = require('child_process').spawn;
+import { describe, test, beforeAll, expect } from '@jest/globals';
+import path from 'path';
+import * as checker from '../lib/index.js';
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 
-describe('clarifications', function() {
+describe('clarifications', () => {
     function parseAndClarify(parsePath, clarificationPath, result) {
         return function(done) {
             checker.init(
@@ -33,17 +37,17 @@ describe('clarifications', function() {
 
     const clarifications_path = './fixtures/clarifications';
 
-    before(parseAndClarify(clarifications_path, '../clarificationExample.json', result));
+    beforeAll(parseAndClarify(clarifications_path, '../clarificationExample.json', result));
 
-    it('should replace existing license', function() {
+    test('should replace existing license', () => {
         const output = result.output['license-checker-evergreen@0.0.0'];
 
-        assert.equal(output.licenseText, "Some mild rephrasing of an MIT license");
-        assert.equal(output.licenses, "MIT");
+        expect(output.licenseText).toBe("Some mild rephrasing of an MIT license");
+        expect(output.licenses).toBe("MIT");
     });
 
 
-    it('should exit 1 if the checksum does not match', function(done) {
+    test('should exit 1 if the checksum does not match', (done) => {
         let data = "";
         let license_checker = spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--start', path.join(__dirname, clarifications_path), '--clarificationsFile', path.join(__dirname, clarifications_path, 'mismatch/clarification.json')], {
             cwd: path.join(__dirname, '../'),
@@ -54,14 +58,14 @@ describe('clarifications', function() {
         });
 
         license_checker.on('exit', function(code) {
-            assert.equal(code, 1);
-            assert.equal(data.includes("checksum mismatch"), true)
+            expect(code).toBe(1);
+            expect(data.includes("checksum mismatch")).toBe(true);
             done();
         });
     });
 
 
-    it('should succeed if no checksum is specified', function(done) {
+    test('should succeed if no checksum is specified', (done) => {
         let data = "";
 
         let license_checker = spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--start', path.join(__dirname, clarifications_path), '--clarificationsFile', path.join(__dirname, clarifications_path, 'example/noChecksum.json')], {
@@ -73,14 +77,14 @@ describe('clarifications', function() {
         })
 
         license_checker.on('exit', function(code) {
-            assert.equal(code, 0);
-            assert.equal(data.includes("MIT"), true)
-            assert.equal(data.includes("MY_IP"), true)
+            expect(code).toBe(0);
+            expect(data.includes("MIT")).toBe(true);
+            expect(data.includes("MY_IP")).toBe(true);
             done();
         });
     })
 
-    it('should snip the embedded license out of the README', function(done) {
+    test('should snip the embedded license out of the README', (done) => {
         let data = "";
 
         let license_checker = spawn(
@@ -99,18 +103,18 @@ describe('clarifications', function() {
         })
 
         license_checker.on('exit', function(code) {
-            assert.equal(code, 0);
-            assert.equal(data.includes("README"), true)
-            assert.equal(data.includes("text text text describing the project"), false)
-            assert.equal(data.includes("# LICENSE"), true)
-            assert.equal(data.includes("Standard MIT license"), true)
-            assert.equal(data.includes("# And one more thing..."), false)
-            assert.equal(data.includes("More text AFTER the license because the real world is difficult :("), false)
+            expect(code).toBe(0);
+            expect(data.includes("README")).toBe(true);
+            expect(data.includes("text text text describing the project")).toBe(false);
+            expect(data.includes("# LICENSE")).toBe(true);
+            expect(data.includes("Standard MIT license")).toBe(true);
+            expect(data.includes("# And one more thing...")).toBe(false);
+            expect(data.includes("More text AFTER the license because the real world is difficult :(")).toBe(false);
             done();
         });
     })
 
-    it('should snip the embedded license in the README to the end.', function(done) {
+    test('should snip the embedded license in the README to the end.', (done) => {
         let data = "";
 
         let license_checker = spawn(
@@ -129,13 +133,13 @@ describe('clarifications', function() {
         })
 
         license_checker.on('exit', function(code) {
-            assert.equal(code, 0);
-            assert.equal(data.includes("README"), true)
-            assert.equal(data.includes("text text text describing the project"), false)
-            assert.equal(data.includes("# LICENSE"), true)
-            assert.equal(data.includes("Standard MIT license"), true)
-            assert.equal(data.includes("# And one more thing..."), true)
-            assert.equal(data.includes("More text AFTER the license because the real world is difficult :("), true)
+            expect(code).toBe(0);
+            expect(data.includes("README")).toBe(true);
+            expect(data.includes("text text text describing the project")).toBe(false);
+            expect(data.includes("# LICENSE")).toBe(true);
+            expect(data.includes("Standard MIT license")).toBe(true);
+            expect(data.includes("# And one more thing...")).toBe(true);
+            expect(data.includes("More text AFTER the license because the real world is difficult :(")).toBe(true);
             done();
         });
     })
