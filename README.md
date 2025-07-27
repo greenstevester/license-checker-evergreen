@@ -1,85 +1,60 @@
-<img src="https://img.shields.io/npm/l/license-checker-rseidelsohn" />
+# License Checker Evergreen
 
-[![NPM](https://nodei.co/npm/license-checker-rseidelsohn.png)](https://nodei.co/npm/license-checker-rseidelsohn/)
+> A feature-enhanced, actively maintained fork of the popular license-checker tool for extracting and analyzing NPM package licenses.
 
-# NPM License Checker
+<img src="https://img.shields.io/npm/l/license-checker-evergreen" />
+
+[![NPM](https://nodei.co/npm/license-checker-evergreen.png)](https://nodei.co/npm/license-checker-evergreen/)
+
+**Key improvements over the original:**
+- ✅ Active maintenance and regular updates
+- ✅ Enhanced filtering and exclusion options  
+- ✅ Modern Node.js support (18+)
+- ✅ TypeScript support and improved reliability
+- ✅ Jest testing framework with comprehensive coverage
+
+## Quick Start
+
+```shell
+# Install globally
+npm install -g license-checker-evergreen
+
+# Scan your project
+cd your-project
+license-checker-evergreen
+
+# Export to JSON
+license-checker-evergreen --json > licenses.json
+
+# Only show unknown licenses
+license-checker-evergreen --onlyunknown
+```
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Basic scan | `license-checker-evergreen` |
+| Export to JSON | `license-checker-evergreen --json > licenses.json` |
+| Export to CSV | `license-checker-evergreen --csv --out licenses.csv` |
+| Only show unknowns | `license-checker-evergreen --onlyunknown` |
+| Exclude specific licenses | `license-checker-evergreen --excludeLicenses 'MIT,BSD'` |
+| Show only direct deps | `license-checker-evergreen --direct` |
 
 ## Table of Contents
 
--   [NPM License Checker](#npm-license-checker)
-    -   [A message from the maintainer](#a-message-from-the-maintainer)
-    -   [Table of Contents](#table-of-contents)
-    -   [Introduction](#introduction)
-    -   [Changes](#changes)
-        -   [Version 4.4.1](#Version-4-4-1)
-        -   [Version 4.4.0](#Version-4-4-0)
-        -   [Version 4.3.1](#Version-4-3-1)
-        -   [Version 4.3.0](#Version-4-3-0)
-        -   [Version 4.2.11](#Version-4-2-11)
-        -   [Version 4.2.10](#Version-4-2-10)
-        -   [Version 4.2.9](#Version-4-2-9)
-        -   [Version 4.2.8](#Version-4-2-8)
-        -   [Version 4.2.7](#Version-4-2-7)
-        -   [Version 4.2.6](#Version-4-2-6)
-        -   [Version 4.2.5](#Version-4-2-5)
-        -   [Version 4.2.4](#Version-4-2-4)
-        -   [Version 4.2.3](#Version-4-2-3)
-        -   [Version 4.2.2](#Version-4-2-2)
-        -   [Version 4.2.1](#Version-4-2-1)
-        -   [Version 4.2.0](#Version-4-2-0)
-        -   [Version 4.1.1](#Version-4-1-1)
-        -   [Version 4.1.0](#Version-4-1-0)
-        -   [Version 4.0.1](#Version-4-0-1)
-        -   [Version 4.0.0](#Version-4-0-0)
-        -   [Version 3.3.0](#Version-3-3-0)
-        -   [Version 3.2.1](#Version-3-2-1)
-        -   [Version 3.2.0](#Version-3-2-0)
-        -   [Version 3.1.0](#Version-3-1-0)
-        -   [Version 3.0.1](#Version-3-0-1)
-        -   [Version 3.0.0](#Version-3-0-0)
-    -   [All options in alphabetical order:](#all-options-in-alphabetical-order)
-    -   [Exclusions](#exclusions)
-    -   [Examples](#examples)
-    -   [Clarifications](#clarifications)
-    -   [Custom format](#custom-format)
-    -   [Requiring](#requiring)
-    -   [Debugging](#debugging)
-    -   [How Licenses are Found](#how-licenses-are-found)
-    -   [Related information sources on the internet](#related-information-sources-on-the-internet)
-`version` can either be an exact version or a semver range, multiple ranges are supported for a single package, for example:
+- [Installation & Usage](#quick-start)
+- [Recent Changes](#changes)
+- [Command Options](#all-options-in-alphabetical-order)
+- [Examples](#examples)
+- [Advanced Features](#clarifications)
+- [Programmatic Usage](#requiring)
+- [Troubleshooting](#debugging)
+- [Maintainers](#maintainers)
 
-## <a id="a-message-from-the-maintainer"></a>A message from the maintainer
+## Example Output
 
-Folks, I love and honor open software (the latter not as much as I should), and therefore I am a little ashamed of the lack of regular care I give to this project. My family (two still young kids and a wife working full-time just as me) plus my hobbies (reading - currently I read the great book "Coders at work" and plan to work my way through "Structure and interpretation of computer programs", a book many great and experienced coders say is kind of a must-read - and homebrewing) take their toll. And then there's the time I need for procrastination as well. You get the picture.
-I took over this project from another guy who initially built it, because he did not respond to any PRs or emails for years and I needed a feature that was not available. And I thought there are enough people out there that should profit from what I do, so I forked the `license-checker` under the now pretty clumpsy name `license-checker-rseidelsohn` - here we are.
-I am always happy when I see PR's being created by other coders out there or if someone writes me an email - no matter what it might be about. Just the feeling that this tool and what I do with it does not only live in the void is already amazing to me.
-This being said, I am really looking for more people that want to contribute, so feel free if you want to be added as maintainers.
-But also, I am now working for Springer Nature since mid of february, and this awesome employer (I can only and absolutely recommend working for Springer Nature, and I get no advantages whatsoever through this message - they don't even know about it!) gives their devs a 10% friday every 2nd friday, where the devs are not disturbed by any meetings and are free to work on whatever they wish (preferrably anything that helps improving their skills and/or the code base), and I plan to take this open source project and maintain it during that time. So I would like to give you hope that the updates will come more frequently and in better quality.
-
-Berlin, 1st of April 2023.
-
-## <a id="introduction"></a>Introduction
-
-_This is a fork of davglass' [license-checker v.25.0.1](https://github.com/davglass/license-checker/releases/tag/v25.0.1) - Since that code doesn't seem to be updated regularly, I created this fork for being able to adding new features and fixing bugs._
-
-_I changed the original `exclude` argument to `excludeLicenses` in order to prevent confusion and better align it with the `excludePackages` argument. Also, the argument `includeLicenses` has been added for listing only packages that include the licenses listed._
-
-**Please notice:** Version 1.2.2 is the last version working fine on node v12. From Version 2 on, you will need at least Node v14 to run this NPM license checker. Thanks to @daniel-schulz for pointing this out!
-
-Ever needed to see all the license info for a module and its dependencies?
-
-It's this easy:
-
-```shell
-npm install -g license-checker-rseidelsohn
-
-mkdir foo
-cd foo
-npm install yui-lint
-license-checker-rseidelsohn
-```
-
-You should see something like this:
+When you run `license-checker-evergreen` in a project directory, you'll see output like this:
 
 ```ascii
 ├─ cli@0.4.3
@@ -88,37 +63,14 @@ You should see something like this:
 ├─ glob@3.1.14
 │  ├─ repository: https://github.com/isaacs/node-glob
 │  └─ licenses: UNKNOWN
-├─ graceful-fs@1.1.14
-│  ├─ repository: https://github.com/isaacs/node-graceful-fs
-│  └─ licenses: UNKNOWN
-├─ inherits@1.0.0
-│  ├─ repository: https://github.com/isaacs/inherits
-│  └─ licenses: UNKNOWN
 ├─ jshint@0.9.1
 │  └─ licenses: MIT
-├─ lru-cache@1.0.6
-│  ├─ repository: https://github.com/isaacs/node-lru-cache
-│  └─ licenses: MIT
-├─ lru-cache@2.0.4
-│  ├─ repository: https://github.com/isaacs/node-lru-cache
-│  └─ licenses: MIT
-├─ minimatch@0.0.5
-│  ├─ repository: https://github.com/isaacs/minimatch
-│  └─ licenses: MIT
-├─ minimatch@0.2.9
-│  ├─ repository: https://github.com/isaacs/minimatch
-│  └─ licenses: MIT
-├─ sigmund@1.0.0
-│  ├─ repository: https://github.com/isaacs/sigmund
-│  └─ licenses: UNKNOWN
 └─ yui-lint@0.1.1
    ├─ licenses: BSD
    └─ repository: http://github.com/yui/yui-lint
 ```
 
-An asterisk next to a license name means that it was deduced from
-an other file than package.json (README, LICENSE, COPYING, ...)
-You could see something like this:
+**Note:** An asterisk (`*`) next to a license name means it was detected from a LICENSE file rather than package.json:
 
 ```ascii
 └─ debug@2.0.0
@@ -126,142 +78,24 @@ You could see something like this:
    └─ licenses: MIT*
 ```
 
-## <a id="changes"></a>Changes (see a more detailed and always up-to-date list [here](https://github.com/RSeidelsohn/license-checker-rseidelsohn/releases))
+## <a id="changes"></a>Recent Changes
 
-### <a id="Version-4-4-2"></a>Version 4.4.2
+### Version 5.0.0 (Current)
+- **TypeScript Migration**: Migrated entire codebase from JavaScript to TypeScript for improved reliability
+- **Jest Testing**: Replaced jenkins-mocha with Jest testing framework for modern test suite
+- **ES Module Support**: Enhanced ES module compatibility with proper TypeScript compilation
+- **Build System**: Added comprehensive TypeScript build pipeline with type definitions
 
-fix: Fix missing file name ending (sorry for these)
+### Version 4.4.0
+- feat: allow specifying ranges in clarifications file and add strict usage checking
+- feat: Add new option `clarificationsMatchAll`
+- chore: only include necessary files in package
 
-### <a id="Version-4-4-1"></a>Version 4.4.1
+### Version 4.3.0
+- feat: Add numeric "--depth" option that overrides the ambiguous "--direct" option
+- misc: Move from `require` to `import` in all the files
 
-fix: Fix errors that broke the whole new version (sorry for these)
-
-### <a id="Version-4-4-0"></a>Version 4.4.0
-
-chore(deps-dev): bump braces from 3.0.2 to 3.0.3 by @dependabot in https://github.com/RSeidelsohn/license-checker-rseidelsohn/pull/114
-chore: only include necessary files in package by @ol-teuto in https://github.com/RSeidelsohn/license-checker-rseidelsohn/pull/106
-feat: allow specifying ranges in clarifications file and add strict usage checking for them by @ol-teuto in https://github.com/RSeidelsohn/license-checker-rseidelsohn/pull/110
-feat: Add new option `clarificationsMatchAll` by @ol-teuto
-
-### <a id="Version-4-3-1"></a>Version 4.3.1
-
-misc: Move from `require` to `import` in all the files
-misc: Update indexHelpers.js by @ArsArmandi in https://github.com/RSeidelsohn/license-checker-rseidelsohn/pull/108
-
-### <a id="Version-4-3-0"></a>Version 4.3.0
-
-feat: Add numeric "--depth" option that overrides the ambiguous "--direct" option
-fix: Fix local anchors in the README
-
-### <a id="Version-4-2-11"></a>Version 4.2.11
-
-misc: Rename a variable and use correct value for exact comparison
-fix: Fix ts definition issue
-update: Merge Dependabot update of @babel/code-frame
-
-### <a id="Version-4-2-10"></a>Version 4.2.10
-
-fix: Fixes broken `--direct` attribute
-
-### <a id="Version-4-2-9"></a>Version 4.2.9
-
-fix: Fixes broken refactoring from version 4.2.7, closes #94
-
-### <a id="Version-4-2-8"></a>Version 4.2.8
-
-fix: methods from exports instead of global this (@chohner), closes #95
-
-### <a id="Version-4-2-7"></a>Version 4.2.7
-
-chore(deps-dev): bump word-wrap from 1.2.3 to 1.2.4
-chore(deps): bump semver from 7.3.5 to 7.5.2
-
-fix: Consider out option also when passed to programmatic interface, fixes #42
-
-### <a id="Version-4-2-6"></a>Version 4.2.6
-
-fix: The bug under Windows, where @scope packages had been ignored, should be fixed now
-
-### <a id="Version-4-2-5"></a>Version 4.2.5
-
-fix: Provide safe defaults for desctructured argument object
-
-### <a id="Version-4-2-4"></a>Version 4.2.4
-
-Improve the detection of URLs as licenses which are no licenses at all. Previously, when no license info could be found elsewhere, any URL in the README was taken as a custom license, which is not a very bulletproof method. Now, I restrict this method which was probably meant as a fallback solution to only being considered if the README contains at least the word "license" in some form (or notation). Not good, but better than before.
-
-### <a id="Version-4-2-3"></a>Version 4.2.3
-
-Fix `--relativeModulePath` not working in combination with `--start`.
-
-### <a id="Version-4-2-2"></a>Version 4.2.2
-
-Fix a bug that produced incorrect relative license file paths when using `--relativeLicensePath` together with `--files` and `--out`.
-
-### <a id="Version-4-2-1"></a>Version 4.2.1
-
-Refactor many more parts of the still old code, extracting more functionality into separate functions and files and providing more descriptive argument, variable and function names.
-Also, add a new test and improve the algorithm for finding licenses that are URLs - this previously used to catch image URLs thet quite often appear in the README file as licenses although license information was already correctly provided in the package.json. This part of the code is still subject to improvements, but for now it works better than before.
-Also, some minor bugs in the code have been fixed.
-All in all I did a lot of refactoring for helping me with future improvements (bug fixes and new features), as the code now is easier to understand than before (and still is a pretty big mess to me).
-
-### <a id="Version-4-2-0"></a>Version 4.2.0
-
-Add the option `--clarificationsFile [filepath]` for a A file that describe the license clarifications for each package, see clarificationExample.json, any field available to the customFormat option can be clarified. The clarifications file can also be used to specify a subregion of a package's license file (instead reading the entire file).
-
-### <a id="Version-4-1-1"></a>Version 4.1.1
-
-Fix list format when outputting markdown format
-
-### <a id="Version-4-1-0"></a>Version 4.1.0
-
-Change config that required the major npm version to be 8. This led to code not compiling for some users and was done for no good reason. Now it is required to be >= 8.
-
-### <a id="Version-4-0-1"></a>Version 4.0.1
-
-Fix some typos in the README file.
-
-### <a id="Version-4-0-0"></a>Version 4.0.0
-
-Due to [end of service for NodeJS' security updates](https://endoflife.date/nodejs), I decided to from now on use a current LTS-version, which is NodeJS v18.
-
-This of course doesn't necessarily mean that older Node versions will not be able to run this license-checker-rseidelsohn, but one day this will mosrt likely happen, I guess.
-
-Should there be any need for security updates or new features supported by older NodeJS versions, [please tell me so] (mailto:rseidelsohn@gmail.com?subject=Support%20request%20for%20old%20license-checker-rseidelsohn%20-%20version). I can not promise that I will take the time to fulfill the request, but if you do not ask me, I certainly won't.
-
-This being said, the only change with 4.0.0 is a switch in the `.nvmrc` file of the project (for developers working on this module only) from NodeJS v14 to NodeJS v18 - which again is a LTS version, a version with long time support - and some minor updates to the README file, adding stuff that was missing in the past due to a lack of regular maintenance from my side.
-
-That then being said, I really want to invite you to add pull requests to this project. If you feel like, please ask me to give you higher-level access to this repo. I am not keen on mainaining it on my own - I just took it over in order to add my own feature request after the original author stopped finding the time to further support it. Now, I am not using this module for work any more (which might change in the future), but I see my responsibility to at least taking care of pull requests and releasing them, and from time to time working on feature requests as a kind of kata for me.
-
-### <a id="Version-3-3-0"></a>Version 3.3.0
-
-Allow combining the options `--excludePackages` and `--excludePackagesStartingWith`
-
-### <a id="Version-3-2-1"></a>Version 3.2.1
-
-Bugfix for `--excludePackagesStartingWith`
-
-### <a id="Version-3-2-0"></a>Version 3.2.0
-
-Add flag `--excludePackagesStartingWith [list]` and add detection of `Hippocratic License 2.1`
-
-### <a id="Version-3-1-0"></a>Version 3.1.0
-
-Add new option `--limitAttributes`. Example usage: `node bin/license-checker-rseidelsohn --limitAttributes publisher,email` will only list the `publisher` and `email` attributes for every dependency.
-
-### <a id="Version-3-0-1"></a>Version 3.0.1
-
-Fix the `--direct` option.
-
-### <a id="Version-3-0-0"></a>Version 3.0.0
-
-From now on, when you give the `--files` option, this tool outputs the path to the _copied_ license files rather than to
-the originals. When the `relativeLicensePath` option is given, this path will either be relative to the working
-directory or - if also the `out` option is given - relative to the `out` path.
-
-When using the `--out` option, you will not see output in the console, as the output goes into the file specified by
-`--out`. When using the `--files` option without `--out` option, you will now get console output, which was not the case
-before.
+**[View complete changelog →](https://github.com/greenstevester/license-checker-evergreen/releases)**
 
 ## <a id="all_options_in_alphabetical_order"></a>All options in alphabetical order
 
@@ -311,14 +145,14 @@ support some license strings that are not SPDX identifiers.
 ## <a id="examples"></a>Examples
 
 ```
-license-checker-rseidelsohn --json > /path/to/licenses.json
-license-checker-rseidelsohn --csv --out /path/to/licenses.csv
-license-checker-rseidelsohn --unknown
-license-checker-rseidelsohn --customPath customFormatExample.json
-license-checker-rseidelsohn --excludeLicenses 'MIT, MIT OR X11, BSD, ISC'
-license-checker-rseidelsohn --includePackages 'react@16.3.0;react-dom@16.3.0;lodash@4.3.1'
-license-checker-rseidelsohn --excludePackages 'internal-1;internal-2'
-license-checker-rseidelsohn --onlyunknown
+license-checker-evergreen --json > /path/to/licenses.json
+license-checker-evergreen --csv --out /path/to/licenses.csv
+license-checker-evergreen --unknown
+license-checker-evergreen --customPath customFormatExample.json
+license-checker-evergreen --excludeLicenses 'MIT, MIT OR X11, BSD, ISC'
+license-checker-evergreen --includePackages 'react@16.3.0;react-dom@16.3.0;lodash@4.3.1'
+license-checker-evergreen --excludePackages 'internal-1;internal-2'
+license-checker-evergreen --onlyunknown
 ```
 
 ## <a id="clarifications"></a>Clarifications
@@ -394,7 +228,7 @@ Note that outputting the license text is not recommended with Markdown formattin
 ## <a id="requiring"></a>Requiring
 
 ```js
-var checker = require('license-checker-rseidelsohn');
+var checker = require('license-checker-evergreen');
 
 checker.init(
     {
@@ -416,13 +250,13 @@ checker.init(
 
 license-checker uses [debug](https://www.npmjs.com/package/debug) for internal logging. There’s two internal markers:
 
--   `license-checker-rseidelsohn:error` for errors
--   `license-checker-rseidelsohn:log` for non-errors
+-   `license-checker-evergreen:error` for errors
+-   `license-checker-evergreen:log` for non-errors
 
 Set the `DEBUG` environment variable to one of these to see debug output:
 
 ```shell
-$ export DEBUG=license-checker-rseidelsohn*; license-checker-rseidelsohn
+$ export DEBUG=license-checker-evergreen*; license-checker-evergreen
 scanning ./yui-lint
 ├─ cli@0.4.3
 │  ├─ repository: http://github.com/chriso/cli
@@ -440,3 +274,31 @@ If one of the those files are found (in that order) we will attempt to parse the
 
 -   [ChooseALicense.com](https://choosealicense.com/) - aims at helping you in choosing an open source license for your project
 -   [TLDRLegal.com](https://tldrlegal.com/) - aims at exlaining complicated legal details of software licenses in easy to understand english
+
+---
+
+## <a id="maintainers"></a>Maintainers
+
+### Current Maintainer
+
+**greenstevester** took over the project and renamed it to `license-checker-evergreen` - the project needed some TLC and that's what it got.
+
+- 🚀 **Active Development**: Migrating to TypeScript, modern testing with Jest
+- 🔧 **Regular Updates**: Bug fixes, security updates, and feature enhancements
+- 📧 **Contact**: Open to contributions and feedback via GitHub issues
+
+### Project History
+
+This is a fork of davglass' [license-checker v.25.0.1](https://github.com/davglass/license-checker/releases/tag/v25.0.1). The original project wasn't being updated regularly, so this fork was created to add new features and fix bugs.
+
+**Previous maintainer: rseidelsohn** - Thanks for the foundation and years of maintenance! The original maintainer message is preserved in the project history.
+
+### Contributing
+
+We welcome contributions! Feel free to:
+- 🐛 Report bugs via GitHub issues
+- 💡 Suggest new features 
+- 🔧 Submit pull requests
+- 📚 Improve documentation
+
+**Requirements**: Node.js >=18, npm >=8

@@ -5,27 +5,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Essential Commands
 
 - **Install dependencies**: `npm install`
-- **Run tests**: `npm test` (runs eslint --fix, jenkins-mocha tests, and nyc coverage)
-- **Run single test**: `npx jenkins-mocha tests/[test-name].js`
+- **Build project**: `npm run build` (compiles TypeScript to dist/ directory)
+- **Run tests**: `npm test` (runs Jest tests)
+- **Run tests with coverage**: `npm run test:coverage`
+- **Watch tests**: `npm run test:watch`
 - **Lint code**: `npm run lint` or `npm run lint:fix`
 - **Format code**: `npm run format` (prettier + eslint fix) or `npm run format:dry` (check only)
-- **Check formatting**: `npm run prettier` 
-- **Coverage check**: `npm run posttest` (automatically runs after test)
-- **Build CLI**: Binary is pre-built at `bin/license-checker-rseidelsohn.js`
+- **Check formatting**: `npm run prettier`
+- **CLI binary**: Located at `dist/bin/license-checker-evergreen.js` after build
 
 ## Architecture
 
-This is a Node.js CLI tool (`license-checker-rseidelsohn`) for extracting and analyzing NPM package licenses. It's a feature-enhanced fork of the original license-checker that uses ES modules.
+This is a Node.js CLI tool (`license-checker-evergreen`) for extracting and analyzing NPM package licenses. It's a feature-enhanced fork of the original license-checker that uses ES modules.
 
 ### Key Components
 
-- **bin/license-checker-rseidelsohn.js**: CLI entry point that parses arguments via `args.js` and delegates to `index.js`
-- **lib/index.js**: Core license scanning engine with `recursivelyCollectAllDependencies` function and `init()` main entry point
-- **lib/args.js**: Command-line argument parsing using `nopt` with `knownOptions` definitions
-- **lib/licenseCheckerHelpers.js**: Output formatting utilities (JSON, CSV, Markdown, plain vertical)
-- **lib/getLicenseTitle.js**: License detection and normalization using SPDX validation
-- **lib/license-files.js**: License file discovery patterns and known license file names
-- **lib/indexHelpers.js**: Utility functions for package data extraction and path processing
+- **src/bin/license-checker-evergreen.ts**: CLI entry point that parses arguments via `args.ts` and delegates to `index.ts`
+- **src/lib/index.ts**: Core license scanning engine with `recursivelyCollectAllDependencies` function and `init()` main entry point
+- **src/lib/args.ts**: Command-line argument parsing using `nopt` with `knownOptions` definitions
+- **src/lib/licenseCheckerHelpers.ts**: Output formatting utilities (JSON, CSV, Markdown, plain vertical)
+- **src/lib/getLicenseTitle.ts**: License detection and normalization using SPDX validation
+- **src/lib/license-files.ts**: License file discovery patterns and known license file names
+- **src/lib/indexHelpers.ts**: Utility functions for package data extraction and path processing
 
 ### Core Workflow
 
@@ -39,15 +40,15 @@ The main process (`init` → `recursivelyCollectAllDependencies`) works as follo
 
 ### Development Setup
 
-- **ES Modules**: Uses `"type": "module"` in package.json, all imports use `.js` extensions
-- **ESLint**: `.eslintrc.json` with tab indentation, Prettier integration, and ES2020 support
-- **TypeScript**: `tsconfig.json` for type definitions (`.d.ts` files), but main code is JavaScript
-- **Coverage**: NYC with 80% minimum thresholds for lines/statements/functions/branches
+- **TypeScript**: Full TypeScript codebase in `src/` directory, compiles to `dist/` with type definitions
+- **ES Modules**: Uses `"type": "module"` in package.json, imports in TypeScript use `.js` extensions for compatibility
+- **Build Process**: `npm run build` compiles TypeScript using `tsc`, output goes to `dist/` directory
+- **ESLint**: `.eslintrc.json` with TypeScript support, tab indentation, and Prettier integration
 - **Node.js**: Requires Node >=18, npm >=8 (enforced via `engine-strict`)
 
 ### Testing Strategy
 
-- **Test Runner**: jenkins-mocha with fixtures in `/tests/fixtures/`
-- **Test Structure**: Main tests in `test.js`, specific feature tests in separate files
-- **Fixtures**: Mock package.json files and license scenarios for different test cases
-- **Coverage**: Automatic coverage reporting with NYC, fails if below 80% threshold
+- **Test Runner**: Jest with Node.js environment via `jest.config.cjs`
+- **Test Structure**: Tests in `/tests/` directory, written in JavaScript
+- **Test Commands**: `npm test` (basic), `npm run test:coverage` (with coverage), `npm run test:watch` (watch mode)
+- **Fixtures**: Mock package.json files and license scenarios in test fixtures

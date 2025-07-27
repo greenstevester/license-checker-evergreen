@@ -2,7 +2,7 @@ const assert = require('assert');
 const path = require('path');
 const spawn = require('child_process').spawnSync;
 
-describe('bin/license-checker-rseidelsohn', function () {
+describe('bin/license-checker-evergreen', function () {
     this.timeout(8000);
 
     it('should restrict the output to the provided packages', function () {
@@ -10,7 +10,7 @@ describe('bin/license-checker-rseidelsohn', function () {
         var output = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-rseidelsohn'),
+                path.join(__dirname, '../bin/license-checker-evergreen'),
                 '--json',
                 '--includePackages',
                 restrictedPackages.join(';'),
@@ -29,7 +29,7 @@ describe('bin/license-checker-rseidelsohn', function () {
         var output = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-rseidelsohn'),
+                path.join(__dirname, '../bin/license-checker-evergreen'),
                 '--json',
                 '--excludePackages',
                 excludedPackages.join(';'),
@@ -50,7 +50,7 @@ describe('bin/license-checker-rseidelsohn', function () {
         const output = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-rseidelsohn'),
+                path.join(__dirname, '../bin/license-checker-evergreen'),
                 '--json',
                 '--excludePackagesStartingWith',
                 excludedPackages.join(';'),
@@ -84,7 +84,7 @@ describe('bin/license-checker-rseidelsohn', function () {
         const output = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-rseidelsohn'),
+                path.join(__dirname, '../bin/license-checker-evergreen'),
                 '--json',
                 '--excludePackages',
                 excludedNames.join(';'),
@@ -122,7 +122,7 @@ describe('bin/license-checker-rseidelsohn', function () {
     it('should exclude private packages from the output', function () {
         var output = spawn(
             'node',
-            [path.join(__dirname, '../bin/license-checker-rseidelsohn'), '--json', '--excludePrivatePackages'],
+            [path.join(__dirname, '../bin/license-checker-evergreen'), '--json', '--excludePrivatePackages'],
             {
                 cwd: path.join(__dirname, 'fixtures', 'privateModule'),
             },
