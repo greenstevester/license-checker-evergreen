@@ -29,9 +29,7 @@ const UNLICENSED = /UNLICENSED/i;
 const getLicenseTitle = (str = 'undefined') => {
     if (typeof str !== 'string') {
         throw new Error(
-            `Wrong type for parameter "str" ("${str}"): Must be of type string`,
-            'lib/getLicenseTitle.js',
-            24,
+            `Wrong type for parameter "str" ("${str}"): Must be of type string`
         );
     }
 
@@ -103,7 +101,7 @@ const getLicenseTitle = (str = 'undefined') => {
 
     if (APACHE_VERSION.test(str)) {
         match = APACHE_VERSION.exec(str);
-        version = match[1];
+        version = match?.[1] || '';
 
         if (version.length === 1) {
             version = version + '.0';
@@ -118,7 +116,7 @@ const getLicenseTitle = (str = 'undefined') => {
 
     if (APACHE_VERSION_SHORT.test(str)) {
         match = APACHE_VERSION_SHORT.exec(str);
-        version = match[1];
+        version = match?.[1] || '';
 
         if (version.length === 1) {
             version = version + '.0';
@@ -133,7 +131,7 @@ const getLicenseTitle = (str = 'undefined') => {
 
     if (GPL.test(str)) {
         match = GPL.exec(str);
-        version = match[1];
+        version = match?.[1] || '';
 
         /*istanbul ignore else*/
         if (version.length === 1) {
@@ -145,7 +143,7 @@ const getLicenseTitle = (str = 'undefined') => {
 
     if (LGPL.test(str)) {
         match = LGPL.exec(str);
-        version = match[1];
+        version = match?.[1] || '';
 
         if (version.length === 1) {
             version = version + '.0';

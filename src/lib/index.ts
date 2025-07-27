@@ -6,7 +6,24 @@ http://yuilibrary.com/license/
 
 const LICENSE_TITLE_UNKNOWN = 'UNKNOWN';
 const LICENSE_TITLE_UNLICENSED = 'UNLICENSED';
-const INITIAL_MODULE_INFO = {
+
+interface ModuleInfo {
+	licenses: string | string[];
+	private?: boolean;
+	repository?: string;
+	url?: string;
+	publisher?: string;
+	email?: string;
+	dependencyPath?: string;
+	path?: string;
+	licenseFile?: string;
+	licenseText?: string;
+	copyright?: string;
+	noticeFile?: string;
+	[key: string]: any;
+}
+
+const INITIAL_MODULE_INFO: ModuleInfo = {
 	licenses: LICENSE_TITLE_UNKNOWN,
 };
 
@@ -15,8 +32,15 @@ import debug from 'debug';
 import fs from 'node:fs';
 import { mkdirp } from 'mkdirp';
 import path from 'node:path';
+
+
+// @ts-ignore
 import readInstalledPackages from 'read-installed-packages';
+
+// @ts-ignore
 import spdxCorrect from 'spdx-correct';
+
+// @ts-ignore
 import spdxSatisfies from 'spdx-satisfies';
 import treeify from 'treeify';
 import { createHash } from 'crypto';
@@ -36,18 +60,18 @@ debugLog.log = console.log.bind(console);
 
 // This function calls itself recursively. On the first iteration, it collects the data of the main program, during the
 // second iteration, it collects the data from all direct dependencies, then it collects their dependencies and so on.
-const recursivelyCollectAllDependencies = (options) => {
+const recursivelyCollectAllDependencies = (options: any) => {
 	const { color: colorize, deps: currentExtendedPackageJson, unknown } = options;
-	const moduleInfo = { ...INITIAL_MODULE_INFO };
+	const moduleInfo: ModuleInfo = { ...INITIAL_MODULE_INFO };
 	const currentPackageNameAndVersion = `${currentExtendedPackageJson.name}@${currentExtendedPackageJson.version}`;
 
 	let { data } = options;
-	let licenseFilesInCurrentModuleDirectory = [];
+	let licenseFilesInCurrentModuleDirectory: string[] = [];
 	let licenseData;
 	let licenseFile;
-	let noticeFiles = [];
+	let noticeFiles: string[] = [];
 	const clarification = options.clarifications[currentExtendedPackageJson.name]?.find(
-		(clarification) =>
+		(clarification: any) =>
 			currentExtendedPackageJson.version === clarification.semverRange ||
 			semver.satisfies(currentExtendedPackageJson.version, clarification.semverRange),
 	);
@@ -90,7 +114,7 @@ const recursivelyCollectAllDependencies = (options) => {
 	if (mustInclude('url')) {
 		// TODO: Figure out where the check for currentExtendedPackageJson.url.web comes from. It's in the original license-checker,
 		//       but I can't find any documentation on it.
-		let url = helpers.getFirstNotUndefinedOrUndefined(clarification?.url, currentExtendedPackageJson?.url?.web);
+		let url = helpers.getFirstNotUndefinedOrUndefined(clarification?.url, (currentExtendedPackageJson as any)?.url?.web);
 		/*istanbul ignore next*/
 		if (url) {
 			moduleInfo.url = url;
@@ -136,15 +160,15 @@ const recursivelyCollectAllDependencies = (options) => {
 	// Try to get the license information from the clarification file or from the package.json file:
 	licenseData = helpers.getFirstNotUndefinedOrUndefined(
 		clarification?.licenses,
-		currentExtendedPackageJson.license,
-		currentExtendedPackageJson.licenses,
+		(currentExtendedPackageJson as any).license,
+		(currentExtendedPackageJson as any).licenses,
 	);
 
 	if (licenseData) {
 		// License information has been collected from either the clarification file or from the package.json file
 		/*istanbul ignore else*/
 		if (Array.isArray(licenseData) && licenseData.length > 0) {
-			moduleInfo.licenses = licenseData.map((moduleLicense) => {
+			moduleInfo.licenses = licenseData.map((moduleLicense: any) => {
 				const moduleLicenseTypeOrName = helpers.getFirstNotUndefinedOrUndefined(
 					moduleLicense.type,
 					moduleLicense.name,
@@ -158,17 +182,17 @@ const recursivelyCollectAllDependencies = (options) => {
 					return moduleLicense;
 				}
 			});
-		} else if (typeof helpers.getFirstNotUndefinedOrUndefined(licenseData.type, licenseData.name) === 'string') {
+		} else if (typeof helpers.getFirstNotUndefinedOrUndefined((licenseData as any).type, (licenseData as any).name) === 'string') {
 			moduleInfo.licenses = getLicenseTitle(
-				helpers.getFirstNotUndefinedOrUndefined(licenseData.type, licenseData.name),
+				helpers.getFirstNotUndefinedOrUndefined((licenseData as any).type, (licenseData as any).name) as string,
 			);
 		} else if (typeof licenseData === 'string') {
-			moduleInfo.licenses = getLicenseTitle(licenseData);
+			moduleInfo.licenses = getLicenseTitle(licenseData) || LICENSE_TITLE_UNKNOWN;
 		}
-	} else if (getLicenseTitle(currentExtendedPackageJson.readme)) {
+	} else if (getLicenseTitle((currentExtendedPackageJson as any).readme)) {
 		// Try to get the license information from the README file if neither the clarification file nor the package.json
 		// file contained any license information:
-		moduleInfo.licenses = getLicenseTitle(currentExtendedPackageJson.readme);
+		moduleInfo.licenses = getLicenseTitle((currentExtendedPackageJson as any).readme) || LICENSE_TITLE_UNKNOWN;
 	}
 
 	if (Array.isArray(moduleInfo.licenses)) {
@@ -195,7 +219,7 @@ const recursivelyCollectAllDependencies = (options) => {
 
 	// console.log('licenseFilesInCurrentModuleDirectory before: %s', licenseFilesInCurrentModuleDirectory);
 
-	licenseFilesInCurrentModuleDirectory.forEach(function findBetterLicenseData(filename, index) {
+	licenseFilesInCurrentModuleDirectory.forEach(function findBetterLicenseData(filename: string, index: number) {
 		licenseFile = path.join(modulePath, filename);
 		// Checking that the file is in fact a normal file and not a directory for example.
 		/*istanbul ignore else*/
@@ -211,7 +235,7 @@ const recursivelyCollectAllDependencies = (options) => {
 				//Only re-check the license if we didn't get it from elsewhere
 				currentLicenceFilesContent = fs.readFileSync(licenseFile, { encoding: 'utf8' });
 
-				moduleInfo.licenses = getLicenseTitle(currentLicenceFilesContent);
+				moduleInfo.licenses = getLicenseTitle(currentLicenceFilesContent) || LICENSE_TITLE_UNKNOWN;
 			}
 
 			if (index === 0) {
@@ -239,7 +263,7 @@ const recursivelyCollectAllDependencies = (options) => {
 					moduleInfo.licenseFile = helpers.getFirstNotUndefinedOrUndefined(
 						clarification?.licenseFile,
 						options.basePath ? path.relative(options.basePath, licenseFile) : licenseFile,
-					);
+					) as string;
 				}
 
 				if (mustInclude('licenseText') && options.customFormat) {
@@ -308,7 +332,7 @@ const recursivelyCollectAllDependencies = (options) => {
 	}
 
 	// TODO: How do clarifications interact with notice files?
-	noticeFiles.forEach((filename) => {
+	noticeFiles.forEach((filename: string) => {
 		const file = path.join(currentExtendedPackageJson.path, filename);
 		/*istanbul ignore else*/
 		if (fs.lstatSync(file).isFile()) {
@@ -367,7 +391,7 @@ const recursivelyCollectAllDependencies = (options) => {
 	return data;
 };
 
-const init = (args, callback) => {
+const init = (args: any, callback: (error: Error | null, result?: any) => void) => {
 	debugLog('scanning %s', args.start);
 
 	// customPath is a path to a JSON file that defined a custom format
@@ -386,8 +410,8 @@ const init = (args, callback) => {
 		optionsForReadingInstalledPackages.dev = false;
 	}
 
-	const toCheckforFailOn = [];
-	const toCheckforOnlyAllow = [];
+	const toCheckforFailOn: string[] = [];
+	const toCheckforOnlyAllow: string[] = [];
 	let checker;
 	let pusher;
 
@@ -402,7 +426,7 @@ const init = (args, callback) => {
 	}
 
 	// An object mapping from Package name -> list of what contents it should have, including a semver range for each entry
-	let clarifications = {};
+	let clarifications: {[key: string]: any} = {};
 	if (args.clarificationsFile) {
 		const clarificationsFromFile = parseJson(args.clarificationsFile);
 
@@ -419,7 +443,7 @@ const init = (args, callback) => {
 	}
 
 	if (checker && pusher) {
-		checker.split(';').forEach((license) => {
+		checker.split(';').forEach((license: string) => {
 			license = license.trim();
 			/*istanbul ignore else*/
 			if (license.length > 0) {
@@ -428,7 +452,7 @@ const init = (args, callback) => {
 		});
 	}
 
-	readInstalledPackages(args.start, optionsForReadingInstalledPackages, (err, installedPackagesJson) => {
+	readInstalledPackages(args.start, optionsForReadingInstalledPackages, (err: any, installedPackagesJson: any) => {
 		// Good to know:
 		// The json object returned by readInstalledPackages stores all direct (prod and dev) dependencies from
 		// the package.json file in the property '_dependencies'. The property 'dependencies' contains all dependencies,
@@ -454,9 +478,9 @@ const init = (args, callback) => {
 		});
 
 		if (args.clarificationsMatchAll) {
-			const unusedClarifications = [];
+			const unusedClarifications: string[] = [];
 			for (const [packageName, entries] of Object.entries(clarifications)) {
-				for (const clarification of entries) {
+				for (const clarification of (entries as any[])) {
 					if (!clarification.used) {
 						unusedClarifications.push(`${packageName}@${clarification.semverRange}`);
 					}
@@ -792,7 +816,7 @@ const init = (args, callback) => {
 	});
 };
 
-const filterAttributes = (attributes, json) => {
+const filterAttributes = (attributes: string[], json: any) => {
 	let filteredJson = json;
 
 	if (attributes) {
@@ -805,13 +829,13 @@ const filterAttributes = (attributes, json) => {
 	return filteredJson;
 };
 
-const print = (sorted) => {
+const print = (sorted: any) => {
 	console.log(asTree(sorted));
 };
 
-const asTree = (sorted) => treeify.asTree(sorted, true);
+const asTree = (sorted: any) => treeify.asTree(sorted, true);
 
-const asSummary = (sorted) => {
+const asSummary = (sorted: any) => {
 	const licenseCountMap = new global.Map();
 	const licenseCountArray = [];
 	const sortedLicenseCountObj = {};
@@ -837,7 +861,7 @@ const asSummary = (sorted) => {
 	return treeify.asTree(sortedLicenseCountObj, true);
 };
 
-const asCSV = (sorted, customFormat, csvComponentPrefix) => {
+const asCSV = (sorted: any, customFormat: any, csvComponentPrefix: string) => {
 	const csvHeaders = helpers.getCsvHeaders(customFormat, csvComponentPrefix);
 	const csvDataArr = helpers.getCsvData(sorted, customFormat, csvComponentPrefix);
 
@@ -851,7 +875,7 @@ const asCSV = (sorted, customFormat, csvComponentPrefix) => {
  * @param  {JSON} customFormat The custom format with information about the needed keys.
  * @return {String}            The returning plain text.
  */
-const asMarkDown = (sorted, customFormat) => {
+const asMarkDown = (sorted: any, customFormat: any) => {
 	let text = [];
 
 	if (customFormat && Object.keys(customFormat).length > 0) {
@@ -875,13 +899,13 @@ const asMarkDown = (sorted, customFormat) => {
 /**
  * Output data in plain vertical format like Angular CLI does: https://angular.io/3rdpartylicenses.txt
  */
-const asPlainVertical = (sorted) =>
+const asPlainVertical = (sorted: any) =>
 	Object.entries(sorted)
 		.map(([moduleName, moduleData]) => {
 			let licenseText = helpers.getModuleNameForLicenseTextHeader(moduleName);
 
 			if (Array.isArray(moduleData.licenses) && moduleData.licenses.length > 0) {
-				licenseText += moduleData.licenses.map((moduleLicense) => {
+				licenseText += moduleData.licenses.map((moduleLicense: any) => {
 					/*istanbul ignore else*/
 					if (typeof moduleLicense === 'object') {
 						/*istanbul ignore next*/
@@ -895,17 +919,17 @@ const asPlainVertical = (sorted) =>
 				});
 			} else if (
 				typeof moduleData.licenses === 'object' &&
-				(moduleData.licenses.type || moduleData.licenses.name)
+				((moduleData.licenses as any).type || (moduleData.licenses as any).name)
 			) {
-				licenseText += getLicenseTitle(moduleData.licenses.type || moduleData.licenses.name);
+				licenseText += getLicenseTitle((moduleData.licenses as any).type || (moduleData.licenses as any).name);
 			} else if (typeof moduleData.licenses === 'string') {
-				licenseText += getLicenseTitle(moduleData.licenses);
+				licenseText += getLicenseTitle(moduleData.licenses) || '';
 			}
 
 			licenseText += '\n';
 
 			if (Array.isArray(moduleData.licenseFile) && moduleData.licenseFile.length > 0) {
-				licenseText += moduleData.licenseFile.map((moduleLicense) => {
+				licenseText += moduleData.licenseFile.map((moduleLicense: any) => {
 					/*istanbul ignore else*/
 					if (typeof moduleLicense === 'object') {
 						/*istanbul ignore next*/
@@ -918,9 +942,9 @@ const asPlainVertical = (sorted) =>
 				});
 			} else if (
 				typeof moduleData.licenseFile === 'object' &&
-				(moduleData.licenseFile.type || moduleData.licenseFile.name)
+				((moduleData.licenseFile as any).type || (moduleData.licenseFile as any).name)
 			) {
-				licenseText += moduleData.licenseFile.type || moduleData.licenseFile.name;
+				licenseText += (moduleData.licenseFile as any).type || (moduleData.licenseFile as any).name;
 			} else if (typeof moduleData.licenseFile === 'string') {
 				licenseText += fs.readFileSync(moduleData.licenseFile, { encoding: 'utf8' });
 			}
@@ -929,7 +953,7 @@ const asPlainVertical = (sorted) =>
 		})
 		.join('\n\n');
 
-const parseJson = (jsonPath) => {
+const parseJson = (jsonPath: string) => {
 	if (typeof jsonPath !== 'string') {
 		return new Error('The path was not specified for the JSON file to parse.');
 	}
@@ -943,7 +967,7 @@ const parseJson = (jsonPath) => {
 	}
 };
 
-const asFiles = (json, outDir) => {
+const asFiles = (json: any, outDir: string) => {
 	mkdirp.sync(outDir);
 
 	Object.keys(json).forEach((moduleName) => {
@@ -965,7 +989,7 @@ const asFiles = (json, outDir) => {
 /**
  * Write output to a file, if indicated in parsedArgs.
  */
-const writeOutput = (parsedArgs, foundLicensesJson) => {
+const writeOutput = (parsedArgs: any, foundLicensesJson: any) => {
 	if (parsedArgs.files || parsedArgs.out) {
 		const formattedOutput = licenseCheckerHelpers.getFormattedOutput(foundLicensesJson, parsedArgs);
 

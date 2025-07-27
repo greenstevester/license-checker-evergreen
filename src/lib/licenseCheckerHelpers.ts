@@ -5,11 +5,11 @@ import path from 'node:path';
 
 import * as licenseChecker from './index.js';
 
-const shouldColorizeOutput = function shouldColorizeOutput(args) {
+const shouldColorizeOutput = function shouldColorizeOutput(args: any) {
     return args.color && !args.out && !args.files && !(args.csv || args.json || args.markdown || args.plainVertical);
 };
 
-const colorizeOutput = function colorizeOutput(json) {
+const colorizeOutput = function colorizeOutput(json: any) {
     Object.keys(json).forEach((key) => {
         const index = key.lastIndexOf('@');
         const colorizedKey =
@@ -22,12 +22,12 @@ const colorizeOutput = function colorizeOutput(json) {
     });
 };
 
-const filterJson = function filterJson(limitAttributes, json) {
+const filterJson = function filterJson(limitAttributes: string, json: any) {
     let filteredJson = json;
 
     if (limitAttributes) {
         filteredJson = {};
-        const attributes = limitAttributes.split(',').map((attribute) => attribute.trim());
+        const attributes = limitAttributes.split(',').map((attribute: string) => attribute.trim());
 
         Object.keys(json).forEach((dependency) => {
             filteredJson[dependency] = licenseChecker.filterAttributes(attributes, json[dependency]);
@@ -37,7 +37,7 @@ const filterJson = function filterJson(limitAttributes, json) {
     return filteredJson;
 };
 
-const getFormattedOutput = function getFormattedOutput(modulesWithVersions, args) {
+const getFormattedOutput = function getFormattedOutput(modulesWithVersions: any, args: any) {
     let filteredJson = filterJson(args.limitAttributes, modulesWithVersions);
     const jsonCopy = cloneDeep(filteredJson);
     filteredJson = null;

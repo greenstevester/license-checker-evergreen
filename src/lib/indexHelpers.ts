@@ -12,7 +12,7 @@ import path from 'node:path';
 // TODO: Add tests for this function
 const deleteNonDirectDependenciesFromAllDependencies = function deleteNonDirectDependenciesFromAllDependencies(
     { _dependencies: directDependencies = {}, dependencies: allDependencies = {}, devDependencies = {} } = {},
-    options,
+    options: any,
 ) {
     const allDependenciesArray = Object.keys(allDependencies);
     const directDependenciesArray = Object.keys(directDependencies);
@@ -36,7 +36,7 @@ const deleteNonDirectDependenciesFromAllDependencies = function deleteNonDirectD
     });
 };
 
-const getRepositoryUrl = function getRepositoryUrl({ clarificationRepository, jsonRepository }) {
+const getRepositoryUrl = function getRepositoryUrl({ clarificationRepository, jsonRepository }: { clarificationRepository?: string; jsonRepository?: any }) {
     if (clarificationRepository) {
         return clarificationRepository;
     }
@@ -53,20 +53,20 @@ const getRepositoryUrl = function getRepositoryUrl({ clarificationRepository, js
     return undefined;
 };
 
-const getFirstNotUndefinedOrUndefined = function getFirstNotUndefinedOrUndefined() {
-    for (let i = 0; i < arguments.length; i++) {
-        if (typeof arguments[i] !== 'undefined') {
-            return arguments[i];
+const getFirstNotUndefinedOrUndefined = function getFirstNotUndefinedOrUndefined(...args: any[]) {
+    for (let i = 0; i < args.length; i++) {
+        if (typeof args[i] !== 'undefined') {
+            return args[i];
         }
     }
 
     return undefined;
 };
 
-const getAuthorDetails = function getAuthorDetails({ clarification, author }) {
-    let publisher = getFirstNotUndefinedOrUndefined(clarification?.publisher, author?.name);
-    let email = getFirstNotUndefinedOrUndefined(clarification?.email, author?.email);
-    let url = getFirstNotUndefinedOrUndefined(clarification?.url, author?.url);
+const getAuthorDetails = function getAuthorDetails({ clarification, author }: { clarification?: any; author?: any }) {
+    let publisher = getFirstNotUndefinedOrUndefined(clarification?.publisher, author?.name) as string;
+    let email = getFirstNotUndefinedOrUndefined(clarification?.email, author?.email) as string;
+    let url = getFirstNotUndefinedOrUndefined(clarification?.url, author?.url) as string;
 
     return { publisher, email, url };
 };
@@ -87,7 +87,7 @@ const getLinesWithCopyright = function getLinesWithCopyright(fileContents = '') 
         });
 };
 
-const getOptionArray = (option) => {
+const getOptionArray = (option: any) => {
     if (Array.isArray(option)) {
         return option;
     }
@@ -99,10 +99,10 @@ const getOptionArray = (option) => {
     return false;
 };
 
-const getCsvData = (sorted, customFormat, csvComponentPrefix) => {
-    const csvDataArr = [];
+const getCsvData = (sorted: any, customFormat: any, csvComponentPrefix: string) => {
+    const csvDataArr: string[] = [];
 
-    Object.entries(sorted).forEach(([key, module]) => {
+    Object.entries(sorted).forEach(([key, module]: [string, any]) => {
         const dataElements = [];
 
         if (csvComponentPrefix) {
@@ -114,11 +114,13 @@ const getCsvData = (sorted, customFormat, csvComponentPrefix) => {
             dataElements.push(`"${key}"`);
 
             Object.keys(customFormat).forEach((item) => {
-                dataElements.push(`"${module[item]}"`);
+                dataElements.push(`"${(module as any)[item]}"`);
             });
         } else {
             // Be sure to push empty strings for empty values, as this is what CSV expects:
-            dataElements.push([`"${key}"`, `"${module.licenses || ''}"`, `"${module.repository || ''}"`]);
+            dataElements.push(`"${key}"`); 
+            dataElements.push(`"${(module as any).licenses || ''}"`); 
+            dataElements.push(`"${(module as any).repository || ''}"`);
         }
 
         csvDataArr.push(dataElements.join(','));
@@ -127,7 +129,7 @@ const getCsvData = (sorted, customFormat, csvComponentPrefix) => {
     return csvDataArr;
 };
 
-const getCsvHeaders = (customFormat, csvComponentPrefix) => {
+const getCsvHeaders = (customFormat: any, csvComponentPrefix: string) => {
     const prefixName = '"component"';
     const entriesArr = [];
 
@@ -155,7 +157,7 @@ const getModuleNameForLicenseTextHeader = (moduleName = '') => {
 };
 
 // Eventually store the contents of the module's README.md in currentExtendedPackageJson.readme:
-const storeReadmeInJsonIfExists = (modulePath, currentExtendedPackageJson) => {
+const storeReadmeInJsonIfExists = (modulePath: string, currentExtendedPackageJson: any) => {
     if (
         typeof modulePath !== 'string' ||
         typeof currentExtendedPackageJson !== 'object' ||
