@@ -13,9 +13,9 @@ const colorizeOutput = function colorizeOutput(json) {
     Object.keys(json).forEach((key) => {
         const index = key.lastIndexOf('@');
         const colorizedKey =
-            chalk.white.bgKeyword('darkslategrey')(key.slice(0, index + 1)) +
+            chalk.white.bgGray(key.slice(0, index + 1)) +
             chalk.dim('@') +
-            chalk.white.bgKeyword('green')(key.slice(index + 1));
+            chalk.white.bgGreen(key.slice(index + 1));
         json[colorizedKey] = json[key];
 
         delete json[key];

@@ -174,7 +174,7 @@ const setDefaultArguments = function setDefaultArguments(parsedArguments: Parsed
 	const argumentsWithDefaults = { ...parsedArguments };
 	/*istanbul ignore else*/
 	if (argumentsWithDefaults.color === null || argumentsWithDefaults.color === undefined) {
-		argumentsWithDefaults.color = Boolean(chalk.supportsColor);
+		argumentsWithDefaults.color = Boolean(chalk.level > 0);
 	}
 
 	if (argumentsWithDefaults.json || argumentsWithDefaults.markdown || argumentsWithDefaults.csv) {

@@ -488,13 +488,13 @@ describe('main tests', () => {
     describe('should parse with args', () => {
         test('should handle undefined', () => {
             const result = args.setDefaultArguments(undefined);
-            expect(result.color).toBe(Boolean(chalk.supportsColor));
+            expect(result.color).toBe(Boolean(chalk.level > 0));
             expect(result.start).toBe(path.resolve(path.join(__dirname, '../')));
         });
 
         test('should handle color undefined', () => {
             const result = args.setDefaultArguments({ color: undefined, start: path.resolve(path.join(__dirname, '../')) });
-            expect(result.color).toBe(Boolean(chalk.supportsColor));
+            expect(result.color).toBe(Boolean(chalk.level > 0));
             expect(result.start).toBe(path.resolve(path.join(__dirname, '../')));
         });
 
