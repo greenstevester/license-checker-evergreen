@@ -9,17 +9,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Run single test**: `npx jenkins-mocha tests/[test-name].js`
 - **Lint code**: `npm run lint` or `npm run lint:fix`
 - **Format code**: `npm run format` (prettier + eslint fix) or `npm run format:dry` (check only)
-- **Check formatting**: `npm run prettier` 
+- **Check formatting**: `npm run prettier`
 - **Coverage check**: `npm run posttest` (automatically runs after test)
-- **Build CLI**: Binary is pre-built at `bin/license-checker-rseidelsohn.js`
+- **Build CLI**: Binary is pre-built at `bin/license-checker-evergreen.js`
 
 ## Architecture
 
-This is a Node.js CLI tool (`license-checker-rseidelsohn`) for extracting and analyzing NPM package licenses. It's a feature-enhanced fork of the original license-checker that uses ES modules.
+This is a Node.js CLI tool (`license-checker-evergreen`) for extracting and analyzing NPM package licenses. It's a feature-enhanced fork of the original license-checker that uses ES modules.
 
 ### Key Components
 
-- **bin/license-checker-rseidelsohn.js**: CLI entry point that parses arguments via `args.js` and delegates to `index.js`
+- **bin/license-checker-evergreen.js**: CLI entry point that parses arguments via `args.js` and delegates to `index.js`
 - **lib/index.js**: Core license scanning engine with `recursivelyCollectAllDependencies` function and `init()` main entry point
 - **lib/args.js**: Command-line argument parsing using `nopt` with `knownOptions` definitions
 - **lib/licenseCheckerHelpers.js**: Output formatting utilities (JSON, CSV, Markdown, plain vertical)

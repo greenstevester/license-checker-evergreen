@@ -10,7 +10,7 @@ interface ExitProcessParams {
 
 const exitProcessOrWarnIfNeeded = ({ unknownArgs, parsedArgs }: ExitProcessParams): void => {
 	if (unknownArgs.length) {
-		console.error(`license-checker-rseidelsohn@${version}`, '\n');
+		console.error(`license-checker-evergreen@${version}`, '\n');
 		console.error(
 			`Error: Unknown option${unknownArgs.length > 1 ? 's' : ''}: ${unknownArgs
 				.map((unknownArg) => `'${unknownArg}'`)
@@ -23,7 +23,7 @@ const exitProcessOrWarnIfNeeded = ({ unknownArgs, parsedArgs }: ExitProcessParam
 	}
 
 	if (parsedArgs.help) {
-		console.log(`license-checker-rseidelsohn@${version}`);
+		console.log(`license-checker-evergreen@${version}`);
 		console.log(usageMessage, '\n');
 
 		process.exit(0);

@@ -1,8 +1,8 @@
 {
-    "name": "license-checker-rseidelsohn",
-    "description": "Extract NPM package licenses - Feature enhanced version of the original license-checker v25.0.1",
-    "author": "Roman Seidelsohn <rseidelsohn@gmail.com>",
-    "version": "4.4.2",
+    "name": "license-checker-evergreen",
+    "description": "Extract NPM package licenses - Feature enhanced version of the original license-checker from rseidelsohn and then gladykov",
+    "author": "greenstevester",
+    "version": "5.0.0",
     "license": "BSD-3-Clause",
     "private": false,
     "type": "module",
@@ -20,13 +20,13 @@
     "main": "./dist/lib/index.js",
     "types": "./dist/lib/index.d.ts",
     "bin": {
-        "license-checker-rseidelsohn": "./dist/bin/license-checker-rseidelsohn.js"
+        "license-checker-evergreen": "./dist/bin/license-checker-evergreen.js"
     },
     "scripts": {
         "build": "tsc",
         "prebuild": "rimraf dist",
         "prepublishOnly": "npm run build",
-        "changes": "github-changes -o RSeidelsohn -r license-checker-rseidelsohn",
+        "changes": "github-changes -o evergreen -r license-checker-evergreen",
         "contrib": "node ./scripts/contrib.js",
         "pretest": "npm run build && eslint --fix .",
         "test": "jenkins-mocha ./tests/*.js",
@@ -40,11 +40,11 @@
     },
     "preferGlobal": true,
     "bugs": {
-        "url": "http://github.com/RSeidelsohn/license-checker-rseidelsohn/issues"
+        "url": "http://github.com/evergreen/license-checker-evergreen/issues"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/RSeidelsohn/license-checker-rseidelsohn.git"
+        "url": "https://github.com/greenstevester/license-checker-evergreen.git"
     },
     "nyc": {
         "check-coverage": true,
@@ -105,8 +105,8 @@
         "Rasmus Lauridsen <r.h.lauridsen@hotmail.dk>",
         "Rasmus Lauridsen <rhl@naviair.dk>",
         "Rogier Schouten <github@workingcode.nl>",
-        "Roman Seidelsohn <rseidelsohn@gmail.com>",
-        "Roman Seidelsohn <rseidelsohn@rbloeth.de>",
+        "Roman Seidelsohn <evergreen@gmail.com>",
+        "Roman Seidelsohn <evergreen@rbloeth.de>",
         "Stan Senotrusov <stan@senotrusov.com>",
         "Steffen Wenz <steffen@workpath.com>",
         "Stoyan Revov <st.revov@gmail.com>",

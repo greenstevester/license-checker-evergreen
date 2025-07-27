@@ -149,7 +149,7 @@ describe('main tests', function () {
             checker.init(
                 {
                     start: path.join(__dirname, '../'),
-                    direct: 0, // 0 is the parsed value passed to init from license-checker-rseidelsohn if set to true
+                    direct: 0, // 0 is the parsed value passed to init from license-checker-evergreen if set to true
                 },
                 function (err, sorted) {
                     output = sorted;
@@ -605,7 +605,7 @@ describe('main tests', function () {
                 },
                 function (err, filtered) {
                     assert.equal(Object.keys(filtered).length, 1);
-                    assert.equal(filtered['license-checker-rseidelsohn@0.0.0'].publisher, 'Roman Seidelsohn');
+                    assert.equal(filtered['license-checker-evergreen@0.0.0'].publisher, 'Roman Seidelsohn');
                     done();
                 },
             );

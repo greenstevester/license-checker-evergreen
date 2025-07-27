@@ -1,13 +1,13 @@
-<img src="https://img.shields.io/npm/l/license-checker-rseidelsohn" />
+<img src="https://img.shields.io/npm/l/license-checker-evergreen" />
 
-[![NPM](https://nodei.co/npm/license-checker-rseidelsohn.png)](https://nodei.co/npm/license-checker-rseidelsohn/)
+[![NPM](https://nodei.co/npm/license-checker-evergreen.png)](https://nodei.co/npm/license-checker-evergreen/)
 
 # NPM License Checker
 
 ## Table of Contents
 
 -   [NPM License Checker](#npm-license-checker)
-    -   [A message from the maintainer](#a-message-from-the-maintainer)
+    -   [A message from the previous maintainer](#a-message-from-the-previous-maintainer)
     -   [Table of Contents](#table-of-contents)
     -   [Introduction](#introduction)
     -   [Changes](#changes)
@@ -48,10 +48,10 @@
     -   [Related information sources on the internet](#related-information-sources-on-the-internet)
 `version` can either be an exact version or a semver range, multiple ranges are supported for a single package, for example:
 
-## <a id="a-message-from-the-maintainer"></a>A message from the maintainer
+## <a id="a-message-from-the-previous-maintainer"></a>A message from the previous maintainer
 
 Folks, I love and honor open software (the latter not as much as I should), and therefore I am a little ashamed of the lack of regular care I give to this project. My family (two still young kids and a wife working full-time just as me) plus my hobbies (reading - currently I read the great book "Coders at work" and plan to work my way through "Structure and interpretation of computer programs", a book many great and experienced coders say is kind of a must-read - and homebrewing) take their toll. And then there's the time I need for procrastination as well. You get the picture.
-I took over this project from another guy who initially built it, because he did not respond to any PRs or emails for years and I needed a feature that was not available. And I thought there are enough people out there that should profit from what I do, so I forked the `license-checker` under the now pretty clumpsy name `license-checker-rseidelsohn` - here we are.
+I took over this project from another guy who initially built it, because he did not respond to any PRs or emails for years and I needed a feature that was not available. And I thought there are enough people out there that should profit from what I do, so I forked the `license-checker` under the now pretty clumpsy name `license-checker-evergreen` - here we are.
 I am always happy when I see PR's being created by other coders out there or if someone writes me an email - no matter what it might be about. Just the feeling that this tool and what I do with it does not only live in the void is already amazing to me.
 This being said, I am really looking for more people that want to contribute, so feel free if you want to be added as maintainers.
 But also, I am now working for Springer Nature since mid of february, and this awesome employer (I can only and absolutely recommend working for Springer Nature, and I get no advantages whatsoever through this message - they don't even know about it!) gives their devs a 10% friday every 2nd friday, where the devs are not disturbed by any meetings and are free to work on whatever they wish (preferrably anything that helps improving their skills and/or the code base), and I plan to take this open source project and maintain it during that time. So I would like to give you hope that the updates will come more frequently and in better quality.
@@ -71,12 +71,12 @@ Ever needed to see all the license info for a module and its dependencies?
 It's this easy:
 
 ```shell
-npm install -g license-checker-rseidelsohn
+npm install -g license-checker-evergreen
 
 mkdir foo
 cd foo
 npm install yui-lint
-license-checker-rseidelsohn
+license-checker-evergreen
 ```
 
 You should see something like this:
@@ -126,7 +126,7 @@ You could see something like this:
    └─ licenses: MIT*
 ```
 
-## <a id="changes"></a>Changes (see a more detailed and always up-to-date list [here](https://github.com/RSeidelsohn/license-checker-rseidelsohn/releases))
+## <a id="changes"></a>Changes (see a more detailed and always up-to-date list [here](https://github.com/greenstevester/license-checker-evergreen/releases))
 
 ### <a id="Version-4-4-2"></a>Version 4.4.2
 
@@ -138,15 +138,15 @@ fix: Fix errors that broke the whole new version (sorry for these)
 
 ### <a id="Version-4-4-0"></a>Version 4.4.0
 
-chore(deps-dev): bump braces from 3.0.2 to 3.0.3 by @dependabot in https://github.com/RSeidelsohn/license-checker-rseidelsohn/pull/114
-chore: only include necessary files in package by @ol-teuto in https://github.com/RSeidelsohn/license-checker-rseidelsohn/pull/106
-feat: allow specifying ranges in clarifications file and add strict usage checking for them by @ol-teuto in https://github.com/RSeidelsohn/license-checker-rseidelsohn/pull/110
+chore(deps-dev): bump braces from 3.0.2 to 3.0.3 by @dependabot in https://github.com/greenstevester/license-checker-evergreen/pull/114
+chore: only include necessary files in package by @ol-teuto in https://github.com/greenstevester/license-checker-evergreen/pull/106
+feat: allow specifying ranges in clarifications file and add strict usage checking for them by @ol-teuto in https://github.com/greenstevester/license-checker-evergreen/pull/110
 feat: Add new option `clarificationsMatchAll` by @ol-teuto
 
 ### <a id="Version-4-3-1"></a>Version 4.3.1
 
 misc: Move from `require` to `import` in all the files
-misc: Update indexHelpers.js by @ArsArmandi in https://github.com/RSeidelsohn/license-checker-rseidelsohn/pull/108
+misc: Update indexHelpers.js by @ArsArmandi in https://github.com/greenstevester/license-checker-evergreen/pull/108
 
 ### <a id="Version-4-3-0"></a>Version 4.3.0
 
@@ -225,9 +225,9 @@ Fix some typos in the README file.
 
 Due to [end of service for NodeJS' security updates](https://endoflife.date/nodejs), I decided to from now on use a current LTS-version, which is NodeJS v18.
 
-This of course doesn't necessarily mean that older Node versions will not be able to run this license-checker-rseidelsohn, but one day this will mosrt likely happen, I guess.
+This of course doesn't necessarily mean that older Node versions will not be able to run this license-checker-evergreen, but one day this will mosrt likely happen, I guess.
 
-Should there be any need for security updates or new features supported by older NodeJS versions, [please tell me so] (mailto:rseidelsohn@gmail.com?subject=Support%20request%20for%20old%20license-checker-rseidelsohn%20-%20version). I can not promise that I will take the time to fulfill the request, but if you do not ask me, I certainly won't.
+Should there be any need for security updates or new features supported by older NodeJS versions, [please tell me so] (mailto:evergreen@gmail.com?subject=Support%20request%20for%20old%20license-checker-evergreen%20-%20version). I can not promise that I will take the time to fulfill the request, but if you do not ask me, I certainly won't.
 
 This being said, the only change with 4.0.0 is a switch in the `.nvmrc` file of the project (for developers working on this module only) from NodeJS v14 to NodeJS v18 - which again is a LTS version, a version with long time support - and some minor updates to the README file, adding stuff that was missing in the past due to a lack of regular maintenance from my side.
 
@@ -247,7 +247,7 @@ Add flag `--excludePackagesStartingWith [list]` and add detection of `Hippocrati
 
 ### <a id="Version-3-1-0"></a>Version 3.1.0
 
-Add new option `--limitAttributes`. Example usage: `node bin/license-checker-rseidelsohn --limitAttributes publisher,email` will only list the `publisher` and `email` attributes for every dependency.
+Add new option `--limitAttributes`. Example usage: `node bin/license-checker-evergreen --limitAttributes publisher,email` will only list the `publisher` and `email` attributes for every dependency.
 
 ### <a id="Version-3-0-1"></a>Version 3.0.1
 
@@ -311,14 +311,14 @@ support some license strings that are not SPDX identifiers.
 ## <a id="examples"></a>Examples
 
 ```
-license-checker-rseidelsohn --json > /path/to/licenses.json
-license-checker-rseidelsohn --csv --out /path/to/licenses.csv
-license-checker-rseidelsohn --unknown
-license-checker-rseidelsohn --customPath customFormatExample.json
-license-checker-rseidelsohn --excludeLicenses 'MIT, MIT OR X11, BSD, ISC'
-license-checker-rseidelsohn --includePackages 'react@16.3.0;react-dom@16.3.0;lodash@4.3.1'
-license-checker-rseidelsohn --excludePackages 'internal-1;internal-2'
-license-checker-rseidelsohn --onlyunknown
+license-checker-evergreen --json > /path/to/licenses.json
+license-checker-evergreen --csv --out /path/to/licenses.csv
+license-checker-evergreen --unknown
+license-checker-evergreen --customPath customFormatExample.json
+license-checker-evergreen --excludeLicenses 'MIT, MIT OR X11, BSD, ISC'
+license-checker-evergreen --includePackages 'react@16.3.0;react-dom@16.3.0;lodash@4.3.1'
+license-checker-evergreen --excludePackages 'internal-1;internal-2'
+license-checker-evergreen --onlyunknown
 ```
 
 ## <a id="clarifications"></a>Clarifications
@@ -394,7 +394,7 @@ Note that outputting the license text is not recommended with Markdown formattin
 ## <a id="requiring"></a>Requiring
 
 ```js
-var checker = require('license-checker-rseidelsohn');
+var checker = require('license-checker-evergreen');
 
 checker.init(
     {
@@ -416,13 +416,13 @@ checker.init(
 
 license-checker uses [debug](https://www.npmjs.com/package/debug) for internal logging. There’s two internal markers:
 
--   `license-checker-rseidelsohn:error` for errors
--   `license-checker-rseidelsohn:log` for non-errors
+-   `license-checker-evergreen:error` for errors
+-   `license-checker-evergreen:log` for non-errors
 
 Set the `DEBUG` environment variable to one of these to see debug output:
 
 ```shell
-$ export DEBUG=license-checker-rseidelsohn*; license-checker-rseidelsohn
+$ export DEBUG=license-checker-evergreen*; license-checker-evergreen
 scanning ./yui-lint
 ├─ cli@0.4.3
 │  ├─ repository: http://github.com/chriso/cli

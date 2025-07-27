@@ -36,7 +36,7 @@ describe('clarifications', function() {
     before(parseAndClarify(clarifications_path, '../clarificationExample.json', result));
 
     it('should replace existing license', function() {
-        const output = result.output['license-checker-rseidelsohn@0.0.0'];
+        const output = result.output['license-checker-evergreen@0.0.0'];
 
         assert.equal(output.licenseText, "Some mild rephrasing of an MIT license");
         assert.equal(output.licenses, "MIT");
@@ -45,7 +45,7 @@ describe('clarifications', function() {
 
     it('should exit 1 if the checksum does not match', function(done) {
         let data = "";
-        let license_checker = spawn('node', [path.join(__dirname, '../bin/license-checker-rseidelsohn'), '--start', path.join(__dirname, clarifications_path), '--clarificationsFile', path.join(__dirname, clarifications_path, 'mismatch/clarification.json')], {
+        let license_checker = spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--start', path.join(__dirname, clarifications_path), '--clarificationsFile', path.join(__dirname, clarifications_path, 'mismatch/clarification.json')], {
             cwd: path.join(__dirname, '../'),
         });
 
@@ -64,7 +64,7 @@ describe('clarifications', function() {
     it('should succeed if no checksum is specified', function(done) {
         let data = "";
 
-        let license_checker = spawn('node', [path.join(__dirname, '../bin/license-checker-rseidelsohn'), '--start', path.join(__dirname, clarifications_path), '--clarificationsFile', path.join(__dirname, clarifications_path, 'example/noChecksum.json')], {
+        let license_checker = spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--start', path.join(__dirname, clarifications_path), '--clarificationsFile', path.join(__dirname, clarifications_path, 'example/noChecksum.json')], {
             cwd: path.join(__dirname, '../'),
         });
 
@@ -86,7 +86,7 @@ describe('clarifications', function() {
         let license_checker = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-rseidelsohn'),
+                path.join(__dirname, '../bin/license-checker-evergreen'),
                 '--start', path.join(__dirname, clarifications_path),
                 '--clarificationsFile', path.join(__dirname, clarifications_path, 'weirdStart/clarification.json'),
                 '--customPath', path.join(__dirname, clarifications_path, 'weirdStart/customFormat.json')
@@ -116,7 +116,7 @@ describe('clarifications', function() {
         let license_checker = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-rseidelsohn'),
+                path.join(__dirname, '../bin/license-checker-evergreen'),
                 '--start', path.join(__dirname, clarifications_path),
                 '--clarificationsFile', path.join(__dirname, clarifications_path, 'weirdStart/startOnlyClarification.json'),
                 '--customPath', path.join(__dirname, clarifications_path, 'weirdStart/customFormat.json')
