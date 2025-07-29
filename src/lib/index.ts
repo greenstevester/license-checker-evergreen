@@ -53,6 +53,7 @@ import { getLicenseTitle } from './getLicenseTitle.js';
 import { licenseFiles } from './license-files.js';
 import * as helpers from './indexHelpers.js';
 import { licenseFileCache } from './licenseFileCache.js';
+import { FilteringPipeline } from './filteringPipeline.js';
 
 // Set up debug logging
 // https://www.npmjs.com/package/debug#stderr-vs-stdout
@@ -63,6 +64,7 @@ debugLog.log = console.log.bind(console);
 
 // This function calls itself recursively. On the first iteration, it collects the data of the main program, during the
 // second iteration, it collects the data from all direct dependencies, then it collects their dependencies and so on.
+// Now includes single-pass filtering to eliminate multiple iterations over the data.
 const recursivelyCollectAllDependencies = async (options: any) => {
 	const { color: colorize, deps: currentExtendedPackageJson, unknown } = options;
 	const moduleInfo: ModuleInfo = { ...INITIAL_MODULE_INFO };
@@ -98,7 +100,16 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 		moduleInfo.private = true;
 	}
 
-	data[currentPackageNameAndVersion] = moduleInfo;
+	// Apply single-pass filtering if pipeline is provided
+	if (options.filterPipeline) {
+		const filteredData = options.filterPipeline.processPackage(currentPackageNameAndVersion, moduleInfo);
+		if (filteredData) {
+			data[currentPackageNameAndVersion] = filteredData;
+		}
+		// If filtered out, don't add to data
+	} else {
+		data[currentPackageNameAndVersion] = moduleInfo;
+	}
 
 	// Include property in output unless custom format has set property explicitly to false:
 	const mustInclude = (propertyName = '') => options?.customFormat?.[propertyName] !== false;
@@ -430,6 +441,148 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 	}
 
 	return data;
+};
+
+const initOptimized = async (args: any, callback: (error: Error | null, result?: any) => void) => {
+	debugLog('scanning %s (optimized single-pass)', args.start);
+
+	// customPath is a path to a JSON file that defined a custom format
+	if (args.customPath) {
+		args.customFormat = parseJson(args.customPath);
+	}
+
+	const optionsForReadingInstalledPackages = {
+		depth: args.direct, // How deep to traverse the dependency tree
+		nopeer: args.nopeer, // Whether or not to skip peerDependencies in output
+		dev: true, // Whether or not to include devDependencies
+		log: debugLog, // A function to log debug info
+	};
+
+	if (args.production || args.development) {
+		optionsForReadingInstalledPackages.dev = false;
+	}
+
+	// Parse filtering options
+	const excludeLicenses =
+		args.excludeLicenses &&
+		args.excludeLicenses
+			.match(/([^\\\][^,]|\\,)+/g)
+			?.map((license: string) => license.replace(/\\,/g, ',').replace(/^\s+|\s+$/g, ''));
+
+	const includeLicenses =
+		args.includeLicenses &&
+		args.includeLicenses
+			.match(/([^\\\][^,]|\\,)+/g)
+			?.map((license: string) => license.replace(/\\,/g, ',').replace(/^\s+|\s+$/g, ''));
+
+	// Create filtering pipeline
+	const filterPipeline = new FilteringPipeline({
+		excludeLicenses,
+		includeLicenses,
+		includePackages: helpers.getOptionArray(args.includePackages),
+		excludePackages: helpers.getOptionArray(args.excludePackages),
+		excludePackagesStartingWith: helpers.getOptionArray(args.excludePackagesStartingWith),
+		excludePrivatePackages: args.excludePrivatePackages,
+		onlyunknown: args.onlyunknown,
+		failOn: args.failOn?.split(';').map((s: string) => s.trim()).filter(Boolean),
+		onlyAllow: args.onlyAllow?.split(';').map((s: string) => s.trim()).filter(Boolean),
+		colorize: args.color,
+		relativeModulePath: args.relativeModulePath,
+		startPath: args.start
+	});
+
+	// Clarifications processing (same as original)
+	let clarifications: {[key: string]: any} = {};
+	if (args.clarificationsFile) {
+		const clarificationsFromFile = parseJson(args.clarificationsFile);
+
+		for (const [versionString, clarification] of Object.entries(clarificationsFromFile)) {
+			const versionSplit = versionString.lastIndexOf('@');
+			if (versionSplit !== -1) {
+				const name = versionString.slice(0, versionSplit);
+				const semverRange = versionString.slice(versionSplit + 1);
+				clarifications[name] = clarifications[name] || [];
+				clarifications[name].push({ ...clarification, semverRange, used: false });
+			}
+		}
+	}
+
+	try {
+		// Use promisified version of readInstalledPackages
+		const installedPackagesJson = await new Promise((resolve, reject) => {
+			readInstalledPackages(args.start, optionsForReadingInstalledPackages, (err: any, result: any) => {
+				if (err) reject(err);
+				else resolve(result);
+			});
+		});
+
+		if (optionsForReadingInstalledPackages.depth === 0) {
+			helpers.deleteNonDirectDependenciesFromAllDependencies(installedPackagesJson, args);
+		}
+
+		// Single-pass collection with filtering
+		const allFilteredDependencies = await recursivelyCollectAllDependencies({
+			_args: args,
+			basePath: args.relativeLicensePath ? (installedPackagesJson as any).path : null,
+			color: args.color,
+			customFormat: args.customFormat,
+			data: {},
+			deps: installedPackagesJson,
+			development: args.development,
+			production: args.production,
+			unknown: args.unknown,
+			currentRecursionDepth: 0,
+			clarifications,
+			filterPipeline // Pass the filtering pipeline
+		});
+
+		// Check clarifications usage if needed
+		if (args.clarificationsMatchAll) {
+			const unusedClarifications: string[] = [];
+			for (const [packageName, entries] of Object.entries(clarifications)) {
+				for (const clarification of (entries as any[])) {
+					if (!clarification.used) {
+						unusedClarifications.push(`${packageName}@${clarification.semverRange}`);
+					}
+				}
+			}
+			if (unusedClarifications.length) {
+				console.error(
+					`Some clarifications (${unusedClarifications.join(
+						', ',
+					)}) were unused and --clarificationsMatchAll was specified. Exiting.`,
+				);
+				process.exit(1);
+			}
+		}
+
+		// Data is already filtered and sorted by name during collection
+		const sortedData = Object.keys(allFilteredDependencies)
+			.sort()
+			.reduce((result: any, key: string) => {
+				result[key] = allFilteredDependencies[key];
+				return result;
+			}, {});
+
+		if (!Object.keys(sortedData).length) {
+			throw new Error('No packages found in this path...');
+		}
+
+		// Output to files if necessary
+		await writeOutput(args, sortedData);
+
+		// Log performance statistics
+		const cacheStats = licenseFileCache.getStats();
+		const filterStats = filterPipeline.getStats();
+		debugLog('License file cache stats: %o', cacheStats);
+		debugLog('Filtering pipeline stats: %o', filterStats);
+
+		callback(null, sortedData);
+
+	} catch (error) {
+		debugError(error);
+		callback(error as Error);
+	}
 };
 
 const init = (args: any, callback: (error: Error | null, result?: any) => void) => {
@@ -1054,9 +1207,11 @@ const writeOutput = async (parsedArgs: any, foundLicensesJson: any) => {
 	}
 };
 
+// Export optimized version as default init
 export {
 	recursivelyCollectAllDependencies,
-	init,
+	initOptimized as init, // Use optimized version as default
+	initOptimized,
 	filterAttributes,
 	print,
 	asTree,
@@ -1068,3 +1223,6 @@ export {
 	asFiles,
 	writeOutput,
 };
+
+// Keep legacy version available
+export { init as initLegacy };
