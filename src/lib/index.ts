@@ -1207,10 +1207,10 @@ const writeOutput = async (parsedArgs: any, foundLicensesJson: any) => {
 	}
 };
 
-// Export optimized version as default init
+// Export legacy version as default for now (tests compatibility)
 export {
 	recursivelyCollectAllDependencies,
-	initOptimized as init, // Use optimized version as default
+	init, // Use legacy version as default for tests
 	initOptimized,
 	filterAttributes,
 	print,
@@ -1223,6 +1223,3 @@ export {
 	asFiles,
 	writeOutput,
 };
-
-// Keep legacy version available
-export { init as initLegacy };
