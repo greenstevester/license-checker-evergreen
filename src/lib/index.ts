@@ -34,6 +34,7 @@ const INITIAL_MODULE_INFO: ModuleInfo = {
 import chalk from 'chalk';
 import debug from 'debug';
 import fs from 'node:fs';
+import { promises as fsPromises } from 'node:fs';
 import { mkdirp } from 'mkdirp';
 import path from 'node:path';
 
@@ -65,7 +66,7 @@ debugLog.log = console.log.bind(console);
 
 // This function calls itself recursively. On the first iteration, it collects the data of the main program, during the
 // second iteration, it collects the data from all direct dependencies, then it collects their dependencies and so on.
-const recursivelyCollectAllDependencies = (options: any) => {
+const recursivelyCollectAllDependencies = async (options: any) => {
 	const { color: colorize, deps: currentExtendedPackageJson, unknown } = options;
 	const moduleInfo: ModuleInfo = { ...INITIAL_MODULE_INFO };
 	const currentPackageNameAndVersion = `${currentExtendedPackageJson.name}@${currentExtendedPackageJson.version}`;
@@ -229,25 +230,32 @@ const recursivelyCollectAllDependencies = (options: any) => {
 	/*istanbul ignore else*/
 	if (clarification?.licenseFile) {
 		licenseFilesInCurrentModuleDirectory = [clarification.licenseFile];
-	} else if (fs.existsSync(modulePath)) {
-		const filesInModuleDirectory = fs.readdirSync(modulePath);
-		licenseFilesInCurrentModuleDirectory = licenseFiles(filesInModuleDirectory);
+	} else if (await licenseFileCache.fileExistsAsync(modulePath)) {
+		try {
+			const filesInModuleDirectory = await fsPromises.readdir(modulePath);
+			licenseFilesInCurrentModuleDirectory = licenseFiles(filesInModuleDirectory);
 
-		noticeFiles = filesInModuleDirectory.filter((filename) => {
-			filename = filename.toUpperCase();
-			const name = path.basename(filename).replace(path.extname(filename), '');
+			noticeFiles = filesInModuleDirectory.filter((filename) => {
+				filename = filename.toUpperCase();
+				const name = path.basename(filename).replace(path.extname(filename), '');
 
-			return name === 'NOTICE';
-		});
+				return name === 'NOTICE';
+			});
+		} catch (error) {
+			// If directory read fails, continue with empty arrays
+			licenseFilesInCurrentModuleDirectory = [];
+			noticeFiles = [];
+		}
 	}
 
 	// console.log('licenseFilesInCurrentModuleDirectory before: %s', licenseFilesInCurrentModuleDirectory);
 
-	licenseFilesInCurrentModuleDirectory.forEach(function findBetterLicenseData(filename: string, index: number) {
+	for (let index = 0; index < licenseFilesInCurrentModuleDirectory.length; index++) {
+		const filename = licenseFilesInCurrentModuleDirectory[index];
 		licenseFile = path.join(modulePath, filename);
-		// Checking that the file is in fact a normal file and not a directory for example.
-		/*istanbul ignore else*/
-		if (licenseFileCache.fileExists(licenseFile)) {
+		
+		// Check if file exists asynchronously
+		if (await licenseFileCache.fileExistsAsync(licenseFile)) {
 			let licenseFileData: { content: string; checksum?: string } | null = null;
 
 			if (
@@ -257,7 +265,7 @@ const recursivelyCollectAllDependencies = (options: any) => {
 				// || moduleInfo.licenses.indexOf('Custom:') === 0
 			) {
 				//Only re-check the license if we didn't get it from elsewhere
-				licenseFileData = licenseFileCache.readLicenseFile(licenseFile, false);
+				licenseFileData = await licenseFileCache.readLicenseFileAsync(licenseFile, false);
 				moduleInfo.licenses = getLicenseTitle(licenseFileData.content) || LICENSE_TITLE_UNKNOWN;
 			}
 
@@ -266,10 +274,10 @@ const recursivelyCollectAllDependencies = (options: any) => {
 				if (clarification !== undefined && !passedClarificationCheck) {
 					/*istanbul ignore else*/
 					if (!licenseFileData) {
-						licenseFileData = licenseFileCache.readLicenseFile(licenseFile, true);
+						licenseFileData = await licenseFileCache.readLicenseFileAsync(licenseFile, true);
 					} else if (!licenseFileData.checksum) {
 						// Need checksum for verification
-						licenseFileData = licenseFileCache.readLicenseFile(licenseFile, true);
+						licenseFileData = await licenseFileCache.readLicenseFileAsync(licenseFile, true);
 					}
 
 					if (clarification.checksum !== licenseFileData.checksum) {
@@ -295,7 +303,7 @@ const recursivelyCollectAllDependencies = (options: any) => {
 						moduleInfo.licenseText = clarification.licenseText;
 					} else {
 						if (!licenseFileData) {
-							licenseFileData = licenseFileCache.readLicenseFile(licenseFile, false);
+							licenseFileData = await licenseFileCache.readLicenseFileAsync(licenseFile, false);
 						}
 
 						/*istanbul ignore else*/
@@ -331,7 +339,7 @@ const recursivelyCollectAllDependencies = (options: any) => {
 						moduleInfo.copyright = clarification.copyright;
 					} else {
 						if (!licenseFileData) {
-							licenseFileData = licenseFileCache.readLicenseFile(licenseFile, false);
+							licenseFileData = await licenseFileCache.readLicenseFileAsync(licenseFile, false);
 						}
 
 						const linesWithCopyright = helpers.getLinesWithCopyright(licenseFileData.content);
@@ -349,7 +357,7 @@ const recursivelyCollectAllDependencies = (options: any) => {
 				}
 			}
 		}
-	});
+	}
 
 	// console.log('moduleInfo.licenses after: %s', moduleInfo.licenses);
 
@@ -359,17 +367,23 @@ const recursivelyCollectAllDependencies = (options: any) => {
 	}
 
 	// TODO: How do clarifications interact with notice files?
-	noticeFiles.forEach((filename: string) => {
+	for (const filename of noticeFiles) {
 		const file = path.join(currentExtendedPackageJson.path, filename);
-		/*istanbul ignore else*/
-		if (fs.lstatSync(file).isFile()) {
-			moduleInfo.noticeFile = options.basePath ? path.relative(options.basePath, file) : file;
+		try {
+			const stat = await fsPromises.lstat(file);
+			if (stat.isFile()) {
+				moduleInfo.noticeFile = options.basePath ? path.relative(options.basePath, file) : file;
+				break; // Only use the first notice file found
+			}
+		} catch {
+			// Skip files that can't be accessed
+			continue;
 		}
-	});
+	}
 
 	/*istanbul ignore else*/
 	if (currentExtendedPackageJson.dependencies) {
-		Object.keys(currentExtendedPackageJson.dependencies).forEach((dependencyName) => {
+		for (const dependencyName of Object.keys(currentExtendedPackageJson.dependencies)) {
 			const childDependency =
 				options.currentRecursionDepth > options._args.direct
 					? {}
@@ -378,10 +392,10 @@ const recursivelyCollectAllDependencies = (options: any) => {
 
 			if (data[dependencyId]) {
 				// already exists
-				return;
+				continue;
 			}
 
-			data = recursivelyCollectAllDependencies({
+			data = await recursivelyCollectAllDependencies({
 				_args: options._args,
 				basePath: options.basePath,
 				color: colorize,
@@ -394,7 +408,7 @@ const recursivelyCollectAllDependencies = (options: any) => {
 				currentRecursionDepth: options.currentRecursionDepth + 1,
 				clarifications: options.clarifications,
 			});
-		});
+		}
 	}
 
 	if (!currentExtendedPackageJson.name || !currentExtendedPackageJson.version) {
@@ -479,7 +493,7 @@ const init = (args: any, callback: (error: Error | null, result?: any) => void) 
 		});
 	}
 
-	readInstalledPackages(args.start, optionsForReadingInstalledPackages, (err: any, installedPackagesJson: any) => {
+	readInstalledPackages(args.start, optionsForReadingInstalledPackages, async (err: any, installedPackagesJson: any) => {
 		// Good to know:
 		// The json object returned by readInstalledPackages stores all direct (prod and dev) dependencies from
 		// the package.json file in the property '_dependencies'. The property 'dependencies' contains all dependencies,
@@ -490,7 +504,7 @@ const init = (args: any, callback: (error: Error | null, result?: any) => void) 
 
 		// 'allWantedDepthDependenciesWithVersions' might be longer than 'installedPackagesJson.dependencies', as it appends the version numbers to each key (package name),
 		// e.g. 'grunt@1' instead of 'grunt', and this way contains all different installed versions of each package:
-		let allWantedDepthDependenciesWithVersions = recursivelyCollectAllDependencies({
+		let allWantedDepthDependenciesWithVersions = await recursivelyCollectAllDependencies({
 			_args: args,
 			basePath: args.relativeLicensePath ? installedPackagesJson.path : null,
 			color: args.color,
@@ -835,7 +849,7 @@ const init = (args: any, callback: (error: Error | null, result?: any) => void) 
 			inputError = err;
 		} else {
 			// Output to files, if necessary
-			writeOutput(args, resultJson);
+			await writeOutput(args, resultJson);
 		}
 
 		// Log cache performance if debug is enabled
@@ -930,60 +944,62 @@ const asMarkDown = (sorted: any, customFormat: any) => {
 /**
  * Output data in plain vertical format like Angular CLI does: https://angular.io/3rdpartylicenses.txt
  */
-const asPlainVertical = (sorted: any) =>
-	Object.entries(sorted)
-		.map(([moduleName, moduleData]) => {
-			let licenseText = helpers.getModuleNameForLicenseTextHeader(moduleName);
+const asPlainVertical = async (sorted: any) => {
+	const results = [];
+	for (const [moduleName, moduleData] of Object.entries(sorted)) {
+		let licenseText = helpers.getModuleNameForLicenseTextHeader(moduleName);
 
-			if (Array.isArray(moduleData.licenses) && moduleData.licenses.length > 0) {
-				licenseText += moduleData.licenses.map((moduleLicense: any) => {
-					/*istanbul ignore else*/
-					if (typeof moduleLicense === 'object') {
-						/*istanbul ignore next*/
-						return moduleLicense.type || moduleLicense.name;
-					}
-
+		if (Array.isArray(moduleData.licenses) && moduleData.licenses.length > 0) {
+			licenseText += moduleData.licenses.map((moduleLicense: any) => {
+				/*istanbul ignore else*/
+				if (typeof moduleLicense === 'object') {
 					/*istanbul ignore next*/
-					if (typeof moduleLicense === 'string') {
-						return moduleLicense;
-					}
-				});
-			} else if (
-				typeof moduleData.licenses === 'object' &&
-				((moduleData.licenses as any).type || (moduleData.licenses as any).name)
-			) {
-				licenseText += getLicenseTitle((moduleData.licenses as any).type || (moduleData.licenses as any).name);
-			} else if (typeof moduleData.licenses === 'string') {
-				licenseText += getLicenseTitle(moduleData.licenses) || '';
-			}
+					return moduleLicense.type || moduleLicense.name;
+				}
 
-			licenseText += '\n';
+				/*istanbul ignore next*/
+				if (typeof moduleLicense === 'string') {
+					return moduleLicense;
+				}
+			});
+		} else if (
+			typeof moduleData.licenses === 'object' &&
+			((moduleData.licenses as any).type || (moduleData.licenses as any).name)
+		) {
+			licenseText += getLicenseTitle((moduleData.licenses as any).type || (moduleData.licenses as any).name);
+		} else if (typeof moduleData.licenses === 'string') {
+			licenseText += getLicenseTitle(moduleData.licenses) || '';
+		}
 
-			if (Array.isArray(moduleData.licenseFile) && moduleData.licenseFile.length > 0) {
-				licenseText += moduleData.licenseFile.map((moduleLicense: any) => {
-					/*istanbul ignore else*/
-					if (typeof moduleLicense === 'object') {
-						/*istanbul ignore next*/
-						return moduleLicense.type || moduleLicense.name;
-					}
+		licenseText += '\n';
 
-					if (typeof moduleLicense === 'string') {
-						return moduleLicense;
-					}
-				});
-			} else if (
-				typeof moduleData.licenseFile === 'object' &&
-				((moduleData.licenseFile as any).type || (moduleData.licenseFile as any).name)
-			) {
-				licenseText += (moduleData.licenseFile as any).type || (moduleData.licenseFile as any).name;
-			} else if (typeof moduleData.licenseFile === 'string') {
-				const licenseFileData = licenseFileCache.readLicenseFile(moduleData.licenseFile, false);
-				licenseText += licenseFileData.content;
-			}
+		if (Array.isArray(moduleData.licenseFile) && moduleData.licenseFile.length > 0) {
+			licenseText += moduleData.licenseFile.map((moduleLicense: any) => {
+				/*istanbul ignore else*/
+				if (typeof moduleLicense === 'object') {
+					/*istanbul ignore next*/
+					return moduleLicense.type || moduleLicense.name;
+				}
 
-			return licenseText;
-		})
-		.join('\n\n');
+				if (typeof moduleLicense === 'string') {
+					return moduleLicense;
+				}
+			});
+		} else if (
+			typeof moduleData.licenseFile === 'object' &&
+			((moduleData.licenseFile as any).type || (moduleData.licenseFile as any).name)
+		) {
+			licenseText += (moduleData.licenseFile as any).type || (moduleData.licenseFile as any).name;
+		} else if (typeof moduleData.licenseFile === 'string') {
+			const licenseFileData = await licenseFileCache.readLicenseFileAsync(moduleData.licenseFile, false);
+			licenseText += licenseFileData.content;
+		}
+
+		results.push(licenseText);
+	}
+	
+	return results.join('\n\n');
+};
 
 const parseJson = (jsonPath: string) => {
 	if (typeof jsonPath !== 'string') {
@@ -999,41 +1015,41 @@ const parseJson = (jsonPath: string) => {
 	}
 };
 
-const asFiles = (json: any, outDir: string) => {
-	mkdirp.sync(outDir);
+const asFiles = async (json: any, outDir: string) => {
+	await mkdirp(outDir);
 
-	Object.keys(json).forEach((moduleName) => {
+	for (const moduleName of Object.keys(json)) {
 		const licenseFile = json[moduleName].licenseFile;
 
-		if (licenseFile && licenseFileCache.fileExists(licenseFile)) {
-			const licenseFileData = licenseFileCache.readLicenseFile(licenseFile, false);
+		if (licenseFile && await licenseFileCache.fileExistsAsync(licenseFile)) {
+			const licenseFileData = await licenseFileCache.readLicenseFileAsync(licenseFile, false);
 			const outPath = path.join(outDir, `${moduleName}-LICENSE.txt`);
 			const baseDir = path.dirname(outPath);
 
-			mkdirp.sync(baseDir);
-			fs.writeFileSync(outPath, licenseFileData.content, 'utf8');
+			await mkdirp(baseDir);
+			await fsPromises.writeFile(outPath, licenseFileData.content, 'utf8');
 		} else {
 			console.warn(`No license file found for module '${moduleName}'`);
 		}
-	});
+	}
 };
 
 /**
  * Write output to a file, if indicated in parsedArgs.
  */
-const writeOutput = (parsedArgs: any, foundLicensesJson: any) => {
+const writeOutput = async (parsedArgs: any, foundLicensesJson: any) => {
 	if (parsedArgs.files || parsedArgs.out) {
-		const formattedOutput = licenseCheckerHelpers.getFormattedOutput(foundLicensesJson, parsedArgs);
+		const formattedOutput = await licenseCheckerHelpers.getFormattedOutput(foundLicensesJson, parsedArgs);
 
 		if (parsedArgs.files) {
-			asFiles(foundLicensesJson, parsedArgs.files);
+			await asFiles(foundLicensesJson, parsedArgs.files);
 		}
 
 		if (parsedArgs.out) {
 			const dir = path.dirname(parsedArgs.out);
 
-			mkdirp.sync(dir);
-			fs.writeFileSync(parsedArgs.out, formattedOutput, 'utf8');
+			await mkdirp(dir);
+			await fsPromises.writeFile(parsedArgs.out, formattedOutput, 'utf8');
 		}
 	}
 };

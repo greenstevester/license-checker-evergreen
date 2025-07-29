@@ -37,7 +37,7 @@ const filterJson = function filterJson(limitAttributes: string, json: any) {
     return filteredJson;
 };
 
-const getFormattedOutput = function getFormattedOutput(modulesWithVersions: any, args: any) {
+const getFormattedOutput = async function getFormattedOutput(modulesWithVersions: any, args: any) {
     let filteredJson = filterJson(args.limitAttributes, modulesWithVersions);
     const jsonCopy = cloneDeep(filteredJson);
     filteredJson = null;
@@ -78,7 +78,7 @@ const getFormattedOutput = function getFormattedOutput(modulesWithVersions: any,
     }
 
     if (args.plainVertical || args.angluarCli) {
-        return licenseChecker.asPlainVertical(jsonCopy);
+        return await licenseChecker.asPlainVertical(jsonCopy);
     }
 
     return licenseChecker.asTree(jsonCopy);
