@@ -1,6 +1,7 @@
 {
     "license-checker-evergreen@0.0.0": {
         "licenses": "MIT",
+        "licenseFile": "README",
         "licenseStart": "# LICENSE"
     }
 }
