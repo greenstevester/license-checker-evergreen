@@ -2,6 +2,7 @@ import path from 'node:path';
 
 const BASENAMES_PRECEDENCE: RegExp[] = [
 	/^LICENSE$/,
+	/^LICENCE$/,
 	/^LICENSE\-\w+$/, // e.g. LICENSE-MIT
 	/^MIT-LICENSE$/,
 	/^COPYING$/,

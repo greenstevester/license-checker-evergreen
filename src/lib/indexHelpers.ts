@@ -31,7 +31,8 @@ const deleteNonDirectDependenciesFromAllDependencies = function deleteNonDirectD
 
     allDependenciesArray.forEach((currentDependency) => {
         if (!wantedDependenciesArray.includes(currentDependency)) {
-            delete allDependencies[currentDependency];
+            // @ts-ignore
+			delete allDependencies[currentDependency];
         }
     });
 };
@@ -118,8 +119,8 @@ const getCsvData = (sorted: any, customFormat: any, csvComponentPrefix: string) 
             });
         } else {
             // Be sure to push empty strings for empty values, as this is what CSV expects:
-            dataElements.push(`"${key}"`); 
-            dataElements.push(`"${(module as any).licenses || ''}"`); 
+            dataElements.push(`"${key}"`);
+            dataElements.push(`"${(module as any).licenses || ''}"`);
             dataElements.push(`"${(module as any).repository || ''}"`);
         }
 

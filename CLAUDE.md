@@ -6,13 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Install dependencies**: `npm install`
 - **Build project**: `npm run build` (compiles TypeScript to dist/ directory)
-- **Run tests**: `npm test` (runs Jest tests)
+- **Run tests**: `npm test` (runs Jest tests with ES module support)
 - **Run tests with coverage**: `npm run test:coverage`
 - **Watch tests**: `npm run test:watch`
+- **Run single test**: `npm test -- --testNamePattern="test name"` or `npm test tests/specific-test.js`
 - **Lint code**: `npm run lint` or `npm run lint:fix`
 - **Format code**: `npm run format` (prettier + eslint fix) or `npm run format:dry` (check only)
 - **Check formatting**: `npm run prettier`
 - **CLI binary**: Located at `dist/bin/license-checker-evergreen.js` after build
+- **Debug mode**: `DEBUG=license-checker-evergreen* npm test` or when running CLI
 
 ## Architecture
 
@@ -52,3 +54,22 @@ The main process (`init` → `recursivelyCollectAllDependencies`) works as follo
 - **Test Structure**: Tests in `/tests/` directory, written in JavaScript
 - **Test Commands**: `npm test` (basic), `npm run test:coverage` (with coverage), `npm run test:watch` (watch mode)
 - **Fixtures**: Mock package.json files and license scenarios in test fixtures
+- **ES Module Support**: Jest configured with `--experimental-vm-modules` for ES module compatibility
+- **Test Timeout**: 10 second default timeout for complex dependency operations
+
+### Key Dependencies
+
+- **`read-installed-packages`**: Recursive npm dependency tree traversal
+- **`nopt`**: Command-line argument parsing with type validation
+- **`spdx-correct`**: SPDX license identifier validation and normalization
+- **`spdx-expression-parse`**: SPDX license expression parsing and validation
+- **`chalk`**: Terminal color output for formatted display
+- **`debug`**: Debug logging with `license-checker-evergreen:*` namespace
+
+### Special Features
+
+- **Clarification Files**: JSON files for overriding detected license information with checksum verification
+- **Custom Output Formats**: Supports JSON, CSV, Markdown, Tree, and Plain Vertical (Angular CLI) formats
+- **Advanced Filtering**: Include/exclude by packages, licenses, or package name patterns
+- **License File Detection**: Prioritized scanning of LICENSE, LICENCE, COPYING, README files
+- **SPDX Compliance**: Full SPDX license expression validation and correction

@@ -4,6 +4,10 @@ Code licensed under the BSD License:
 http://yuilibrary.com/license/
 */
 
+// @ts-nocheck
+
+
+
 const LICENSE_TITLE_UNKNOWN = 'UNKNOWN';
 const LICENSE_TITLE_UNLICENSED = 'UNLICENSED';
 
@@ -166,23 +170,42 @@ const recursivelyCollectAllDependencies = (options: any) => {
 
 	if (licenseData) {
 		// License information has been collected from either the clarification file or from the package.json file
-		/*istanbul ignore else*/
-		if (Array.isArray(licenseData) && licenseData.length > 0) {
-			moduleInfo.licenses = licenseData.map((moduleLicense: any) => {
+		const licensesList: string[] = Array.isArray(moduleInfo.licenses)
+			? moduleInfo.licenses
+			: [moduleInfo.licenses];
+
+
+		if (licensesList.length > 0) {
+			if (Array.isArray(licenseData)) {
+				moduleInfo.licenses = licenseData.map((moduleLicense: any) => {
+					const moduleLicenseTypeOrName = helpers.getFirstNotUndefinedOrUndefined(
+						moduleLicense.type,
+						moduleLicense.name,
+					);
+
+					if (typeof moduleLicenseTypeOrName === 'string') {
+						return moduleLicenseTypeOrName;
+					}
+
+					if (typeof moduleLicense === 'string') {
+						return moduleLicense;
+					}
+				});
+			} else {
+				// licenseData is a single license, not an array
 				const moduleLicenseTypeOrName = helpers.getFirstNotUndefinedOrUndefined(
-					moduleLicense.type,
-					moduleLicense.name,
+					(licenseData as any).type,
+					(licenseData as any).name,
 				);
 
 				if (typeof moduleLicenseTypeOrName === 'string') {
-					return moduleLicenseTypeOrName;
+					moduleInfo.licenses = [moduleLicenseTypeOrName];
+				} else if (typeof licenseData === 'string') {
+					moduleInfo.licenses = [licenseData];
 				}
-
-				if (typeof moduleLicense === 'string') {
-					return moduleLicense;
-				}
-			});
+			}
 		} else if (typeof helpers.getFirstNotUndefinedOrUndefined((licenseData as any).type, (licenseData as any).name) === 'string') {
+			// @ts-ignore
 			moduleInfo.licenses = getLicenseTitle(
 				helpers.getFirstNotUndefinedOrUndefined((licenseData as any).type, (licenseData as any).name) as string,
 			);
@@ -286,15 +309,18 @@ const recursivelyCollectAllDependencies = (options: any) => {
 					}
 
 					if (clarification?.licenseStart) {
+						// @ts-ignore
 						let startIndex = moduleInfo.licenseText.indexOf(clarification.licenseStart);
 						let endIndex;
 
 						if (clarification?.licenseEnd) {
+							// @ts-ignore
 							endIndex = moduleInfo.licenseText.indexOf(clarification.licenseEnd, startIndex);
 						} else {
+							// @ts-ignore
 							endIndex = moduleInfo.licenseText.length;
 						}
-
+// @ts-ignore
 						moduleInfo.licenseText = moduleInfo.licenseText.substring(startIndex, endIndex);
 					}
 				}

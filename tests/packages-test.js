@@ -10,11 +10,11 @@ const __dirname = dirname(__filename);
 describe('bin/license-checker-evergreen', () => {
 
     test('should restrict the output to the provided packages', () => {
-        const restrictedPackages = ['@types/node@16.18.11'];
+        const restrictedPackages = ['@types/node@22.16.5'];
         const output = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-evergreen'),
+                path.join(__dirname, '../dist/bin/license-checker-evergreen.js'),
                 '--json',
                 '--includePackages',
                 restrictedPackages.join(';'),
@@ -33,7 +33,7 @@ describe('bin/license-checker-evergreen', () => {
         const output = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-evergreen'),
+                path.join(__dirname, '../dist/bin/license-checker-evergreen.js'),
                 '--json',
                 '--excludePackages',
                 excludedPackages.join(';'),
@@ -54,7 +54,7 @@ describe('bin/license-checker-evergreen', () => {
         const output = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-evergreen'),
+                path.join(__dirname, '../dist/bin/license-checker-evergreen.js'),
                 '--json',
                 '--excludePackagesStartingWith',
                 excludedPackages.join(';'),
@@ -88,7 +88,7 @@ describe('bin/license-checker-evergreen', () => {
         const output = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-evergreen'),
+                path.join(__dirname, '../dist/bin/license-checker-evergreen.js'),
                 '--json',
                 '--excludePackages',
                 excludedNames.join(';'),
@@ -126,7 +126,7 @@ describe('bin/license-checker-evergreen', () => {
     test('should exclude private packages from the output', () => {
         const output = spawn(
             'node',
-            [path.join(__dirname, '../bin/license-checker-evergreen'), '--json', '--excludePrivatePackages'],
+            [path.join(__dirname, '../dist/bin/license-checker-evergreen.js'), '--json', '--excludePrivatePackages'],
             {
                 cwd: path.join(__dirname, 'fixtures', 'privateModule'),
             },

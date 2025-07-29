@@ -1,5 +1,5 @@
 import { describe, test, expect } from '@jest/globals';
-import { licenseFiles } from '../lib/license-files.js';
+import { licenseFiles } from '../dist/lib/license-files.js';
 
 describe('license files detector', () => {
     test('should export a function', () => {

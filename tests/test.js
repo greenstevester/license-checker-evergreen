@@ -1,8 +1,8 @@
 import { describe, test, beforeAll, afterAll, expect, it } from '@jest/globals';
 import path from 'path';
 import util from 'util';
-import * as checker from '../lib/index.js';
-import * as args from '../lib/args.js';
+import * as checker from '../dist/lib/index.js';
+import * as args from '../dist/lib/args.js';
 import chalk from 'chalk';
 import fs from 'fs';
 import { fileURLToPath } from 'url';

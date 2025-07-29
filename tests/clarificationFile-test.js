@@ -1,6 +1,6 @@
 import { describe, test, beforeAll, expect } from '@jest/globals';
 import path from 'path';
-import * as checker from '../lib/index.js';
+import * as checker from '../dist/lib/index.js';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -49,7 +49,7 @@ describe('clarifications', () => {
 
     test('should exit 1 if the checksum does not match', (done) => {
         let data = "";
-        let license_checker = spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--start', path.join(__dirname, clarifications_path), '--clarificationsFile', path.join(__dirname, clarifications_path, 'mismatch/clarification.json')], {
+        let license_checker = spawn('node', [path.join(__dirname, '../dist/bin/license-checker-evergreen.js'), '--start', path.join(__dirname, clarifications_path), '--clarificationsFile', path.join(__dirname, clarifications_path, 'mismatch/clarification.json')], {
             cwd: path.join(__dirname, '../'),
         });
 
@@ -68,7 +68,7 @@ describe('clarifications', () => {
     test('should succeed if no checksum is specified', (done) => {
         let data = "";
 
-        let license_checker = spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--start', path.join(__dirname, clarifications_path), '--clarificationsFile', path.join(__dirname, clarifications_path, 'example/noChecksum.json')], {
+        let license_checker = spawn('node', [path.join(__dirname, '../dist/bin/license-checker-evergreen.js'), '--start', path.join(__dirname, clarifications_path), '--clarificationsFile', path.join(__dirname, clarifications_path, 'example/noChecksum.json')], {
             cwd: path.join(__dirname, '../'),
         });
 
@@ -90,7 +90,7 @@ describe('clarifications', () => {
         let license_checker = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-evergreen'),
+                path.join(__dirname, '../dist/bin/license-checker-evergreen.js'),
                 '--start', path.join(__dirname, clarifications_path),
                 '--clarificationsFile', path.join(__dirname, clarifications_path, 'weirdStart/clarification.json'),
                 '--customPath', path.join(__dirname, clarifications_path, 'weirdStart/customFormat.json')
@@ -120,7 +120,7 @@ describe('clarifications', () => {
         let license_checker = spawn(
             'node',
             [
-                path.join(__dirname, '../bin/license-checker-evergreen'),
+                path.join(__dirname, '../dist/bin/license-checker-evergreen.js'),
                 '--start', path.join(__dirname, clarifications_path),
                 '--clarificationsFile', path.join(__dirname, clarifications_path, 'weirdStart/startOnlyClarification.json'),
                 '--customPath', path.join(__dirname, clarifications_path, 'weirdStart/customFormat.json')

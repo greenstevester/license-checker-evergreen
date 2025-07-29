@@ -2,7 +2,8 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
   testMatch: [
-    '**/tests/**/*.js'
+    '**/tests/**/*.js',
+    '!**/tests/setup.js'
   ],
   testTimeout: 10000,
   preset: 'ts-jest/presets/default-esm',

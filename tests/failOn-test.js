@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 
 describe('bin/license-checker-evergreen', () => {
     test('should exit 1 if it finds a single license type (MIT) license due to --failOn MIT', (done) => {
-        spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--failOn', 'MIT'], {
+        spawn('node', [path.join(__dirname, '../dist/bin/license-checker-evergreen.js'), '--failOn', 'MIT'], {
             cwd: path.join(__dirname, '../'),
             stdio: 'ignore',
         }).on('exit', (code) => {
@@ -19,7 +19,7 @@ describe('bin/license-checker-evergreen', () => {
     });
 
     test('should exit 1 if it finds forbidden licenses license due to --failOn MIT;ISC', (done) => {
-        spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--failOn', 'MIT;ISC'], {
+        spawn('node', [path.join(__dirname, '../dist/bin/license-checker-evergreen.js'), '--failOn', 'MIT;ISC'], {
             cwd: path.join(__dirname, '../'),
             stdio: 'ignore',
         }).on('exit', (code) => {
@@ -29,7 +29,7 @@ describe('bin/license-checker-evergreen', () => {
     });
 
     test('should give warning about commas if --failOn MIT,ISC is provided', (done) => {
-        const proc = spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen'), '--failOn', 'MIT,ISC'], {
+        const proc = spawn('node', [path.join(__dirname, '../dist/bin/license-checker-evergreen.js'), '--failOn', 'MIT,ISC'], {
             cwd: path.join(__dirname, '../'),
             stdio: 'pipe',
         });

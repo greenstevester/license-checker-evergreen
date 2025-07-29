@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 
 describe('bin/license-checker-evergreen', () => {
     test('should exit 0', (done) => {
-        spawn('node', [path.join(__dirname, '../bin/license-checker-evergreen')], {
+        spawn('node', [path.join(__dirname, '../dist/bin/license-checker-evergreen.js')], {
             cwd: path.join(__dirname, '../'),
             stdio: 'ignore',
         }).on('exit', function (code) {
