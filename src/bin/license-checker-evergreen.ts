@@ -18,7 +18,7 @@ const unknownArgs = Object.keys(parsedArgs).filter((arg) => !knownOptions.includ
 
 exitProcessOrWarnIfNeeded({ unknownArgs, parsedArgs });
 
-licenseCheckerMain.init(parsedArgs, function (err: Error | null, foundLicensesJson: Record<string, unknown>) {
+licenseCheckerMain.init(parsedArgs, async function (err: Error | null, foundLicensesJson: Record<string, unknown>) {
 	if (err) {
 		console.error('An error has occurred:');
 		console.error(err);
@@ -29,7 +29,7 @@ licenseCheckerMain.init(parsedArgs, function (err: Error | null, foundLicensesJs
 			helpers.colorizeOutput(foundLicensesJson);
 		}
 
-		const formattedOutput = helpers.getFormattedOutput(foundLicensesJson, parsedArgs);
+		const formattedOutput = await helpers.getFormattedOutput(foundLicensesJson, parsedArgs);
 		console.log(formattedOutput);
 	}
 });
