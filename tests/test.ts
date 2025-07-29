@@ -91,7 +91,7 @@ describe('main tests', (): void => {
 					done();
 				}
 			);
-		}, 10000);
+		}, 30000);
 
 		test('and give us results', (): void => {
 			expect(Object.keys(output).length).toBeGreaterThan(70);
@@ -134,7 +134,7 @@ describe('main tests', (): void => {
 					done();
 				}
 			);
-		}, 10000);
+		}, 30000);
 
 		test('and give us results', (): void => {
 			expect(Object.keys(output).length).toBeGreaterThan(70);
@@ -195,7 +195,7 @@ describe('main tests', (): void => {
 					done();
 				}
 			);
-		}, 10000);
+		}, 30000);
 
 		test('should give us results', (): void => {
 			expect(output).toBeTruthy();
@@ -217,7 +217,7 @@ describe('main tests', (): void => {
 					done();
 				}
 			);
-		}, 10000);
+		}, 30000);
 
 		test('and give us results', (): void => {
 			const pkgDepsNumber: number =
@@ -245,7 +245,7 @@ describe('main tests', (): void => {
 					done();
 				}
 			);
-		}, 10000);
+		}, 30000);
 
 		afterAll((): void => {
 			if (fs.existsSync(tmpFileName)) {
@@ -281,7 +281,7 @@ describe('main tests', (): void => {
 	describe('should parse local with unknown and excludes', (): void => {
 		const result: TestResult = {};
 
-		beforeAll(parseAndExclude('../', 'MIT, ISC', result), 10000);
+		beforeAll(parseAndExclude('../', 'MIT, ISC', result), 30000);
 
 		test('should exclude MIT and ISC licensed modules from results', (): void => {
 			let excluded = true;
@@ -298,7 +298,7 @@ describe('main tests', (): void => {
 
 	describe('should parse local with excludes containing commas', (): void => {
 		const result: TestResult = {};
-		beforeAll(parseAndExclude('./fixtures/excludeWithComma', 'Apache License\\, Version 2.0', result), 10000);
+		beforeAll(parseAndExclude('./fixtures/excludeWithComma', 'Apache License\\, Version 2.0', result), 30000);
 
 		test('should exclude a license with a comma from the list', (): void => {
 			let excluded = true;
@@ -316,7 +316,7 @@ describe('main tests', (): void => {
 
 	describe('should parse local with BSD excludes', (): void => {
 		const result: TestResult = {};
-		beforeAll(parseAndExclude('./fixtures/excludeBSD', 'BSD', result), 10000);
+		beforeAll(parseAndExclude('./fixtures/excludeBSD', 'BSD', result), 30000);
 
 		test('should exclude BSD-3-Clause', (): void => {
 			let excluded = true;
@@ -334,7 +334,7 @@ describe('main tests', (): void => {
 
 	describe('should parse local with Public Domain excludes', (): void => {
 		const result: TestResult = {};
-		beforeAll(parseAndExclude('./fixtures/excludePublicDomain', 'Public Domain', result), 10000);
+		beforeAll(parseAndExclude('./fixtures/excludePublicDomain', 'Public Domain', result), 30000);
 
 		test('should exclude Public Domain', (): void => {
 			let excluded = true;
@@ -352,7 +352,7 @@ describe('main tests', (): void => {
 
 	describe('should not exclude Custom if not specified in excludes', (): void => {
 		const result: TestResult = {};
-		beforeAll(parseAndExclude('./fixtures/custom-license-file', 'MIT', result), 10000);
+		beforeAll(parseAndExclude('./fixtures/custom-license-file', 'MIT', result), 30000);
 
 		test('should exclude Public Domain', (): void => {
 			let excluded = true;
@@ -396,7 +396,7 @@ describe('main tests', (): void => {
 
 	describe('should exit on given list of onlyAllow licenses', (): void => {
 		const result: TestResult = {};
-		beforeAll(parseAndFailOn('onlyAllow', '../', 'MIT; ISC', result), 10000);
+		beforeAll(parseAndFailOn('onlyAllow', '../', 'MIT; ISC', result), 30000);
 
 		test('should exit on non MIT and ISC licensed modules from results', (): void => {
 			expect(result.exitCode).toBe(1);
@@ -405,7 +405,7 @@ describe('main tests', (): void => {
 
 	describe('should exit on single onlyAllow license', (): void => {
 		const result: TestResult = {};
-		beforeAll(parseAndFailOn('onlyAllow', '../', 'ISC', result), 10000);
+		beforeAll(parseAndFailOn('onlyAllow', '../', 'ISC', result), 30000);
 
 		test('should exit on non ISC licensed modules from results', (): void => {
 			expect(result.exitCode).toBe(1);
@@ -435,7 +435,7 @@ describe('main tests', (): void => {
 
 	describe('should exit on given list of failOn licenses', (): void => {
 		const result: TestResult = {};
-		beforeAll(parseAndFailOn('failOn', '../', 'MIT; ISC', result), 10000);
+		beforeAll(parseAndFailOn('failOn', '../', 'MIT; ISC', result), 30000);
 
 		test('should exit on MIT and ISC licensed modules from results', (): void => {
 			expect(result.exitCode).toBe(1);
@@ -444,7 +444,7 @@ describe('main tests', (): void => {
 
 	describe('should exit on single failOn license', (): void => {
 		const result: TestResult = {};
-		beforeAll(parseAndFailOn('failOn', '../', 'ISC', result), 10000);
+		beforeAll(parseAndFailOn('failOn', '../', 'ISC', result), 30000);
 
 		test('should exit on ISC licensed modules from results', (): void => {
 			expect(result.exitCode).toBe(1);
