@@ -51,6 +51,7 @@ import * as licenseCheckerHelpers from './licenseCheckerHelpers.js';
 import { getLicenseTitle } from './getLicenseTitle.js';
 import { licenseFiles } from './license-files.js';
 import * as helpers from './indexHelpers.js';
+import { licenseFileCache } from './licenseFileCache.js';
 
 // Set up debug logging
 // https://www.npmjs.com/package/debug#stderr-vs-stdout
@@ -246,8 +247,8 @@ const recursivelyCollectAllDependencies = (options: any) => {
 		licenseFile = path.join(modulePath, filename);
 		// Checking that the file is in fact a normal file and not a directory for example.
 		/*istanbul ignore else*/
-		if (fs.lstatSync(licenseFile).isFile()) {
-			let currentLicenceFilesContent;
+		if (licenseFileCache.fileExists(licenseFile)) {
+			let licenseFileData: { content: string; checksum?: string } | null = null;
 
 			if (
 				!moduleInfo.licenses ||
@@ -256,22 +257,22 @@ const recursivelyCollectAllDependencies = (options: any) => {
 				// || moduleInfo.licenses.indexOf('Custom:') === 0
 			) {
 				//Only re-check the license if we didn't get it from elsewhere
-				currentLicenceFilesContent = fs.readFileSync(licenseFile, { encoding: 'utf8' });
-
-				moduleInfo.licenses = getLicenseTitle(currentLicenceFilesContent) || LICENSE_TITLE_UNKNOWN;
+				licenseFileData = licenseFileCache.readLicenseFile(licenseFile, false);
+				moduleInfo.licenses = getLicenseTitle(licenseFileData.content) || LICENSE_TITLE_UNKNOWN;
 			}
 
 			if (index === 0) {
 				// Treat the file with the highest precedence as licenseFile
 				if (clarification !== undefined && !passedClarificationCheck) {
 					/*istanbul ignore else*/
-					if (!currentLicenceFilesContent) {
-						currentLicenceFilesContent = fs.readFileSync(licenseFile, { encoding: 'utf8' });
+					if (!licenseFileData) {
+						licenseFileData = licenseFileCache.readLicenseFile(licenseFile, true);
+					} else if (!licenseFileData.checksum) {
+						// Need checksum for verification
+						licenseFileData = licenseFileCache.readLicenseFile(licenseFile, true);
 					}
 
-					let sha256 = createHash('sha256').update(currentLicenceFilesContent).digest('hex');
-
-					if (clarification.checksum !== sha256) {
+					if (clarification.checksum !== licenseFileData.checksum) {
 						console.error(
 							`Clarification checksum mismatch for ${currentPackageNameAndVersion} :(\nFile checked: ${licenseFile}`,
 						);
@@ -293,15 +294,15 @@ const recursivelyCollectAllDependencies = (options: any) => {
 					if (clarification?.licenseText) {
 						moduleInfo.licenseText = clarification.licenseText;
 					} else {
-						if (!currentLicenceFilesContent) {
-							currentLicenceFilesContent = fs.readFileSync(licenseFile, { encoding: 'utf8' });
+						if (!licenseFileData) {
+							licenseFileData = licenseFileCache.readLicenseFile(licenseFile, false);
 						}
 
 						/*istanbul ignore else*/
 						if (options._args && !options._args.csv) {
-							moduleInfo.licenseText = currentLicenceFilesContent.trim();
+							moduleInfo.licenseText = licenseFileData.content.trim();
 						} else {
-							moduleInfo.licenseText = currentLicenceFilesContent
+							moduleInfo.licenseText = licenseFileData.content
 								.replace(/"/g, "'")
 								.replace(/\r?\n|\r/g, ' ')
 								.trim();
@@ -329,11 +330,11 @@ const recursivelyCollectAllDependencies = (options: any) => {
 					if (clarification?.copyright) {
 						moduleInfo.copyright = clarification.copyright;
 					} else {
-						if (!currentLicenceFilesContent) {
-							currentLicenceFilesContent = fs.readFileSync(licenseFile, { encoding: 'utf8' });
+						if (!licenseFileData) {
+							licenseFileData = licenseFileCache.readLicenseFile(licenseFile, false);
 						}
 
-						const linesWithCopyright = helpers.getLinesWithCopyright(currentLicenceFilesContent);
+						const linesWithCopyright = helpers.getLinesWithCopyright(licenseFileData.content);
 
 						if (linesWithCopyright.length > 0) {
 							moduleInfo.copyright = linesWithCopyright[0].replace(/\n/g, '. ').trim();
@@ -837,6 +838,10 @@ const init = (args: any, callback: (error: Error | null, result?: any) => void) 
 			writeOutput(args, resultJson);
 		}
 
+		// Log cache performance if debug is enabled
+		const cacheStats = licenseFileCache.getStats();
+		debugLog('License file cache stats: %o', cacheStats);
+
 		// Return the callback and variables nicely
 		callback(inputError, resultJson);
 	});
@@ -972,7 +977,8 @@ const asPlainVertical = (sorted: any) =>
 			) {
 				licenseText += (moduleData.licenseFile as any).type || (moduleData.licenseFile as any).name;
 			} else if (typeof moduleData.licenseFile === 'string') {
-				licenseText += fs.readFileSync(moduleData.licenseFile, { encoding: 'utf8' });
+				const licenseFileData = licenseFileCache.readLicenseFile(moduleData.licenseFile, false);
+				licenseText += licenseFileData.content;
 			}
 
 			return licenseText;
@@ -999,13 +1005,13 @@ const asFiles = (json: any, outDir: string) => {
 	Object.keys(json).forEach((moduleName) => {
 		const licenseFile = json[moduleName].licenseFile;
 
-		if (licenseFile && fs.existsSync(licenseFile)) {
-			const fileContents = fs.readFileSync(licenseFile);
+		if (licenseFile && licenseFileCache.fileExists(licenseFile)) {
+			const licenseFileData = licenseFileCache.readLicenseFile(licenseFile, false);
 			const outPath = path.join(outDir, `${moduleName}-LICENSE.txt`);
 			const baseDir = path.dirname(outPath);
 
 			mkdirp.sync(baseDir);
-			fs.writeFileSync(outPath, fileContents, 'utf8');
+			fs.writeFileSync(outPath, licenseFileData.content, 'utf8');
 		} else {
 			console.warn(`No license file found for module '${moduleName}'`);
 		}
