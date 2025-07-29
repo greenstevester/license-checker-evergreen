@@ -1280,7 +1280,9 @@ const asPlainVertical = async (sorted: any) => {
 
 		licenseText += '\n';
 
-		if (Array.isArray(moduleData.licenseFile) && moduleData.licenseFile.length > 0) {
+		if ((moduleData as any).licenseText) {
+			licenseText += (moduleData as any).licenseText;
+		} else if (Array.isArray(moduleData.licenseFile) && moduleData.licenseFile.length > 0) {
 			licenseText += moduleData.licenseFile.map((moduleLicense: any) => {
 				/*istanbul ignore else*/
 				if (typeof moduleLicense === 'object') {
