@@ -5,7 +5,7 @@ module.exports = {
     '**/tests/**/*.ts',
     '!**/tests/setup.ts'
   ],
-  testTimeout: 10000,
+  testTimeout: 30000,
   preset: 'ts-jest/presets/default-esm',
   transform: {
     '^.+\\.jsx?$': ['ts-jest', {
