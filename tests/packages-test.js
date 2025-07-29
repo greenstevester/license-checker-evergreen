@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 describe('bin/license-checker-evergreen', () => {
 
     test('should restrict the output to the provided packages', () => {
-        const restrictedPackages = ['@types/node@22.16.5'];
+        const restrictedPackages = ['@types/node@22.17.0'];
         const output = spawn(
             'node',
             [

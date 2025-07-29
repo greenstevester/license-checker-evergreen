@@ -2,8 +2,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
   testMatch: [
-    '**/tests/**/*.js',
-    '!**/tests/setup.js'
+    '**/tests/**/*.js'
   ],
   testTimeout: 10000,
   preset: 'ts-jest/presets/default-esm',
@@ -11,9 +10,6 @@ module.exports = {
     '^.+\\.jsx?$': ['ts-jest', {
       useESM: true
     }]
-  },
-  moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1'
   },
   transformIgnorePatterns: [
     'node_modules/(?!(chalk|spdx-.*|read-installed-packages)/)'
