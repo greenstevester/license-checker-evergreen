@@ -32,6 +32,7 @@ interface ParsedArguments {
 	json?: boolean;
 	limitAttributes?: string;
 	markdown?: boolean;
+	memoryOptimized?: boolean;
 	nopeer?: boolean;
 	onlyAllow?: string;
 	onlyunknownOpts?: boolean;
@@ -76,6 +77,7 @@ const knownOptions = {
 	json: Boolean,
 	limitAttributes: String,
 	markdown: Boolean,
+	memoryOptimized: Boolean,
 	nopeer: Boolean,
 	onlyAllow: String,
 	onlyunknownOpts: Boolean,

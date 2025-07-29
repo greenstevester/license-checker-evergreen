@@ -57,6 +57,8 @@ import { licenseFiles } from './license-files.js';
 import * as helpers from './indexHelpers.js';
 import { licenseFileCache } from './licenseFileCache.js';
 import { FilteringPipeline } from './filteringPipeline.js';
+import { PackageInfo } from './packageInfo.js';
+import { PackageCollection } from './packageCollection.js';
 
 // Set up debug logging
 // https://www.npmjs.com/package/debug#stderr-vs-stdout
@@ -576,6 +578,158 @@ const initOptimized = async (args: any, callback: (error: Error | null, result?:
 		const filterStats = filterPipeline.getStats();
 		debugLog('License file cache stats: %o', cacheStats);
 		debugLog('Filtering pipeline stats: %o', filterStats);
+
+		callback(null, sortedData);
+
+	} catch (error) {
+		debugError(error);
+		callback(error as Error);
+	}
+};
+
+const initMemoryOptimized = async (args: any, callback: (error: Error | null, result?: any) => void) => {
+	debugLog('scanning %s (memory-optimized)', args.start);
+
+	// Create memory-efficient package collection
+	const packageCollection = new PackageCollection(licenseFileCache);
+
+	// customPath is a path to a JSON file that defined a custom format
+	if (args.customPath) {
+		args.customFormat = parseJson(args.customPath);
+	}
+
+	const optionsForReadingInstalledPackages = {
+		depth: args.direct, // How deep to traverse the dependency tree
+		nopeer: args.nopeer, // Whether or not to skip peerDependencies in output
+		dev: true, // Whether or not to include devDependencies
+		log: debugLog, // A function to log debug info
+	};
+
+	if (args.production || args.development) {
+		optionsForReadingInstalledPackages.dev = false;
+	}
+
+	// Parse filtering options
+	const excludeLicenses =
+		args.excludeLicenses &&
+		args.excludeLicenses
+			.match(/([^\\\][^,]|\\,)+/g)
+			?.map((license: string) => license.replace(/\\,/g, ',').replace(/^\s+|\s+$/g, ''));
+
+	const includeLicenses =
+		args.includeLicenses &&
+		args.includeLicenses
+			.match(/([^\\\][^,]|\\,)+/g)
+			?.map((license: string) => license.replace(/\\,/g, ',').replace(/^\s+|\s+$/g, ''));
+
+	// Create filtering pipeline
+	const filterPipeline = new FilteringPipeline({
+		excludeLicenses,
+		includeLicenses,
+		includePackages: helpers.getOptionArray(args.includePackages),
+		excludePackages: helpers.getOptionArray(args.excludePackages),
+		excludePackagesStartingWith: helpers.getOptionArray(args.excludePackagesStartingWith),
+		excludePrivatePackages: args.excludePrivatePackages,
+		onlyunknown: args.onlyunknown,
+		failOn: args.failOn?.split(';').map((s: string) => s.trim()).filter(Boolean),
+		onlyAllow: args.onlyAllow?.split(';').map((s: string) => s.trim()).filter(Boolean),
+		colorize: args.color,
+		relativeModulePath: args.relativeModulePath,
+		startPath: args.start
+	});
+
+	// Clarifications processing (same as original)
+	let clarifications: {[key: string]: any} = {};
+	if (args.clarificationsFile) {
+		const clarificationsFromFile = parseJson(args.clarificationsFile);
+
+		for (const [versionString, clarification] of Object.entries(clarificationsFromFile)) {
+			const versionSplit = versionString.lastIndexOf('@');
+			if (versionSplit !== -1) {
+				const name = versionString.slice(0, versionSplit);
+				const semverRange = versionString.slice(versionSplit + 1);
+				clarifications[name] = clarifications[name] || [];
+				clarifications[name].push({ ...clarification, semverRange, used: false });
+			}
+		}
+	}
+
+	try {
+		// Use promisified version of readInstalledPackages
+		const installedPackagesJson = await new Promise((resolve, reject) => {
+			readInstalledPackages(args.start, optionsForReadingInstalledPackages, (err: any, result: any) => {
+				if (err) reject(err);
+				else resolve(result);
+			});
+		});
+
+		if (optionsForReadingInstalledPackages.depth === 0) {
+			helpers.deleteNonDirectDependenciesFromAllDependencies(installedPackagesJson, args);
+		}
+
+		// Memory-efficient collection with streaming
+		const allFilteredDependencies = await recursivelyCollectAllDependenciesMemoryOptimized({
+			_args: args,
+			basePath: args.relativeLicensePath ? (installedPackagesJson as any).path : null,
+			color: args.color,
+			customFormat: args.customFormat,
+			packageCollection,
+			deps: installedPackagesJson,
+			development: args.development,
+			production: args.production,
+			unknown: args.unknown,
+			currentRecursionDepth: 0,
+			clarifications,
+			filterPipeline // Pass the filtering pipeline
+		});
+
+		// Check clarifications usage if needed
+		if (args.clarificationsMatchAll) {
+			const unusedClarifications: string[] = [];
+			for (const [packageName, entries] of Object.entries(clarifications)) {
+				for (const clarification of (entries as any[])) {
+					if (!clarification.used) {
+						unusedClarifications.push(`${packageName}@${clarification.semverRange}`);
+					}
+				}
+			}
+			if (unusedClarifications.length) {
+				console.error(
+					`Some clarifications (${unusedClarifications.join(
+						', ',
+					)}) were unused and --clarificationsMatchAll was specified. Exiting.`,
+				);
+				process.exit(1);
+			}
+		}
+
+		// Data is already filtered and sorted by name during collection
+		const sortedData = Object.keys(allFilteredDependencies)
+			.sort()
+			.reduce((result: any, key: string) => {
+				result[key] = allFilteredDependencies[key];
+				return result;
+			}, {});
+
+		if (!Object.keys(sortedData).length) {
+			throw new Error('No packages found in this path...');
+		}
+
+		// Output to files if necessary
+		await writeOutput(args, sortedData);
+
+		// Log performance statistics
+		const cacheStats = licenseFileCache.getStats();
+		const filterStats = filterPipeline.getStats();
+		const collectionStats = packageCollection.getStats();
+		const memoryInfo = packageCollection.getMemoryInfo();
+		debugLog('License file cache stats: %o', cacheStats);
+		debugLog('Filtering pipeline stats: %o', filterStats);
+		debugLog('Package collection stats: %o', collectionStats);
+		debugLog('Memory usage info: %o', memoryInfo);
+
+		// Cleanup memory
+		packageCollection.cleanup();
 
 		callback(null, sortedData);
 
@@ -1207,11 +1361,70 @@ const writeOutput = async (parsedArgs: any, foundLicensesJson: any) => {
 	}
 };
 
+// New memory-optimized recursive collection function
+const recursivelyCollectAllDependenciesMemoryOptimized = async (options: any) => {
+	const { packageCollection, deps: currentExtendedPackageJson } = options;
+	const currentPackageNameAndVersion = `${currentExtendedPackageJson.name}@${currentExtendedPackageJson.version}`;
+
+	// Early exit conditions
+	if (
+		packageCollection.hasPackage(currentExtendedPackageJson.name, currentExtendedPackageJson.version) ||
+		(options.production && currentExtendedPackageJson.extraneous) ||
+		(options.development && !currentExtendedPackageJson.extraneous && !currentExtendedPackageJson.root)
+	) {
+		return packageCollection.getAllPackages(options.customFormat?.licenseText);
+	}
+
+	// Create package info with lazy evaluation
+	const packageInfo = new PackageInfo(
+		currentExtendedPackageJson.path,
+		currentExtendedPackageJson.realPath || currentExtendedPackageJson.path,
+		licenseFileCache,
+		options.clarifications
+	);
+
+	// Add to collection
+	packageCollection.addPackage(packageInfo);
+
+	// Recursively process dependencies
+	if (currentExtendedPackageJson.dependencies) {
+		for (const dependencyName of Object.keys(currentExtendedPackageJson.dependencies)) {
+			const childDependency =
+				options.currentRecursionDepth > options._args.direct
+					? {}
+					: currentExtendedPackageJson.dependencies[dependencyName];
+
+			if (!childDependency.name || !childDependency.version) {
+				continue;
+			}
+
+			await recursivelyCollectAllDependenciesMemoryOptimized({
+				...options,
+				deps: childDependency,
+				currentRecursionDepth: options.currentRecursionDepth + 1
+			});
+		}
+	}
+
+	// Stream packages with filtering for memory efficiency
+	const filteredPackages: any = {};
+	for (const packageData of packageCollection.streamFiltered(
+		(pkg) => options.filterPipeline ? options.filterPipeline.processPackage(`${pkg.name}@${pkg.version}`, pkg) !== null : true,
+		options.customFormat?.licenseText
+	)) {
+		filteredPackages[`${packageData.name}@${packageData.version}`] = packageData;
+	}
+
+	return filteredPackages;
+};
+
 // Export legacy version as default for now (tests compatibility)
 export {
 	recursivelyCollectAllDependencies,
+	recursivelyCollectAllDependenciesMemoryOptimized,
 	init, // Use legacy version as default for tests
 	initOptimized,
+	initMemoryOptimized,
 	filterAttributes,
 	print,
 	asTree,
