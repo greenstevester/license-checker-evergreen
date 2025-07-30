@@ -60,9 +60,15 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Release version: $VERSION"
 
-      - name: Update CHANGELOG.md
+
+      - name: Commit updated CHANGELOG.md
         run: |
-          # Generate changelog from git commits since last tag
+          # Switch to main branch to make changes there
+          git fetch origin main
+          git checkout main
+          git pull origin main
+          
+          # Regenerate changelog from main branch
           LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -z "$LAST_TAG" ]; then
             RANGE="HEAD"
@@ -104,26 +110,23 @@ jobs:
           fi
 
           mv temp_changelog.md CHANGELOG.md
-
-      - name: Commit updated CHANGELOG.md
-        run: |
+          
+          # Commit changes if any
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md
-          if git diff --staged --quiet; then
-            echo "No changes to CHANGELOG.md"
-          else
+          if ! git diff --staged --quiet; then
             git commit -m "docs: update CHANGELOG.md for v${{ steps.extract_version.outputs.version }}"
-            git push origin HEAD:main
+            git push origin main
           fi
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release v${{ steps.extract_version.outputs.version }}
+          name: Release v${{ steps.extract_version.outputs.version }}
           body: |
             Release v${{ steps.extract_version.outputs.version }}
 
@@ -142,6 +145,7 @@ jobs:
             **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.extract_version.outputs.version }}
           draft: false
           prerelease: false
+          files: ./license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
 
       - name: Publish to NPM
         env:
@@ -160,12 +164,3 @@ jobs:
           npm pack
           mv license-checker-evergreen-${{ steps.extract_version.outputs.version }}.tgz license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
 
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
-          asset_name: license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
-          asset_content_type: application/gzip
