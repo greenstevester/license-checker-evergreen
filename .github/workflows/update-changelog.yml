@@ -1,0 +1,195 @@
+name: Update Changelog
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Get current version
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $LATEST_TAG"
+
+      - name: Check if changelog needs update
+        id: check_update
+        run: |
+          # Check if there are new commits since the last tag
+          if [ -z "${{ steps.get_latest_tag.outputs.latest_tag }}" ]; then
+            echo "No previous tags found, updating changelog"
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+          else
+            NEW_COMMITS=$(git rev-list --count ${{ steps.get_latest_tag.outputs.latest_tag }}..HEAD)
+            if [ "$NEW_COMMITS" -gt 0 ]; then
+              echo "Found $NEW_COMMITS new commits since last tag"
+              echo "needs_update=true" >> $GITHUB_OUTPUT
+            else
+              echo "No new commits since last tag"
+              echo "needs_update=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Generate unreleased changelog
+        if: steps.check_update.outputs.needs_update == 'true'
+        run: |
+          # Determine range for changelog
+          if [ -z "${{ steps.get_latest_tag.outputs.latest_tag }}" ]; then
+            RANGE="HEAD"
+            SINCE_TEXT="initial commit"
+          else
+            RANGE="${{ steps.get_latest_tag.outputs.latest_tag }}..HEAD"
+            SINCE_TEXT="v${{ steps.get_latest_tag.outputs.latest_tag }}"
+          fi
+          
+          # Create temporary changelog for unreleased changes
+          echo "# Changelog" > temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "## [Unreleased] - $(date +%Y-%m-%d)" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "_Changes since $SINCE_TEXT_" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          # Count total commits in range
+          TOTAL_COMMITS=$(git rev-list --count $RANGE)
+          if [ "$TOTAL_COMMITS" -eq 0 ]; then
+            echo "No new changes to document" >> temp_changelog.md
+          else
+            echo "**$TOTAL_COMMITS commit(s) in this update**" >> temp_changelog.md
+            echo "" >> temp_changelog.md
+            
+            # Group commits by type with better categorization
+            echo "### 🚀 New Features" >> temp_changelog.md
+            git log --pretty=format:"- %s (%h)" $RANGE | grep -E "^- (feat|feature):" | sed 's/^- feat[ure]*: /- /' >> temp_changelog.md || true
+            if [ $(git log --pretty=format:"%s" $RANGE | grep -cE "^(feat|feature):") -eq 0 ]; then
+              echo "_No new features in this update_" >> temp_changelog.md
+            fi
+            echo "" >> temp_changelog.md
+            
+            echo "### 🐛 Bug Fixes" >> temp_changelog.md  
+            git log --pretty=format:"- %s (%h)" $RANGE | grep -E "^- fix:" | sed 's/^- fix: /- /' >> temp_changelog.md || true
+            if [ $(git log --pretty=format:"%s" $RANGE | grep -cE "^fix:") -eq 0 ]; then
+              echo "_No bug fixes in this update_" >> temp_changelog.md
+            fi
+            echo "" >> temp_changelog.md
+            
+            echo "### ⚡ Performance Improvements" >> temp_changelog.md
+            git log --pretty=format:"- %s (%h)" $RANGE | grep -E "^- perf:" | sed 's/^- perf: /- /' >> temp_changelog.md || true
+            if [ $(git log --pretty=format:"%s" $RANGE | grep -cE "^perf:") -eq 0 ]; then
+              echo "_No performance improvements in this update_" >> temp_changelog.md
+            fi
+            echo "" >> temp_changelog.md
+            
+            echo "### 🔧 Maintenance & Improvements" >> temp_changelog.md
+            git log --pretty=format:"- %s (%h)" $RANGE | grep -E "^- (chore|refactor|improvement):" | sed 's/^- [^:]*: /- /' >> temp_changelog.md || true
+            if [ $(git log --pretty=format:"%s" $RANGE | grep -cE "^(chore|refactor|improvement):") -eq 0 ]; then
+              echo "_No maintenance changes in this update_" >> temp_changelog.md
+            fi
+            echo "" >> temp_changelog.md
+            
+            echo "### 🧪 Tests" >> temp_changelog.md
+            git log --pretty=format:"- %s (%h)" $RANGE | grep -E "^- test:" | sed 's/^- test: /- /' >> temp_changelog.md || true
+            if [ $(git log --pretty=format:"%s" $RANGE | grep -cE "^test:") -eq 0 ]; then
+              echo "_No test changes in this update_" >> temp_changelog.md
+            fi
+            echo "" >> temp_changelog.md
+            
+            echo "### 📚 Documentation" >> temp_changelog.md
+            git log --pretty=format:"- %s (%h)" $RANGE | grep -E "^- docs?:" | sed 's/^- docs*: /- /' >> temp_changelog.md || true
+            if [ $(git log --pretty=format:"%s" $RANGE | grep -cE "^docs?:") -eq 0 ]; then
+              echo "_No documentation changes in this update_" >> temp_changelog.md
+            fi
+            echo "" >> temp_changelog.md
+            
+            echo "### 🔄 Other Changes" >> temp_changelog.md
+            git log --pretty=format:"- %s (%h)" $RANGE | grep -vE "^- (feat|feature|fix|chore|refactor|perf|improvement|docs?|test):" >> temp_changelog.md || true
+            OTHER_COUNT=$(git log --pretty=format:"%s" $RANGE | grep -vcE "^(feat|feature|fix|chore|refactor|perf|improvement|docs?|test):" || echo "0")
+            if [ "$OTHER_COUNT" -eq 0 ]; then
+              echo "_No other changes in this update_" >> temp_changelog.md
+            fi
+          fi
+          echo "" >> temp_changelog.md
+          
+          # Preserve existing changelog content if it exists
+          if [ -f CHANGELOG.md ] && [ -s CHANGELOG.md ]; then
+            # Skip the first line if it's just "# Changelog"
+            if head -n 1 CHANGELOG.md | grep -q "^# Changelog$"; then
+              tail -n +2 CHANGELOG.md >> temp_changelog.md
+            else
+              cat CHANGELOG.md >> temp_changelog.md
+            fi
+          fi
+          
+          mv temp_changelog.md CHANGELOG.md
+
+      - name: Commit updated CHANGELOG.md
+        if: steps.check_update.outputs.needs_update == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Check if there are actually changes to commit
+          if git diff --quiet CHANGELOG.md; then
+            echo "No changes to CHANGELOG.md detected"
+            exit 0
+          fi
+          
+          git add CHANGELOG.md
+          git commit -m "docs: update CHANGELOG.md with unreleased changes
+          
+          🤖 Automatically updated by GitHub Actions
+          
+          Co-Authored-By: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          
+          git push origin ${{ github.ref_name }}
+
+      - name: Create Pull Request (if not on main/master)
+        if: steps.check_update.outputs.needs_update == 'true' && github.ref_name != 'main' && github.ref_name != 'master'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: update CHANGELOG.md with unreleased changes"
+          title: "📚 Update CHANGELOG.md"
+          body: |
+            ## 📋 Changelog Update
+            
+            This PR automatically updates the CHANGELOG.md with recent commits.
+            
+            ### What's included:
+            - Recent commits since last tag: ${{ steps.get_latest_tag.outputs.latest_tag }}
+            - Organized by change type (features, fixes, improvements, etc.)
+            - Commit hashes for easy reference
+            
+            ### Review Notes:
+            - This is an automated update
+            - Review the categorization of commits
+            - Edit manually if needed before merging
+            
+            🤖 _Generated automatically by GitHub Actions_
+          branch: update-changelog
+          delete-branch: true
