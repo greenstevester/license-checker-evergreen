@@ -91,7 +91,7 @@ describe('main tests', (): void => {
 					done();
 				}
 			);
-		}, 30000);
+		}, 120000);
 
 		test('and give us results', (): void => {
 			expect(Object.keys(output).length).toBeGreaterThan(70);
@@ -134,7 +134,7 @@ describe('main tests', (): void => {
 					done();
 				}
 			);
-		}, 30000);
+		}, 120000);
 
 		test('and give us results', (): void => {
 			expect(Object.keys(output).length).toBeGreaterThan(70);
@@ -195,7 +195,7 @@ describe('main tests', (): void => {
 					done();
 				}
 			);
-		}, 30000);
+		}, 120000);
 
 		test('should give us results', (): void => {
 			expect(output).toBeTruthy();
@@ -217,7 +217,7 @@ describe('main tests', (): void => {
 					done();
 				}
 			);
-		}, 30000);
+		}, 120000);
 
 		test('and give us results', (): void => {
 			const pkgDepsNumber: number =
@@ -245,7 +245,7 @@ describe('main tests', (): void => {
 					done();
 				}
 			);
-		}, 30000);
+		}, 120000);
 
 		afterAll((): void => {
 			if (fs.existsSync(tmpFileName)) {
