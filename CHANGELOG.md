@@ -4,6 +4,33 @@
 
 _Changes since 
 
+**2 commit(s) in this update**
+
+### 🚀 New Features
+_No new features in this update_
+
+### 🐛 Bug Fixes
+- resolve GitHub Actions release workflow push failures (dd25b3f)
+
+### ⚡ Performance Improvements
+_No performance improvements in this update_
+
+### 🔧 Maintenance & Improvements
+_No maintenance changes in this update_
+
+### 🧪 Tests
+_No test changes in this update_
+
+### 📚 Documentation
+- update CHANGELOG.md with unreleased changes (9e40c23)
+
+### 🔄 Other Changes
+
+
+## [Unreleased] - 2025-07-30
+
+_Changes since 
+
 **464 commit(s) in this update**
 
 ### 🚀 New Features
