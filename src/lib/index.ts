@@ -401,6 +401,13 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 				options.currentRecursionDepth > options._args.direct
 					? {}
 					: currentExtendedPackageJson.dependencies[dependencyName];
+			
+			// Handle case where childDependency is a version string instead of an object
+			if (typeof childDependency === 'string') {
+				// Skip string dependencies as they don't have the expanded structure needed
+				continue;
+			}
+			
 			const dependencyId = `${childDependency.name}@${childDependency.version}`;
 
 			if (data[dependencyId]) {
@@ -1395,6 +1402,12 @@ const recursivelyCollectAllDependenciesMemoryOptimized = async (options: any) =>
 				options.currentRecursionDepth > options._args.direct
 					? {}
 					: currentExtendedPackageJson.dependencies[dependencyName];
+
+			// Handle case where childDependency is a version string instead of an object
+			if (typeof childDependency === 'string') {
+				// Skip string dependencies as they don't have the expanded structure needed
+				continue;
+			}
 
 			if (!childDependency.name || !childDependency.version) {
 				continue;
