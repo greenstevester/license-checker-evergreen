@@ -94,7 +94,7 @@ const getLinesWithCopyright = function getLinesWithCopyright(fileContents = '') 
 		});
 };
 
-const getOptionArray = (option: any) => {
+const getOptionArray = (option: any): string[] | undefined => {
 	if (Array.isArray(option)) {
 		return option;
 	}
@@ -103,7 +103,7 @@ const getOptionArray = (option: any) => {
 		return option.split(';');
 	}
 
-	return false;
+	return undefined;
 };
 
 const getCsvData = (sorted: any, customFormat: any, csvComponentPrefix: string) => {
