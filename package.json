@@ -33,7 +33,7 @@
         "lint": "npx eslint --ext ts,js .",
         "lint:fix": "npm run lint -- --fix",
         "prettier": "npx prettier src --check && npx prettier scripts --check",
-        "prettier:fix": "npm run prettier -- --write",
+        "prettier:fix": "npm run prettier --write",
         "format": "npm run prettier:fix && npm run lint:fix",
         "format:dry": "npm run prettier && npm run lint",
         "clean": "rimraf ./dist/ ./exec/",

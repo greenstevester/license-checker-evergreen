@@ -19,8 +19,8 @@ const unknownArgs = Object.keys(parsedArgs).filter((arg) => !knownOptions.includ
 exitProcessOrWarnIfNeeded({ unknownArgs, parsedArgs });
 
 // Choose the appropriate initialization function based on optimization level
-const initFunction = parsedArgs.memoryOptimized 
-    ? licenseCheckerMain.initMemoryOptimized 
+const initFunction = parsedArgs.memoryOptimized
+    ? licenseCheckerMain.initMemoryOptimized
     : licenseCheckerMain.init;
 
 initFunction(parsedArgs, async function (err: Error | null, foundLicensesJson: Record<string, unknown>) {

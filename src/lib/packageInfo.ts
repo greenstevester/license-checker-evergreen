@@ -35,7 +35,7 @@ export class PackageInfo {
 	private _licenseFile?: string;
 	private _licenses?: string | string[];
 	private _computedData?: Partial<PackageData>;
-	
+
 	constructor(
 		public readonly path: string,
 		public readonly realPath: string,
@@ -96,7 +96,7 @@ export class PackageInfo {
 
 		const pkg = this.packageJson;
 		let clarification = null;
-		
+
 		// Handle clarifications object (as used in original code)
 		if (this.clarifications && pkg.name && pkg.version) {
 			const clarificationsList = this.clarifications[pkg.name];
@@ -106,7 +106,7 @@ export class PackageInfo {
 				});
 			}
 		}
-		
+
 		if (clarification) {
 			this._licenses = clarification.licenses || clarification;
 			this._licenseFile = clarification.licenseFile;
@@ -115,7 +115,7 @@ export class PackageInfo {
 
 		// Extract from package.json
 		this._licenses = pkg.license || pkg.licenses;
-		
+
 		// Find license files only if needed
 		if (!this._licenses || this._licenses === 'UNKNOWN') {
 			this.findLicenseFile();
@@ -128,11 +128,11 @@ export class PackageInfo {
 	private findLicenseFile(): void {
 		try {
 			const files = readdirSync(this.realPath);
-			
+
 			const licenseFileList = licenseFiles(files);
 			if (licenseFileList.length > 0) {
 				this._licenseFile = join(this.realPath, licenseFileList[0]);
-				
+
 				// Only read file content if we need to extract license info
 				if (!this._licenses || this._licenses === 'UNKNOWN') {
 					const fileContent = this.cache.readLicenseFile(this._licenseFile);
@@ -169,13 +169,13 @@ export class PackageInfo {
 		if (this._licenseText) {
 			return this._licenseText;
 		}
-		
+
 		// Load text on demand
 		if (this._licenseFile) {
 			const fileContent = this.cache.readLicenseFile(this._licenseFile);
 			this._licenseText = fileContent.content;
 		}
-		
+
 		return this._licenseText;
 	}
 
@@ -190,7 +190,7 @@ export class PackageInfo {
 
 		const pkg = this.packageJson;
 		const basic = this.getBasicData();
-		
+
 		this._computedData = {
 			...basic,
 			description: pkg.description,

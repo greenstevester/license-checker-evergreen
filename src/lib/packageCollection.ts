@@ -29,7 +29,7 @@ export class PackageCollection {
 	 */
 	addPackage(packageInfo: PackageInfo): void {
 		const key = `${packageInfo.name}@${packageInfo.version}`;
-		
+
 		// Check if we already have this package to avoid duplicates
 		if (this.packages.has(key)) {
 			return;
@@ -57,8 +57,8 @@ export class PackageCollection {
 		}
 
 		// Generate data based on requirements
-		const data = includeText ? 
-			packageInfo.toPackageDataWithText() : 
+		const data = includeText ?
+			packageInfo.toPackageDataWithText() :
 			packageInfo.toPackageData();
 
 		// Cache the result
@@ -82,8 +82,8 @@ export class PackageCollection {
 			}
 
 			this.totalRequests++;
-			const data = includeText ? 
-				packageInfo.toPackageDataWithText() : 
+			const data = includeText ?
+				packageInfo.toPackageDataWithText() :
 				packageInfo.toPackageData();
 
 			// Use object pooling for memory efficiency
@@ -102,14 +102,14 @@ export class PackageCollection {
 	 */
 	async *streamBatches(batchSize = 50, includeText = false): AsyncGenerator<PackageData[], void, unknown> {
 		let batch: PackageData[] = [];
-		
+
 		for (const packageData of this.streamPackages(includeText)) {
 			batch.push({ ...packageData }); // Clone to avoid pool conflicts
-			
+
 			if (batch.length >= batchSize) {
 				yield batch;
 				batch = [];
-				
+
 				// Allow garbage collection between batches
 				if (global.gc) {
 					global.gc();
@@ -177,15 +177,15 @@ export class PackageCollection {
 	cleanup(): void {
 		// Clear processed cache
 		this.processedPackages.clear();
-		
+
 		// Clear object pool
 		this.objectPool.length = 0;
-		
+
 		// Clear package instance caches
 		for (const packageInfo of this.packages.values()) {
 			packageInfo.clearCache();
 		}
-		
+
 		this.memoryUsage = 0;
 		this.cacheHits = 0;
 		this.totalRequests = 0;
@@ -234,7 +234,7 @@ export class PackageCollection {
 		poolSize: number;
 	} {
 		let totalMemory = 0;
-		
+
 		// Estimate memory usage
 		for (const packageInfo of this.packages.values()) {
 			const stats = packageInfo.getMemoryStats();
