@@ -1,7 +1,7 @@
 // Type definitions for spdx modules
-// @ts-ignore
+// @ts-ignore - No TypeScript definitions available for spdx-correct
 import spdxCorrectModule from 'spdx-correct';
-// @ts-ignore  
+// @ts-ignore - No TypeScript definitions available for spdx-satisfies
 import spdxSatisfiesModule from 'spdx-satisfies';
 
 export const spdxCorrect = spdxCorrectModule;

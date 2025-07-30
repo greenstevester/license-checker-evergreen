@@ -1,0 +1,245 @@
+name: Publish to NPM and GitHub Packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g., v5.0.1)'
+        required: true
+        type: string
+      npm_publish:
+        description: 'Publish to NPM'
+        required: true
+        type: boolean
+        default: true
+      github_publish:
+        description: 'Publish to GitHub Packages'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write  # Required for NPM provenance
+  packages: write  # Required for GitHub Packages
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      should-publish-npm: ${{ steps.should-publish.outputs.npm }}
+      should-publish-github: ${{ steps.should-publish.outputs.github }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+            VERSION=${VERSION#v}  # Remove 'v' prefix if present
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+
+      - name: Determine publish targets
+        id: should-publish
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "npm=${{ github.event.inputs.npm_publish }}" >> $GITHUB_OUTPUT
+            echo "github=${{ github.event.inputs.github_publish }}" >> $GITHUB_OUTPUT
+          else
+            echo "npm=true" >> $GITHUB_OUTPUT
+            echo "github=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Verify package contents
+        run: |
+          npm pack --dry-run
+          echo "Package contents:"
+          npm pack --json | jq -r '.[0].files[].path' | sort
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            package.json
+            package-lock.json
+            README.md
+            LICENSE
+          retention-days: 1
+
+  publish-npm:
+    needs: build-and-test
+    if: needs.build-and-test.outputs.should-publish-npm == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Setup Node.js for NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check if version already exists on NPM
+        run: |
+          if npm view license-checker-evergreen@${{ needs.build-and-test.outputs.version }} version 2>/dev/null; then
+            echo "Version ${{ needs.build-and-test.outputs.version }} already exists on NPM"
+            exit 1
+          else
+            echo "Version ${{ needs.build-and-test.outputs.version }} is new, proceeding with publish"
+          fi
+
+      - name: Publish to NPM
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          # Enable NPM provenance for supply chain security
+          npm publish --access public --provenance
+          echo "Successfully published license-checker-evergreen@${{ needs.build-and-test.outputs.version }}"
+
+      - name: Verify NPM publication
+        run: |
+          # Wait a moment for NPM to propagate
+          sleep 15
+          
+          # Verify the package is available
+          if npm view license-checker-evergreen@${{ needs.build-and-test.outputs.version }} version; then
+            echo "✅ Package successfully published and available on NPM"
+          else
+            echo "❌ Package publication verification failed"
+            exit 1
+          fi
+
+  publish-github:
+    needs: build-and-test
+    if: needs.build-and-test.outputs.should-publish-github == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@greenstevester'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure package for GitHub Packages
+        run: |
+          # Create a temporary package.json with GitHub registry scope
+          cp package.json package.json.backup
+          jq '.name = "@greenstevester/license-checker-evergreen"' package.json > package.json.tmp
+          mv package.json.tmp package.json
+
+      - name: Publish to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm publish
+          echo "Successfully published @greenstevester/license-checker-evergreen@${{ needs.build-and-test.outputs.version }}"
+
+      - name: Restore original package.json
+        run: mv package.json.backup package.json
+
+  create-summary:
+    needs: [build-and-test, publish-npm, publish-github]
+    if: always() && needs.build-and-test.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create publication summary
+        run: |
+          echo "## 🎉 Package Publication Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** license-checker-evergreen@${{ needs.build-and-test.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Node.js:** 18" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.publish-npm.result }}" = "success" ]; then
+            echo "### ✅ NPM Registry" >> $GITHUB_STEP_SUMMARY
+            echo "- **Status:** Published successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- **Link:** https://www.npmjs.com/package/license-checker-evergreen/v/${{ needs.build-and-test.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Install:** \`npm install -g license-checker-evergreen@${{ needs.build-and-test.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.build-and-test.outputs.should-publish-npm }}" = "true" ]; then
+            echo "### ❌ NPM Registry" >> $GITHUB_STEP_SUMMARY
+            echo "- **Status:** Publication failed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⏭️ NPM Registry" >> $GITHUB_STEP_SUMMARY
+            echo "- **Status:** Skipped (not requested)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.publish-github.result }}" = "success" ]; then
+            echo "### ✅ GitHub Packages" >> $GITHUB_STEP_SUMMARY
+            echo "- **Status:** Published successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- **Link:** https://github.com/greenstevester/license-checker-evergreen/pkgs/npm/license-checker-evergreen" >> $GITHUB_STEP_SUMMARY
+            echo "- **Install:** \`npm install -g @greenstevester/license-checker-evergreen@${{ needs.build-and-test.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.build-and-test.outputs.should-publish-github }}" = "true" ]; then
+            echo "### ❌ GitHub Packages" >> $GITHUB_STEP_SUMMARY
+            echo "- **Status:** Publication failed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⏭️ GitHub Packages" >> $GITHUB_STEP_SUMMARY
+            echo "- **Status:** Skipped (not requested)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### 📋 Build Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Ref:** ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY

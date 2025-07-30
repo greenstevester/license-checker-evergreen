@@ -28,16 +28,14 @@
         "changes": "github-changes -o evergreen -r license-checker-evergreen",
         "contrib": "node ./scripts/contrib.js",
         "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-        "test:watch": "jest --watch",
-        "test:coverage": "jest --coverage",
-        "lint": "npx eslint --ext ts,js .",
+        "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
+        "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
         "lint:fix": "npm run lint -- --fix",
-        "prettier": "npx prettier src --check && npx prettier scripts --check",
-        "prettier:fix": "npm run prettier --write",
-        "format": "npm run prettier:fix && npm run lint:fix",
-        "format:dry": "npm run prettier && npm run lint",
+        "prettier:fix": "npx prettier src --write && npx prettier scripts --write",
+        "lint-prettier": "npm run prettier:fix && npm run lint:fix",
         "clean": "rimraf ./dist/ ./exec/",
-        "clean_node_modules": "rimraf ./node_modules package-lock.json"
+        "clean_node_modules": "rimraf ./node_modules package-lock.json",
+		"clean-all": "npm run clean && npm run clean_node_modules"
     },
     "preferGlobal": true,
     "bugs": {

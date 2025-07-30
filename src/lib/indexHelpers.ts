@@ -31,7 +31,7 @@ const deleteNonDirectDependenciesFromAllDependencies = function deleteNonDirectD
 
 	allDependenciesArray.forEach((currentDependency) => {
 		if (!wantedDependenciesArray.includes(currentDependency)) {
-			// @ts-ignore
+			// @ts-ignore - Dynamic property deletion on object with any type structure
 			delete allDependencies[currentDependency];
 		}
 	});

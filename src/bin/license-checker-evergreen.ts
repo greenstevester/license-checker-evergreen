@@ -12,16 +12,13 @@ import * as helpers from '../lib/licenseCheckerHelpers.js';
 import * as licenseCheckerMain from '../lib/index.js';
 
 const parsedArgs = args.parse();
-const hasFailingArg = parsedArgs.failOn || parsedArgs.onlyAllow;
 const knownOptions = Object.keys(args.knownOptions);
 const unknownArgs = Object.keys(parsedArgs).filter((arg) => !knownOptions.includes(arg));
 
 exitProcessOrWarnIfNeeded({ unknownArgs, parsedArgs });
 
 // Choose the appropriate initialization function based on optimization level
-const initFunction = parsedArgs.memoryOptimized
-    ? licenseCheckerMain.initMemoryOptimized
-    : licenseCheckerMain.init;
+const initFunction = parsedArgs.memoryOptimized ? licenseCheckerMain.initMemoryOptimized : licenseCheckerMain.init;
 
 initFunction(parsedArgs, async function (err: Error | null, foundLicensesJson: Record<string, unknown>) {
 	if (err) {

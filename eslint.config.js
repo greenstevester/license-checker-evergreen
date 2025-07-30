@@ -6,7 +6,7 @@ import prettierConfig from 'eslint-config-prettier';
 
 export default [
 	{
-		ignores: ['artifacts/**', 'build/**', 'coverage/**', 'node_modules/**', 'tests/**', 'dist/**', 'lib/**', 'scripts/**', 'eslint.config.js']
+		ignores: ['artifacts/**', 'build/**', 'coverage/**', 'node_modules/**', '__tests__/**', 'dist/**', 'lib/**', 'scripts/**', 'eslint.config.js']
 	},
 	js.configs.recommended,
 	{
@@ -38,7 +38,7 @@ export default [
 			...typescript.configs.recommended.rules,
 			...prettierConfig.rules,
 			'no-unused-vars': 'off',
-			'@typescript-eslint/no-unused-vars': ['error', { args: 'after-used' }],
+			'@typescript-eslint/no-unused-vars': ['error', { args: 'after-used', argsIgnorePattern: '^_' }],
 			semi: 2,
 			eqeqeq: [2, 'allow-null'],
 			'no-console': 0,
@@ -58,7 +58,13 @@ export default [
 			'array-bracket-spacing': [2, 'never'],
 			'object-curly-spacing': [2, 'always'],
 			'prettier/prettier': ['error'],
-			'key-spacing': ['error', { beforeColon: false }]
+			'key-spacing': ['error', { beforeColon: false }],
+			'@typescript-eslint/no-explicit-any': 'warn',
+			'@typescript-eslint/ban-ts-comment': ['error', {
+				'ts-ignore': 'allow-with-description',
+				'ts-expect-error': 'allow-with-description',
+				'ts-nocheck': false
+			}]
 		}
 	}
 ];

@@ -57,9 +57,7 @@ export class PackageCollection {
 		}
 
 		// Generate data based on requirements
-		const data = includeText ?
-			packageInfo.toPackageDataWithText() :
-			packageInfo.toPackageData();
+		const data = includeText ? packageInfo.toPackageDataWithText() : packageInfo.toPackageData();
 
 		// Cache the result
 		this.processedPackages.set(key, data);
@@ -82,9 +80,7 @@ export class PackageCollection {
 			}
 
 			this.totalRequests++;
-			const data = includeText ?
-				packageInfo.toPackageDataWithText() :
-				packageInfo.toPackageData();
+			const data = includeText ? packageInfo.toPackageDataWithText() : packageInfo.toPackageData();
 
 			// Use object pooling for memory efficiency
 			const pooledData = this.getPooledObject();
@@ -127,7 +123,7 @@ export class PackageCollection {
 	 */
 	*streamFiltered(
 		predicate: (data: PackageData) => boolean,
-		includeText = false
+		includeText = false,
 	): Generator<PackageData, void, unknown> {
 		for (const packageData of this.streamPackages(includeText)) {
 			if (predicate(packageData)) {
@@ -199,7 +195,7 @@ export class PackageCollection {
 			totalPackages: this.packages.size,
 			memoryUsage: this.memoryUsage,
 			cacheHitRate: this.totalRequests > 0 ? this.cacheHits / this.totalRequests : 0,
-			pooledObjects: this.objectPool.length
+			pooledObjects: this.objectPool.length,
 		};
 	}
 
@@ -245,7 +241,7 @@ export class PackageCollection {
 			estimatedSize: totalMemory + this.memoryUsage,
 			packageCount: this.packages.size,
 			cachedResults: this.processedPackages.size,
-			poolSize: this.objectPool.length
+			poolSize: this.objectPool.length,
 		};
 	}
 }

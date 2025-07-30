@@ -40,7 +40,7 @@ const getLicenseTitle = (str = 'undefined') => {
 
 		// No need for additional parsing efforts:
 		return str;
-	} catch (error) {
+	} catch {
 		// Fail silently and continue with additional parsing efforts:
 	}
 

@@ -3,7 +3,7 @@
  * Eliminates redundant object copies and defers expensive computations
  */
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import semver from 'semver';
 import type { LicenseFileCache } from './licenseFileCache.js';
@@ -40,7 +40,7 @@ export class PackageInfo {
 		public readonly path: string,
 		public readonly realPath: string,
 		private readonly cache: LicenseFileCache,
-		private readonly clarifications?: any
+		private readonly clarifications?: any,
 	) {}
 
 	/**
@@ -82,7 +82,7 @@ export class PackageInfo {
 			version: this.version,
 			path: this.path,
 			realPath: this.realPath,
-			private: this.packageJson.private || false
+			private: this.packageJson.private || false,
 		};
 	}
 
@@ -101,9 +101,9 @@ export class PackageInfo {
 		if (this.clarifications && pkg.name && pkg.version) {
 			const clarificationsList = this.clarifications[pkg.name];
 			if (Array.isArray(clarificationsList)) {
-				clarification = clarificationsList.find((c: any) => {
-					return pkg.version === c.semverRange || semver.satisfies(pkg.version, c.semverRange);
-				});
+				clarification = clarificationsList.find(
+					(c: any) => pkg.version === c.semverRange || semver.satisfies(pkg.version, c.semverRange),
+				);
 			}
 		}
 
@@ -201,7 +201,7 @@ export class PackageInfo {
 			licenseFile: this.licenseFile,
 			publisher: this.extractPublisher(pkg),
 			email: this.extractEmail(pkg),
-			url: this.extractUrl(pkg)
+			url: this.extractUrl(pkg),
 		};
 
 		return this._computedData;
@@ -215,7 +215,7 @@ export class PackageInfo {
 		return {
 			...data,
 			licenseText: this.getLicenseText(),
-			licenseModified: this.licenseFile
+			licenseModified: this.licenseFile,
 		};
 	}
 
@@ -284,7 +284,7 @@ export class PackageInfo {
 		return {
 			cached: !!this._computedData,
 			hasLicenseText: !!this._licenseText,
-			size: (this._licenseText?.length || 0) + JSON.stringify(this._computedData || {}).length
+			size: (this._licenseText?.length || 0) + JSON.stringify(this._computedData || {}).length,
 		};
 	}
 }

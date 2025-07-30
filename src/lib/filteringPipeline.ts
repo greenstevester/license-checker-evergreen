@@ -1,15 +1,15 @@
 /**
  * FilteringPipeline - Single-pass filtering system for package data
- * 
+ *
  * Combines license filtering, package filtering, and processing into a single
  * efficient pass through the data, eliminating the need for multiple iterations.
  */
 
 import chalk from 'chalk';
 
-// @ts-ignore
+// @ts-ignore - No type definitions available for spdx-correct
 import spdxCorrect from 'spdx-correct';
-// @ts-ignore
+// @ts-ignore - No type definitions available for spdx-satisfies
 import spdxSatisfies from 'spdx-satisfies';
 
 interface FilterOptions {
@@ -56,13 +56,13 @@ export class FilteringPipeline {
 		if (!this.passesPackageFilters(packageName, packageData)) return null;
 		if (!this.passesPrivateFilter(packageData)) return null;
 		if (!this.passesUnknownFilter(packageData)) return null;
-		
+
 		// Apply transformations to the package data
 		const processedData = this.applyTransformations(packageName, packageData);
-		
+
 		// Check fail conditions - these can exit the process
 		this.checkFailConditions(packageName, processedData);
-		
+
 		this.filteredCount++;
 		return processedData;
 	}
@@ -72,7 +72,7 @@ export class FilteringPipeline {
 	 */
 	private passesLicenseFilters(packageName: string, packageData: PackageData): boolean {
 		const { excludeLicenses, includeLicenses } = this.options;
-		
+
 		if (!excludeLicenses?.length && !includeLicenses?.length) {
 			return true; // No license filters
 		}
@@ -88,7 +88,7 @@ export class FilteringPipeline {
 			if (licenseMatch) return false; // Excluded
 		}
 
-		// Check include licenses  
+		// Check include licenses
 		if (includeLicenses?.length) {
 			const licenseMatch = this.getLicenseMatch(licensesArr, includeLicenses);
 			if (!licenseMatch) return false; // Not included
@@ -100,34 +100,32 @@ export class FilteringPipeline {
 	/**
 	 * Package name-based filtering
 	 */
-	private passesPackageFilters(packageName: string, packageData: PackageData): boolean {
+	private passesPackageFilters(packageName: string, _packageData: PackageData): boolean {
 		const { includePackages, excludePackages, excludePackagesStartingWith } = this.options;
 
 		// Include packages whitelist
 		if (includePackages?.length) {
-			const isIncluded = includePackages.some(whitelistPackage => 
+			const isIncluded = includePackages.some((whitelistPackage) =>
 				packageName.startsWith(
-					whitelistPackage.lastIndexOf('@') > 0 ? whitelistPackage : `${whitelistPackage}@`
-				)
+					whitelistPackage.lastIndexOf('@') > 0 ? whitelistPackage : `${whitelistPackage}@`,
+				),
 			);
 			if (!isIncluded) return false;
 		}
 
 		// Exclude packages blacklist
 		if (excludePackages?.length) {
-			const isExcluded = excludePackages.some(blacklistPackage => 
+			const isExcluded = excludePackages.some((blacklistPackage) =>
 				packageName.startsWith(
-					blacklistPackage.lastIndexOf('@') > 0 ? blacklistPackage : `${blacklistPackage}@`
-				)
+					blacklistPackage.lastIndexOf('@') > 0 ? blacklistPackage : `${blacklistPackage}@`,
+				),
 			);
 			if (isExcluded) return false;
 		}
 
 		// Exclude packages starting with specific strings
 		if (excludePackagesStartingWith?.length) {
-			const isExcluded = excludePackagesStartingWith.some(prefix => 
-				packageName.startsWith(prefix)
-			);
+			const isExcluded = excludePackagesStartingWith.some((prefix) => packageName.startsWith(prefix));
 			if (isExcluded) return false;
 		}
 
@@ -165,21 +163,22 @@ export class FilteringPipeline {
 
 		// Handle private packages
 		if (transformed.private) {
-			transformed.licenses = this.options.colorize ? 
-				chalk.bold.red('UNLICENSED') : 'UNLICENSED';
+			transformed.licenses = this.options.colorize ? chalk.bold.red('UNLICENSED') : 'UNLICENSED';
 		}
 
 		// Handle unknown licenses
 		if (!transformed.licenses) {
-			transformed.licenses = this.options.colorize ? 
-				chalk.bold.red('UNKNOWN') : 'UNKNOWN';
+			transformed.licenses = this.options.colorize ? chalk.bold.red('UNKNOWN') : 'UNKNOWN';
 		}
 
 		// Handle guessed licenses (marked with *)
-		if (this.options.onlyunknown && transformed.licenses && 
-			typeof transformed.licenses === 'string' && transformed.licenses.indexOf('*') > -1) {
-			transformed.licenses = this.options.colorize ? 
-				chalk.bold.red('UNKNOWN') : 'UNKNOWN';
+		if (
+			this.options.onlyunknown &&
+			transformed.licenses &&
+			typeof transformed.licenses === 'string' &&
+			transformed.licenses.indexOf('*') > -1
+		) {
+			transformed.licenses = this.options.colorize ? chalk.bold.red('UNKNOWN') : 'UNKNOWN';
 		}
 
 		// Adjust relative module paths
@@ -222,7 +221,7 @@ export class FilteringPipeline {
 
 			if (!containsAllowedLicense) {
 				console.error(
-					`Package "${packageName}" is licensed under "${licenseString}" which is not permitted by the --onlyAllow flag. Exiting.`
+					`Package "${packageName}" is licensed under "${licenseString}" which is not permitted by the --onlyAllow flag. Exiting.`,
 				);
 				process.exit(1);
 			}
@@ -238,7 +237,7 @@ export class FilteringPipeline {
 
 		const spdxIsValid = (spdx: string) => spdxCorrect(spdx) === spdx;
 		const validSPDXLicenses = compareLicenses.map(transformBSD).filter(spdxIsValid);
-		const invalidSPDXLicenses = compareLicenses.map(transformBSD).filter(l => !spdxIsValid(l));
+		const invalidSPDXLicenses = compareLicenses.map(transformBSD).filter((l) => !spdxIsValid(l));
 		const spdxExcluder = `( ${validSPDXLicenses.join(' OR ')} )`;
 
 		let match = false;
@@ -276,8 +275,8 @@ export class FilteringPipeline {
 		return {
 			processed: this.processedCount,
 			filtered: this.filteredCount,
-			rejectionRate: this.processedCount > 0 ? 
-				(this.processedCount - this.filteredCount) / this.processedCount : 0
+			rejectionRate:
+				this.processedCount > 0 ? (this.processedCount - this.filteredCount) / this.processedCount : 0,
 		};
 	}
 

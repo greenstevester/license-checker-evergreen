@@ -5,4 +5,4 @@ artifacts/
 build/
 coverage/
 node_modules/
-tests/
+dist/

@@ -4,7 +4,7 @@ Code licensed under the BSD License:
 http://yuilibrary.com/license/
 */
 
-// @ts-nocheck
+// Main license checking module with complex third-party library integrations
 
 const LICENSE_TITLE_UNKNOWN = 'UNKNOWN';
 const LICENSE_TITLE_UNLICENSED = 'UNLICENSED';
@@ -36,20 +36,19 @@ import { promises as fsPromises } from 'node:fs';
 import { mkdirp } from 'mkdirp';
 import path from 'node:path';
 
-// @ts-ignore
+// @ts-ignore - No TypeScript definitions available for read-installed-packages
 import readInstalledPackages from 'read-installed-packages';
 
 // Simple pass-through wrapper - the original library seems to work fine now
 // We'll use the original readInstalledPackages directly
 const readInstalledPackagesSafe = readInstalledPackages;
 
-// @ts-ignore
+// @ts-ignore - No TypeScript definitions available for spdx-correct
 import spdxCorrect from 'spdx-correct';
 
-// @ts-ignore
+// @ts-ignore - No TypeScript definitions available for spdx-satisfies
 import spdxSatisfies from 'spdx-satisfies';
 import treeify from 'treeify';
-import { createHash } from 'crypto';
 import semver from 'semver';
 
 import * as licenseCheckerHelpers from './licenseCheckerHelpers.js';
@@ -224,7 +223,7 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 			typeof helpers.getFirstNotUndefinedOrUndefined((licenseData as any).type, (licenseData as any).name) ===
 			'string'
 		) {
-			// @ts-ignore
+			// @ts-ignore - getLicenseTitle function expects correct types but we're handling dynamic license data
 			moduleInfo.licenses = getLicenseTitle(
 				helpers.getFirstNotUndefinedOrUndefined((licenseData as any).type, (licenseData as any).name) as string,
 			);
@@ -258,7 +257,7 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 
 				return name === 'NOTICE';
 			});
-		} catch (error) {
+		} catch {
 			// If directory read fails, continue with empty arrays
 			licenseFilesInCurrentModuleDirectory = [];
 			noticeFiles = [];
@@ -335,18 +334,18 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 					}
 
 					if (clarification?.licenseStart) {
-						// @ts-ignore
+						// @ts-ignore - licenseText may be undefined but we handle this case with clarification
 						let startIndex = moduleInfo.licenseText.indexOf(clarification.licenseStart);
 						let endIndex;
 
 						if (clarification?.licenseEnd) {
-							// @ts-ignore
+							// @ts-ignore - licenseText may be undefined but we handle this case with clarification
 							endIndex = moduleInfo.licenseText.indexOf(clarification.licenseEnd, startIndex);
 						} else {
-							// @ts-ignore
+							// @ts-ignore - licenseText may be undefined but we handle this case with clarification
 							endIndex = moduleInfo.licenseText.length;
 						}
-						// @ts-ignore
+						// @ts-ignore - licenseText may be undefined but we handle this case with clarification
 						moduleInfo.licenseText = moduleInfo.licenseText.substring(startIndex, endIndex);
 					}
 				}
@@ -497,15 +496,21 @@ const initOptimized = async (args: any, callback: (error: Error | null, result?:
 		excludePackagesStartingWith: helpers.getOptionArray(args.excludePackagesStartingWith),
 		excludePrivatePackages: args.excludePrivatePackages,
 		onlyunknown: args.onlyunknown,
-		failOn: args.failOn?.split(';').map((s: string) => s.trim()).filter(Boolean),
-		onlyAllow: args.onlyAllow?.split(';').map((s: string) => s.trim()).filter(Boolean),
+		failOn: args.failOn
+			?.split(';')
+			.map((s: string) => s.trim())
+			.filter(Boolean),
+		onlyAllow: args.onlyAllow
+			?.split(';')
+			.map((s: string) => s.trim())
+			.filter(Boolean),
 		colorize: args.color,
 		relativeModulePath: args.relativeModulePath,
-		startPath: args.start
+		startPath: args.start,
 	});
 
 	// Clarifications processing (same as original)
-	let clarifications: {[key: string]: any} = {};
+	let clarifications: { [key: string]: any } = {};
 	if (args.clarificationsFile) {
 		const clarificationsFromFile = parseJson(args.clarificationsFile);
 
@@ -546,14 +551,14 @@ const initOptimized = async (args: any, callback: (error: Error | null, result?:
 			unknown: args.unknown,
 			currentRecursionDepth: 0,
 			clarifications,
-			filterPipeline // Pass the filtering pipeline
+			filterPipeline, // Pass the filtering pipeline
 		});
 
 		// Check clarifications usage if needed
 		if (args.clarificationsMatchAll) {
 			const unusedClarifications: string[] = [];
 			for (const [packageName, entries] of Object.entries(clarifications)) {
-				for (const clarification of (entries as any[])) {
+				for (const clarification of entries as any[]) {
 					if (!clarification.used) {
 						unusedClarifications.push(`${packageName}@${clarification.semverRange}`);
 					}
@@ -591,7 +596,6 @@ const initOptimized = async (args: any, callback: (error: Error | null, result?:
 		debugLog('Filtering pipeline stats: %o', filterStats);
 
 		callback(null, sortedData);
-
 	} catch (error) {
 		debugError(error);
 		callback(error as Error);
@@ -642,15 +646,21 @@ const initMemoryOptimized = async (args: any, callback: (error: Error | null, re
 		excludePackagesStartingWith: helpers.getOptionArray(args.excludePackagesStartingWith),
 		excludePrivatePackages: args.excludePrivatePackages,
 		onlyunknown: args.onlyunknown,
-		failOn: args.failOn?.split(';').map((s: string) => s.trim()).filter(Boolean),
-		onlyAllow: args.onlyAllow?.split(';').map((s: string) => s.trim()).filter(Boolean),
+		failOn: args.failOn
+			?.split(';')
+			.map((s: string) => s.trim())
+			.filter(Boolean),
+		onlyAllow: args.onlyAllow
+			?.split(';')
+			.map((s: string) => s.trim())
+			.filter(Boolean),
 		colorize: args.color,
 		relativeModulePath: args.relativeModulePath,
-		startPath: args.start
+		startPath: args.start,
 	});
 
 	// Clarifications processing (same as original)
-	let clarifications: {[key: string]: any} = {};
+	let clarifications: { [key: string]: any } = {};
 	if (args.clarificationsFile) {
 		const clarificationsFromFile = parseJson(args.clarificationsFile);
 
@@ -691,14 +701,14 @@ const initMemoryOptimized = async (args: any, callback: (error: Error | null, re
 			unknown: args.unknown,
 			currentRecursionDepth: 0,
 			clarifications,
-			filterPipeline // Pass the filtering pipeline
+			filterPipeline, // Pass the filtering pipeline
 		});
 
 		// Check clarifications usage if needed
 		if (args.clarificationsMatchAll) {
 			const unusedClarifications: string[] = [];
 			for (const [packageName, entries] of Object.entries(clarifications)) {
-				for (const clarification of (entries as any[])) {
+				for (const clarification of entries as any[]) {
 					if (!clarification.used) {
 						unusedClarifications.push(`${packageName}@${clarification.semverRange}`);
 					}
@@ -743,7 +753,6 @@ const initMemoryOptimized = async (args: any, callback: (error: Error | null, re
 		packageCollection.cleanup();
 
 		callback(null, sortedData);
-
 	} catch (error) {
 		debugError(error);
 		callback(error as Error);
@@ -811,372 +820,378 @@ const init = (args: any, callback: (error: Error | null, result?: any) => void) 
 		});
 	}
 
-	readInstalledPackagesSafe(args.start, optionsForReadingInstalledPackages, async (err: any, installedPackagesJson: any) => {
-		// Good to know:
-		// The json object returned by readInstalledPackages stores all direct (prod and dev) dependencies from
-		// the package.json file in the property '_dependencies'. The property 'dependencies' contains all dependencies,
-		// including the ones that are only required by other dependencies.
-		if (optionsForReadingInstalledPackages.depth === 0) {
-			helpers.deleteNonDirectDependenciesFromAllDependencies(installedPackagesJson, args);
-		}
-
-		// 'allWantedDepthDependenciesWithVersions' might be longer than 'installedPackagesJson.dependencies', as it appends the version numbers to each key (package name),
-		// e.g. 'grunt@1' instead of 'grunt', and this way contains all different installed versions of each package:
-		let allWantedDepthDependenciesWithVersions = await recursivelyCollectAllDependencies({
-			_args: args,
-			basePath: args.relativeLicensePath ? installedPackagesJson.path : null,
-			color: args.color,
-			customFormat: args.customFormat,
-			data: {},
-			deps: installedPackagesJson,
-			development: args.development,
-			production: args.production,
-			unknown: args.unknown,
-			currentRecursionDepth: 0,
-			clarifications,
-		});
-
-		if (args.clarificationsMatchAll) {
-			const unusedClarifications: string[] = [];
-			for (const [packageName, entries] of Object.entries(clarifications)) {
-				for (const clarification of entries as any[]) {
-					if (!clarification.used) {
-						unusedClarifications.push(`${packageName}@${clarification.semverRange}`);
-					}
-				}
+	readInstalledPackagesSafe(
+		args.start,
+		optionsForReadingInstalledPackages,
+		async (err: any, installedPackagesJson: any) => {
+			// Good to know:
+			// The json object returned by readInstalledPackages stores all direct (prod and dev) dependencies from
+			// the package.json file in the property '_dependencies'. The property 'dependencies' contains all dependencies,
+			// including the ones that are only required by other dependencies.
+			if (optionsForReadingInstalledPackages.depth === 0) {
+				helpers.deleteNonDirectDependenciesFromAllDependencies(installedPackagesJson, args);
 			}
-			if (unusedClarifications.length) {
-				console.error(
-					`Some clarifications (${unusedClarifications.join(
-						', ',
-					)}) were unused and --clarificationsMatchAll was specified. Exiting.`,
-				);
 
-				process.exit(1);
-			}
-		}
-
-		const colorize = args.color;
-		const sorted = {}; // 'sorted' will store the same items as allWantedDepthDependenciesWithVersions, but sorted by package name and version
-		let resultJson = {};
-		const excludeLicenses =
-			args.excludeLicenses &&
-			args.excludeLicenses
-				.match(/([^\\\][^,]|\\,)+/g)
-				.map((license) => license.replace(/\\,/g, ',').replace(/^\s+|\s+$/g, ''));
-		const includeLicenses =
-			args.includeLicenses &&
-			args.includeLicenses
-				.match(/([^\\\][^,]|\\,)+/g)
-				.map((license) => license.replace(/\\,/g, ',').replace(/^\s+|\s+$/g, ''));
-		let inputError = null;
-
-		const colorizeString = (string) =>
-			/*istanbul ignore next*/
-			colorize ? chalk.bold.red(string) : string;
-
-		const filterDeletePrivatePackages = (privatePackage) => {
-			/*istanbul ignore next - I don't have access to private packages to test */
-			if (resultJson[privatePackage] && resultJson[privatePackage].private) {
-				delete resultJson[privatePackage];
-			}
-		};
-
-		const onlyIncludeWhitelist = (whitelist, filtered) => {
-			const resultJson = {};
-
-			Object.keys(filtered).map((filteredPackage) => {
-				// Whitelist packages by declaring:
-				// 1. the package full name. Ex: `react` (we suffix an '@' to ensure we don't match packages like `react-native`)
-				// 2. the package full name and the major version. Ex: `react@16`
-				// 3. the package full name and full version. Ex: `react@16.0.2`
-				if (
-					whitelist.findIndex((whitelistPackage) =>
-						filteredPackage.startsWith(
-							whitelistPackage.lastIndexOf('@') > 0 ? whitelistPackage : `${whitelistPackage}@`,
-						),
-					) !== -1
-				) {
-					resultJson[filteredPackage] = filtered[filteredPackage];
-				}
+			// 'allWantedDepthDependenciesWithVersions' might be longer than 'installedPackagesJson.dependencies', as it appends the version numbers to each key (package name),
+			// e.g. 'grunt@1' instead of 'grunt', and this way contains all different installed versions of each package:
+			let allWantedDepthDependenciesWithVersions = await recursivelyCollectAllDependencies({
+				_args: args,
+				basePath: args.relativeLicensePath ? installedPackagesJson.path : null,
+				color: args.color,
+				customFormat: args.customFormat,
+				data: {},
+				deps: installedPackagesJson,
+				development: args.development,
+				production: args.production,
+				unknown: args.unknown,
+				currentRecursionDepth: 0,
+				clarifications,
 			});
 
-			return resultJson;
-		};
-
-		const excludeBlacklist = (blacklist, filtered) => {
-			const resultJson = {};
-
-			Object.keys(filtered).map((filteredPackage) => {
-				// Blacklist packages by declaring:
-				// 1. the package full name. Ex: `react` (we suffix an '@' to ensure we don't match packages like `react-native`)
-				// 2. the package full name and the major version. Ex: `react@16`
-				// 3. the package full name and full version. Ex: `react@16.0.2`
-				if (
-					blacklist.findIndex((blacklistPackage) =>
-						filteredPackage.startsWith(
-							blacklistPackage.lastIndexOf('@') > 0 ? blacklistPackage : `${blacklistPackage}@`,
-						),
-					) === -1
-				) {
-					resultJson[filteredPackage] = filtered[filteredPackage];
-				}
-			});
-
-			return resultJson;
-		};
-
-		const excludePackagesStartingWith = (blacklist, currentResult) => {
-			const resultJson = { ...currentResult };
-
-			for (const pkgName in resultJson) {
-				for (const denyPrefix of blacklist) {
-					if (pkgName.startsWith(denyPrefix)) delete resultJson[pkgName];
-				}
-			}
-
-			return resultJson;
-		};
-
-		const exitIfCheckHits = (packageName) => {
-			const currentLicense = resultJson[packageName]?.licenses;
-
-			if (currentLicense) {
-				checkForFailOn(currentLicense);
-				checkForOnlyAllow(currentLicense, packageName);
-			}
-		};
-
-		const checkForFailOn = (currentLicense) => {
-			if (!Array.isArray(toCheckforFailOn) || toCheckforFailOn.length === 0) {
-				return;
-			}
-
-			if (toCheckforFailOn.includes(currentLicense)) {
-				console.error(`Found license defined by the --failOn flag: "${currentLicense}". Exiting.`);
-
-				process.exit(1);
-			}
-		};
-
-		/**
-		 * Check if the current license contains (eventually among others) at least one of the allowed licenses
-		 *
-		 * @param      {string}  currentLicense  The current license
-		 * @param      {string}  packageName     The package name
-		 */
-		const checkForOnlyAllow = (currentLicense, packageName) => {
-			if (toCheckforOnlyAllow.length > 0) {
-				let containsOneOfAllowedPackages = false;
-
-				for (const allowedLicense of toCheckforOnlyAllow) {
-					// "currentLicense" is a longer string that may contain several license names,
-					// and we check if one of those is a license listed in the "toCheckforOnlyAllow"
-					// licenses array:
-					if (currentLicense.includes(allowedLicense)) {
-						containsOneOfAllowedPackages = true;
-						break;
+			if (args.clarificationsMatchAll) {
+				const unusedClarifications: string[] = [];
+				for (const [packageName, entries] of Object.entries(clarifications)) {
+					for (const clarification of entries as any[]) {
+						if (!clarification.used) {
+							unusedClarifications.push(`${packageName}@${clarification.semverRange}`);
+						}
 					}
 				}
-
-				if (!containsOneOfAllowedPackages) {
+				if (unusedClarifications.length) {
 					console.error(
-						`Package "${packageName}" is licensed under "${currentLicense}" which is not permitted by the --onlyAllow flag. Exiting.`,
+						`Some clarifications (${unusedClarifications.join(
+							', ',
+						)}) were unused and --clarificationsMatchAll was specified. Exiting.`,
 					);
 
 					process.exit(1);
 				}
 			}
-		};
 
-		const transformBSD = (spdx) =>
-			spdx === 'BSD' ? '(0BSD OR BSD-2-Clause OR BSD-3-Clause OR BSD-4-Clause)' : spdx;
+			const colorize = args.color;
+			const sorted = {}; // 'sorted' will store the same items as allWantedDepthDependenciesWithVersions, but sorted by package name and version
+			let resultJson = {};
+			const excludeLicenses =
+				args.excludeLicenses &&
+				args.excludeLicenses
+					.match(/([^\\\][^,]|\\,)+/g)
+					.map((license) => license.replace(/\\,/g, ',').replace(/^\s+|\s+$/g, ''));
+			const includeLicenses =
+				args.includeLicenses &&
+				args.includeLicenses
+					.match(/([^\\\][^,]|\\,)+/g)
+					.map((license) => license.replace(/\\,/g, ',').replace(/^\s+|\s+$/g, ''));
+			let inputError = null;
 
-		const invertResultOf = (fn) => (spdx) => !fn(spdx);
+			const colorizeString = (string) =>
+				/*istanbul ignore next*/
+				colorize ? chalk.bold.red(string) : string;
 
-		const spdxIsValid = (spdx) => spdxCorrect(spdx) === spdx;
+			const filterDeletePrivatePackages = (privatePackage) => {
+				/*istanbul ignore next - I don't have access to private packages to test */
+				if (resultJson[privatePackage] && resultJson[privatePackage].private) {
+					delete resultJson[privatePackage];
+				}
+			};
 
-		const getLicenseMatch = (licensesArr, filtered, packageName, packageData, compareLicenses) => {
-			const validSPDXLicenses = compareLicenses.map(transformBSD).filter(spdxIsValid);
-			const invalidSPDXLicenses = compareLicenses.map(transformBSD).filter(invertResultOf(spdxIsValid));
-			const spdxExcluder = `( ${validSPDXLicenses.join(' OR ')} )`;
+			const onlyIncludeWhitelist = (whitelist, filtered) => {
+				const resultJson = {};
 
-			let match = false;
+				Object.keys(filtered).map((filteredPackage) => {
+					// Whitelist packages by declaring:
+					// 1. the package full name. Ex: `react` (we suffix an '@' to ensure we don't match packages like `react-native`)
+					// 2. the package full name and the major version. Ex: `react@16`
+					// 3. the package full name and full version. Ex: `react@16.0.2`
+					if (
+						whitelist.findIndex((whitelistPackage) =>
+							filteredPackage.startsWith(
+								whitelistPackage.lastIndexOf('@') > 0 ? whitelistPackage : `${whitelistPackage}@`,
+							),
+						) !== -1
+					) {
+						resultJson[filteredPackage] = filtered[filteredPackage];
+					}
+				});
 
-			licensesArr.forEach((license) => {
-				/*istanbul ignore if - just for protection*/
-				if (license.indexOf(LICENSE_TITLE_UNKNOWN) >= 0) {
-					// Necessary due to colorization:
-					filtered[packageName] = packageData;
-				} else {
-					if (license.endsWith('*')) {
-						license = license.slice(0, -1);
+				return resultJson;
+			};
+
+			const excludeBlacklist = (blacklist, filtered) => {
+				const resultJson = {};
+
+				Object.keys(filtered).map((filteredPackage) => {
+					// Blacklist packages by declaring:
+					// 1. the package full name. Ex: `react` (we suffix an '@' to ensure we don't match packages like `react-native`)
+					// 2. the package full name and the major version. Ex: `react@16`
+					// 3. the package full name and full version. Ex: `react@16.0.2`
+					if (
+						blacklist.findIndex((blacklistPackage) =>
+							filteredPackage.startsWith(
+								blacklistPackage.lastIndexOf('@') > 0 ? blacklistPackage : `${blacklistPackage}@`,
+							),
+						) === -1
+					) {
+						resultJson[filteredPackage] = filtered[filteredPackage];
+					}
+				});
+
+				return resultJson;
+			};
+
+			const excludePackagesStartingWith = (blacklist, currentResult) => {
+				const resultJson = { ...currentResult };
+
+				for (const pkgName in resultJson) {
+					for (const denyPrefix of blacklist) {
+						if (pkgName.startsWith(denyPrefix)) delete resultJson[pkgName];
+					}
+				}
+
+				return resultJson;
+			};
+
+			const exitIfCheckHits = (packageName) => {
+				const currentLicense = resultJson[packageName]?.licenses;
+
+				if (currentLicense) {
+					checkForFailOn(currentLicense);
+					checkForOnlyAllow(currentLicense, packageName);
+				}
+			};
+
+			const checkForFailOn = (currentLicense) => {
+				if (!Array.isArray(toCheckforFailOn) || toCheckforFailOn.length === 0) {
+					return;
+				}
+
+				if (toCheckforFailOn.includes(currentLicense)) {
+					console.error(`Found license defined by the --failOn flag: "${currentLicense}". Exiting.`);
+
+					process.exit(1);
+				}
+			};
+
+			/**
+			 * Check if the current license contains (eventually among others) at least one of the allowed licenses
+			 *
+			 * @param      {string}  currentLicense  The current license
+			 * @param      {string}  packageName     The package name
+			 */
+			const checkForOnlyAllow = (currentLicense, packageName) => {
+				if (toCheckforOnlyAllow.length > 0) {
+					let containsOneOfAllowedPackages = false;
+
+					for (const allowedLicense of toCheckforOnlyAllow) {
+						// "currentLicense" is a longer string that may contain several license names,
+						// and we check if one of those is a license listed in the "toCheckforOnlyAllow"
+						// licenses array:
+						if (currentLicense.includes(allowedLicense)) {
+							containsOneOfAllowedPackages = true;
+							break;
+						}
 					}
 
-					license = transformBSD(license);
+					if (!containsOneOfAllowedPackages) {
+						console.error(
+							`Package "${packageName}" is licensed under "${currentLicense}" which is not permitted by the --onlyAllow flag. Exiting.`,
+						);
+
+						process.exit(1);
+					}
+				}
+			};
+
+			const transformBSD = (spdx) =>
+				spdx === 'BSD' ? '(0BSD OR BSD-2-Clause OR BSD-3-Clause OR BSD-4-Clause)' : spdx;
+
+			const invertResultOf = (fn) => (spdx) => !fn(spdx);
+
+			const spdxIsValid = (spdx) => spdxCorrect(spdx) === spdx;
+
+			const getLicenseMatch = (licensesArr, filtered, packageName, packageData, compareLicenses) => {
+				const validSPDXLicenses = compareLicenses.map(transformBSD).filter(spdxIsValid);
+				const invalidSPDXLicenses = compareLicenses.map(transformBSD).filter(invertResultOf(spdxIsValid));
+				const spdxExcluder = `( ${validSPDXLicenses.join(' OR ')} )`;
+
+				let match = false;
+
+				licensesArr.forEach((license) => {
+					/*istanbul ignore if - just for protection*/
+					if (license.indexOf(LICENSE_TITLE_UNKNOWN) >= 0) {
+						// Necessary due to colorization:
+						filtered[packageName] = packageData;
+					} else {
+						if (license.endsWith('*')) {
+							license = license.slice(0, -1);
+						}
+
+						license = transformBSD(license);
+
+						if (
+							invalidSPDXLicenses.indexOf(license) >= 0 ||
+							(spdxCorrect(license) &&
+								validSPDXLicenses.length > 0 &&
+								spdxSatisfies(spdxCorrect(license), spdxExcluder))
+						) {
+							match = true;
+						}
+					}
+				});
+
+				return match;
+			};
+
+			// This following block stores the licenses in the sorted object (before, the sorted object is the empty object):
+			Object.keys(allWantedDepthDependenciesWithVersions)
+				.sort()
+				.forEach((item) => {
+					if (allWantedDepthDependenciesWithVersions[item].private) {
+						allWantedDepthDependenciesWithVersions[item].licenses =
+							colorizeString(LICENSE_TITLE_UNLICENSED);
+					}
+
+					/*istanbul ignore next*/
+					if (!allWantedDepthDependenciesWithVersions[item].licenses) {
+						allWantedDepthDependenciesWithVersions[item].licenses = colorizeString(LICENSE_TITLE_UNKNOWN);
+					}
 
 					if (
-						invalidSPDXLicenses.indexOf(license) >= 0 ||
-						(spdxCorrect(license) &&
-							validSPDXLicenses.length > 0 &&
-							spdxSatisfies(spdxCorrect(license), spdxExcluder))
+						args.unknown &&
+						allWantedDepthDependenciesWithVersions[item].licenses &&
+						allWantedDepthDependenciesWithVersions[item].licenses !== LICENSE_TITLE_UNKNOWN &&
+						allWantedDepthDependenciesWithVersions[item].licenses.indexOf('*') > -1
 					) {
-						match = true;
+						/*istanbul ignore if*/
+						allWantedDepthDependenciesWithVersions[item].licenses = colorizeString(LICENSE_TITLE_UNKNOWN);
 					}
-				}
-			});
+					/*istanbul ignore else*/
+					if (allWantedDepthDependenciesWithVersions[item]) {
+						if (args.relativeModulePath && allWantedDepthDependenciesWithVersions[item].path != null) {
+							allWantedDepthDependenciesWithVersions[item].path = path.relative(
+								args.start,
+								allWantedDepthDependenciesWithVersions[item].path,
+							);
+						}
 
-			return match;
-		};
-
-		// This following block stores the licenses in the sorted object (before, the sorted object is the empty object):
-		Object.keys(allWantedDepthDependenciesWithVersions)
-			.sort()
-			.forEach((item) => {
-				if (allWantedDepthDependenciesWithVersions[item].private) {
-					allWantedDepthDependenciesWithVersions[item].licenses = colorizeString(LICENSE_TITLE_UNLICENSED);
-				}
-
-				/*istanbul ignore next*/
-				if (!allWantedDepthDependenciesWithVersions[item].licenses) {
-					allWantedDepthDependenciesWithVersions[item].licenses = colorizeString(LICENSE_TITLE_UNKNOWN);
-				}
-
-				if (
-					args.unknown &&
-					allWantedDepthDependenciesWithVersions[item].licenses &&
-					allWantedDepthDependenciesWithVersions[item].licenses !== LICENSE_TITLE_UNKNOWN &&
-					allWantedDepthDependenciesWithVersions[item].licenses.indexOf('*') > -1
-				) {
-					/*istanbul ignore if*/
-					allWantedDepthDependenciesWithVersions[item].licenses = colorizeString(LICENSE_TITLE_UNKNOWN);
-				}
-				/*istanbul ignore else*/
-				if (allWantedDepthDependenciesWithVersions[item]) {
-					if (args.relativeModulePath && allWantedDepthDependenciesWithVersions[item].path != null) {
-						allWantedDepthDependenciesWithVersions[item].path = path.relative(
-							args.start,
-							allWantedDepthDependenciesWithVersions[item].path,
-						);
-					}
-
-					if (args.onlyunknown) {
-						if (
-							allWantedDepthDependenciesWithVersions[item].licenses.indexOf('*') > -1 ||
-							allWantedDepthDependenciesWithVersions[item].licenses.indexOf(LICENSE_TITLE_UNKNOWN) > -1
-						) {
+						if (args.onlyunknown) {
+							if (
+								allWantedDepthDependenciesWithVersions[item].licenses.indexOf('*') > -1 ||
+								allWantedDepthDependenciesWithVersions[item].licenses.indexOf(LICENSE_TITLE_UNKNOWN) >
+									-1
+							) {
+								sorted[item] = allWantedDepthDependenciesWithVersions[item];
+							}
+						} else {
 							sorted[item] = allWantedDepthDependenciesWithVersions[item];
 						}
-					} else {
-						sorted[item] = allWantedDepthDependenciesWithVersions[item];
 					}
+				});
+
+			// 'allWantedDepthDependenciesWithVersions' is not needed anymore:
+			allWantedDepthDependenciesWithVersions = null;
+
+			if (!Object.keys(sorted).length) {
+				err = new Error('No packages found in this path...');
+			}
+
+			// This following block stores the entries from the 'sorted' object in the
+			// resultJson object (before, the resultJson object is the empty object):
+			if (
+				(!Array.isArray(excludeLicenses) || excludeLicenses.length === 0) &&
+				(!Array.isArray(includeLicenses) || includeLicenses.length === 0)
+			) {
+				resultJson = { ...sorted };
+			} else {
+				if (Array.isArray(excludeLicenses) && excludeLicenses.length > 0) {
+					Object.entries(sorted).forEach(([packageName, packageData]) => {
+						let { licenses } = packageData;
+
+						/*istanbul ignore if - just for protection*/
+						if (!licenses) {
+							resultJson[packageName] = packageData;
+						} else {
+							const licensesArr = Array.isArray(licenses) ? licenses : [licenses];
+							const licenseMatch = getLicenseMatch(
+								licensesArr,
+								resultJson,
+								packageName,
+								packageData,
+								excludeLicenses,
+							);
+
+							if (!licenseMatch) {
+								resultJson[packageName] = packageData;
+							}
+						}
+					});
 				}
-			});
 
-		// 'allWantedDepthDependenciesWithVersions' is not needed anymore:
-		allWantedDepthDependenciesWithVersions = null;
+				if (Array.isArray(includeLicenses) && includeLicenses.length > 0) {
+					Object.entries(sorted).forEach(([packageName, packageData]) => {
+						let { licenses } = packageData;
 
-		if (!Object.keys(sorted).length) {
-			err = new Error('No packages found in this path...');
-		}
-
-		// This following block stores the entries from the 'sorted' object in the
-		// resultJson object (before, the resultJson object is the empty object):
-		if (
-			(!Array.isArray(excludeLicenses) || excludeLicenses.length === 0) &&
-			(!Array.isArray(includeLicenses) || includeLicenses.length === 0)
-		) {
-			resultJson = { ...sorted };
-		} else {
-			if (Array.isArray(excludeLicenses) && excludeLicenses.length > 0) {
-				Object.entries(sorted).forEach(([packageName, packageData]) => {
-					let { licenses } = packageData;
-
-					/*istanbul ignore if - just for protection*/
-					if (!licenses) {
-						resultJson[packageName] = packageData;
-					} else {
-						const licensesArr = Array.isArray(licenses) ? licenses : [licenses];
-						const licenseMatch = getLicenseMatch(
-							licensesArr,
-							resultJson,
-							packageName,
-							packageData,
-							excludeLicenses,
-						);
-
-						if (!licenseMatch) {
+						/*istanbul ignore if - just for protection*/
+						if (!licenses) {
 							resultJson[packageName] = packageData;
+						} else {
+							const licensesArr = Array.isArray(licenses) ? licenses : [licenses];
+							const licenseMatch = getLicenseMatch(
+								licensesArr,
+								resultJson,
+								packageName,
+								packageData,
+								includeLicenses,
+							);
+
+							if (licenseMatch) {
+								resultJson[packageName] = packageData;
+							}
 						}
-					}
-				});
+					});
+				}
 			}
 
-			if (Array.isArray(includeLicenses) && includeLicenses.length > 0) {
-				Object.entries(sorted).forEach(([packageName, packageData]) => {
-					let { licenses } = packageData;
-
-					/*istanbul ignore if - just for protection*/
-					if (!licenses) {
-						resultJson[packageName] = packageData;
-					} else {
-						const licensesArr = Array.isArray(licenses) ? licenses : [licenses];
-						const licenseMatch = getLicenseMatch(
-							licensesArr,
-							resultJson,
-							packageName,
-							packageData,
-							includeLicenses,
-						);
-
-						if (licenseMatch) {
-							resultJson[packageName] = packageData;
-						}
-					}
-				});
+			// package whitelist
+			const whitelist = helpers.getOptionArray(args.includePackages);
+			if (whitelist) {
+				resultJson = onlyIncludeWhitelist(whitelist, resultJson);
 			}
-		}
 
-		// package whitelist
-		const whitelist = helpers.getOptionArray(args.includePackages);
-		if (whitelist) {
-			resultJson = onlyIncludeWhitelist(whitelist, resultJson);
-		}
+			// package blacklist
+			const blacklist = helpers.getOptionArray(args.excludePackages);
+			if (blacklist) {
+				resultJson = excludeBlacklist(blacklist, resultJson);
+			}
 
-		// package blacklist
-		const blacklist = helpers.getOptionArray(args.excludePackages);
-		if (blacklist) {
-			resultJson = excludeBlacklist(blacklist, resultJson);
-		}
+			// exclude by package name starting with a string
+			const excludeStartStringsArr = helpers.getOptionArray(args.excludePackagesStartingWith);
+			if (excludeStartStringsArr) {
+				resultJson = excludePackagesStartingWith(excludeStartStringsArr, resultJson);
+			}
 
-		// exclude by package name starting with a string
-		const excludeStartStringsArr = helpers.getOptionArray(args.excludePackagesStartingWith);
-		if (excludeStartStringsArr) {
-			resultJson = excludePackagesStartingWith(excludeStartStringsArr, resultJson);
-		}
+			if (args.excludePrivatePackages) {
+				Object.keys(resultJson).forEach(filterDeletePrivatePackages);
+			}
 
-		if (args.excludePrivatePackages) {
-			Object.keys(resultJson).forEach(filterDeletePrivatePackages);
-		}
+			Object.keys(resultJson).forEach(exitIfCheckHits);
 
-		Object.keys(resultJson).forEach(exitIfCheckHits);
+			/*istanbul ignore next*/
+			if (err) {
+				debugError(err);
+				inputError = err;
+			} else {
+				// Output to files, if necessary
+				await writeOutput(args, resultJson);
+			}
 
-		/*istanbul ignore next*/
-		if (err) {
-			debugError(err);
-			inputError = err;
-		} else {
-			// Output to files, if necessary
-			await writeOutput(args, resultJson);
-		}
+			// Log cache performance if debug is enabled
+			const cacheStats = licenseFileCache.getStats();
+			debugLog('License file cache stats: %o', cacheStats);
 
-		// Log cache performance if debug is enabled
-		const cacheStats = licenseFileCache.getStats();
-		debugLog('License file cache stats: %o', cacheStats);
-
-		// Return the callback and variables nicely
-		callback(inputError, resultJson);
-	});
+			// Return the callback and variables nicely
+			callback(inputError, resultJson);
+		},
+	);
 };
 
 const filterAttributes = (attributes: string[], json: any) => {
@@ -1341,7 +1356,7 @@ const asFiles = async (json: any, outDir: string) => {
 	for (const moduleName of Object.keys(json)) {
 		const licenseFile = json[moduleName].licenseFile;
 
-		if (licenseFile && await licenseFileCache.fileExistsAsync(licenseFile)) {
+		if (licenseFile && (await licenseFileCache.fileExistsAsync(licenseFile))) {
 			const licenseFileData = await licenseFileCache.readLicenseFileAsync(licenseFile, false);
 			const outPath = path.join(outDir, `${moduleName}-LICENSE.txt`);
 			const baseDir = path.dirname(outPath);
@@ -1377,7 +1392,6 @@ const writeOutput = async (parsedArgs: any, foundLicensesJson: any) => {
 // New memory-optimized recursive collection function
 const recursivelyCollectAllDependenciesMemoryOptimized = async (options: any) => {
 	const { packageCollection, deps: currentExtendedPackageJson } = options;
-	const currentPackageNameAndVersion = `${currentExtendedPackageJson.name}@${currentExtendedPackageJson.version}`;
 
 	// Early exit conditions
 	if (
@@ -1393,7 +1407,7 @@ const recursivelyCollectAllDependenciesMemoryOptimized = async (options: any) =>
 		currentExtendedPackageJson.path,
 		currentExtendedPackageJson.realPath || currentExtendedPackageJson.path,
 		licenseFileCache,
-		options.clarifications
+		options.clarifications,
 	);
 
 	// Add to collection
@@ -1420,7 +1434,7 @@ const recursivelyCollectAllDependenciesMemoryOptimized = async (options: any) =>
 			await recursivelyCollectAllDependenciesMemoryOptimized({
 				...options,
 				deps: childDependency,
-				currentRecursionDepth: options.currentRecursionDepth + 1
+				currentRecursionDepth: options.currentRecursionDepth + 1,
 			});
 		}
 	}
@@ -1428,8 +1442,11 @@ const recursivelyCollectAllDependenciesMemoryOptimized = async (options: any) =>
 	// Stream packages with filtering for memory efficiency
 	const filteredPackages: any = {};
 	for (const packageData of packageCollection.streamFiltered(
-		(pkg) => options.filterPipeline ? options.filterPipeline.processPackage(`${pkg.name}@${pkg.version}`, pkg) !== null : true,
-		options.customFormat?.licenseText
+		(pkg) =>
+			options.filterPipeline
+				? options.filterPipeline.processPackage(`${pkg.name}@${pkg.version}`, pkg) !== null
+				: true,
+		options.customFormat?.licenseText,
 	)) {
 		filteredPackages[`${packageData.name}@${packageData.version}`] = packageData;
 	}
