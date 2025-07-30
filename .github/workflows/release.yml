@@ -1,0 +1,174 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run linting
+        run: npm run lint
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Update CHANGELOG.md
+        run: |
+          # Generate changelog from git commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            RANGE="HEAD"
+          else
+            RANGE="$LAST_TAG..HEAD"
+          fi
+          
+          # Create temporary changelog
+          echo "# Changelog" > temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "## [${{ steps.extract_version.outputs.version }}] - $(date +%Y-%m-%d)" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          # Group commits by type
+          echo "### 🚀 Features" >> temp_changelog.md
+          git log --pretty=format:"- %s" $RANGE | grep -E "^- (feat|feature):" | sed 's/^- feat[ure]*: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 🐛 Bug Fixes" >> temp_changelog.md  
+          git log --pretty=format:"- %s" $RANGE | grep -E "^- fix:" | sed 's/^- fix: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 🔧 Improvements" >> temp_changelog.md
+          git log --pretty=format:"- %s" $RANGE | grep -E "^- (chore|refactor|perf|improvement):" | sed 's/^- [^:]*: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 📚 Documentation" >> temp_changelog.md
+          git log --pretty=format:"- %s" $RANGE | grep -E "^- docs?:" | sed 's/^- docs*: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### Other Changes" >> temp_changelog.md
+          git log --pretty=format:"- %s" $RANGE | grep -vE "^- (feat|feature|fix|chore|refactor|perf|improvement|docs?):" >> temp_changelog.md || echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          # Prepend to existing CHANGELOG.md if it exists
+          if [ -f CHANGELOG.md ]; then
+            echo "" >> temp_changelog.md
+            tail -n +2 CHANGELOG.md >> temp_changelog.md
+          fi
+          
+          mv temp_changelog.md CHANGELOG.md
+
+      - name: Commit updated CHANGELOG.md
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          if git diff --staged --quiet; then
+            echo "No changes to CHANGELOG.md"
+          else
+            git commit -m "docs: update CHANGELOG.md for v${{ steps.extract_version.outputs.version }}"
+            git push origin HEAD:main
+          fi
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release v${{ steps.extract_version.outputs.version }}
+          body: |
+            Release v${{ steps.extract_version.outputs.version }}
+            
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
+            
+            ## Installation
+            ```bash
+            npm install -g license-checker-evergreen@${{ steps.extract_version.outputs.version }}
+            ```
+            
+            ## What's Changed
+            - Full changelog available in CHANGELOG.md
+            - Performance improvements and bug fixes
+            - Enhanced test coverage
+            
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.extract_version.outputs.version }}
+          draft: false
+          prerelease: false
+
+      - name: Publish to NPM
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          # Verify package builds correctly
+          npm run build
+          npm pack --dry-run
+          
+          # Publish to NPM
+          npm publish --access public
+
+      - name: Create GitHub Release Assets
+        run: |
+          # Create tarball for GitHub release
+          npm pack
+          mv license-checker-evergreen-${{ steps.extract_version.outputs.version }}.tgz license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
+          asset_name: license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
+          asset_content_type: application/gzip
