@@ -1,9 +1,9 @@
 module.exports = {
   testEnvironment: 'node',
-  roots: ['<rootDir>/tests'],
+  roots: ['<rootDir>/__tests__'],
   testMatch: [
-    '**/tests/**/*.ts',
-    '!**/tests/setup.ts'
+    '**/__tests__/**/*.ts',
+    '!**/__tests__/setup.ts'
   ],
   testTimeout: 120000,
   preset: 'ts-jest/presets/default-esm',
@@ -16,7 +16,8 @@ module.exports = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(chalk|spdx-.*|read-installed-packages)/)'
+    'node_modules/(?!(chalk|spdx-.*|read-installed-packages)/)',
+    'dist/'
   ],
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts']
+  setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts']
 };

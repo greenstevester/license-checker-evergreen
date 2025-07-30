@@ -270,7 +270,7 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 	for (let index = 0; index < licenseFilesInCurrentModuleDirectory.length; index++) {
 		const filename = licenseFilesInCurrentModuleDirectory[index];
 		licenseFile = path.join(modulePath, filename);
-		
+
 		// Check if file exists asynchronously
 		if (await licenseFileCache.fileExistsAsync(licenseFile)) {
 			let licenseFileData: { content: string; checksum?: string } | null = null;
@@ -405,13 +405,13 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 				options.currentRecursionDepth > options._args.direct
 					? {}
 					: currentExtendedPackageJson.dependencies[dependencyName];
-			
+
 			// Handle case where childDependency is a version string instead of an object
 			if (typeof childDependency === 'string') {
 				// Skip string dependencies as they don't have the expanded structure needed
 				continue;
 			}
-			
+
 			const dependencyId = `${childDependency.name}@${childDependency.version}`;
 
 			if (data[dependencyId]) {
@@ -1317,7 +1317,7 @@ const asPlainVertical = async (sorted: any) => {
 
 		results.push(licenseText);
 	}
-	
+
 	return results.join('\n\n');
 };
 

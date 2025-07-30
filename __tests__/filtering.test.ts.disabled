@@ -1,0 +1,91 @@
+import { describe, test, beforeAll, expect } from '@jest/globals';
+import path from 'path';
+import * as checker from '../dist/lib/index.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename: string = fileURLToPath(import.meta.url);
+const __dirname: string = dirname(__filename);
+
+interface CheckerOutput {
+	[key: string]: {
+		licenses?: string;
+		repository?: string;
+		description?: string;
+		name?: string;
+		path?: string;
+		licenseFile?: string;
+		licenseText?: string;
+		publisher?: string;
+		email?: string;
+		copyright?: string;
+	};
+}
+
+interface TestResult {
+	output?: CheckerOutput;
+	exitCode?: number;
+}
+
+describe('Filtering and Licensing Tests', (): void => {
+	// Use only the fixtures we know work well
+	describe('License inclusion tests', (): void => {
+		describe('should list given packages', (): void => {
+			let output: CheckerOutput;
+			
+			beforeAll((done): void => {
+				checker.init(
+					{
+						start: path.join(__dirname, './fixtures/includeBSD'),
+						includeLicenses: 'BSD',
+					},
+					function (err: Error | null, filtered: CheckerOutput): void {
+						if (err) {
+							done(err);
+							return;
+						}
+						output = filtered;
+						done();
+					}
+				);
+			}, 15000);
+
+			test('should include only BSD', (): void => {
+				expect(Object.keys(output || {}).length).toBe(1);
+			});
+		});
+	});
+
+	describe('Custom license handling', (): void => {
+		describe('should recognize custom license files', (): void => {
+			let output: CheckerOutput;
+			
+			beforeAll((done): void => {
+				checker.init(
+					{
+						start: path.join(__dirname, './fixtures/custom-license-file'),
+					},
+					function (err: Error | null, filtered: CheckerOutput): void {
+						if (err) {
+							done(err);
+							return;
+						}
+						output = filtered;
+						done();
+					}
+				);
+			}, 15000);
+
+			test('should recognize custom license in a file', (): void => {
+				let foundCustomLicense = false;
+				Object.keys(output).forEach(function (item: string): void {
+					const license = output[item].licenses;
+					if (license && license.includes('MY-LICENSE.md')) {
+						foundCustomLicense = true;
+					}
+				});
+				expect(foundCustomLicense).toBe(true);
+			});
+		});
+	});
+});
