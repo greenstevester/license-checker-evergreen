@@ -4,7 +4,7 @@
         "module": "ES2020",
         "moduleResolution": "node",
         "lib": ["ES2020", "DOM"],
-        "allowJs": false,
+        "allowJs": true,
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,

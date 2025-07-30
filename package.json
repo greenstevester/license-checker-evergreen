@@ -27,7 +27,7 @@
         "prepublishOnly": "npm run build",
         "changes": "github-changes -o evergreen -r license-checker-evergreen",
         "contrib": "node ./scripts/contrib.js",
-        "test": "node --experimental-vm-modules node_modules/.bin/jest",
+        "test": "node --experimental-vm-modules  node_modules/.bin/jest",
         "test:watch": "jest --watch",
         "test:coverage": "jest --coverage",
         "lint": "npx eslint --ext ts,js .",
