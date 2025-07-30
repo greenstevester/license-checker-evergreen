@@ -42,81 +42,9 @@ import path from 'node:path';
 // @ts-ignore
 import readInstalledPackages from 'read-installed-packages';
 
-// Monkey patch to fix the read-installed-packages bug where it tries to assign properties to strings
-// This happens when the dependency tree contains version strings instead of dependency objects
-const originalReadInstalledPackages = readInstalledPackages;
-
-// Create a safe wrapper that prevents the TypeError
-const safeReadInstalledPackages = (dir: string, options: any, callback: any) => {
-	// Create a patched version that doesn't crash on strings
-	const patchedCallback = (err: any, result: any) => {
-		if (err) {
-			callback(err, result);
-			return;
-		}
-		
-		// Recursively sanitize the result to ensure no string values exist where objects are expected
-		const sanitizeDependencyTree = (obj: any, visited = new WeakSet()): any => {
-			if (typeof obj === 'string') {
-				// If we encounter a string where an object is expected, return a safe object
-				return { version: obj, dependencies: {} };
-			}
-			
-			if (typeof obj !== 'object' || obj === null) {
-				return obj;
-			}
-			
-			// Prevent infinite recursion by tracking visited objects
-			if (visited.has(obj)) {
-				return {}; // Return empty object for circular references
-			}
-			visited.add(obj);
-			
-			// Handle arrays
-			if (Array.isArray(obj)) {
-				return obj.map(item => sanitizeDependencyTree(item, visited));
-			}
-			
-			// Handle objects
-			const sanitized: any = {};
-			for (const key in obj) {
-				if (obj.hasOwnProperty(key)) {
-					if (key === 'dependencies' && typeof obj[key] === 'object' && obj[key] !== null) {
-						// Sanitize the dependencies object
-						sanitized[key] = {};
-						for (const depKey in obj[key]) {
-							if (obj[key].hasOwnProperty(depKey)) {
-								const depValue = obj[key][depKey];
-								if (typeof depValue === 'string') {
-									// Convert string dependencies to objects
-									sanitized[key][depKey] = { version: depValue, dependencies: {} };
-								} else {
-									sanitized[key][depKey] = sanitizeDependencyTree(depValue, visited);
-								}
-							}
-						}
-					} else {
-						sanitized[key] = sanitizeDependencyTree(obj[key], visited);
-					}
-				}
-			}
-			return sanitized;
-		};
-		
-		const sanitizedResult = sanitizeDependencyTree(result);
-		callback(null, sanitizedResult);
-	};
-	
-	try {
-		originalReadInstalledPackages(dir, options, patchedCallback);
-	} catch (error) {
-		// If the original function fails, return a safe fallback
-		callback(error, null);
-	}
-};
-
-// Replace the imported function with our safe version
-const readInstalledPackagesSafe = safeReadInstalledPackages;
+// Simple pass-through wrapper - the original library seems to work fine now
+// We'll use the original readInstalledPackages directly
+const readInstalledPackagesSafe = readInstalledPackages;
 
 // @ts-ignore
 import spdxCorrect from 'spdx-correct';
