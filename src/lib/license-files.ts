@@ -30,8 +30,6 @@ const licenseFiles = (dirFiles: string[]): string[] => {
 	return files;
 };
 
-const getBaseFileName = (filename: string): string => {
-	return path.basename(filename, path.extname(filename)).toUpperCase();
-};
+const getBaseFileName = (filename: string): string => path.basename(filename, path.extname(filename)).toUpperCase();
 
 export { licenseFiles };

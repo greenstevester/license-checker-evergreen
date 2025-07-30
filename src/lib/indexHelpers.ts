@@ -11,180 +11,186 @@ import path from 'node:path';
  */
 // TODO: Add tests for this function
 const deleteNonDirectDependenciesFromAllDependencies = function deleteNonDirectDependenciesFromAllDependencies(
-    { _dependencies: directDependencies = {}, dependencies: allDependencies = {}, devDependencies = {} } = {},
-    options: any,
+	{ _dependencies: directDependencies = {}, dependencies: allDependencies = {}, devDependencies = {} } = {},
+	options: any,
 ) {
-    const allDependenciesArray = Object.keys(allDependencies);
-    const directDependenciesArray = Object.keys(directDependencies);
-    const devDependenciesArray = Object.keys(devDependencies);
-    let wantedDependenciesArray = [];
+	const allDependenciesArray = Object.keys(allDependencies);
+	const directDependenciesArray = Object.keys(directDependencies);
+	const devDependenciesArray = Object.keys(devDependencies);
+	let wantedDependenciesArray = [];
 
-    if (options.production && !options.development) {
-        wantedDependenciesArray = directDependenciesArray.filter(
-            (directDependency) => !devDependenciesArray.includes(directDependency),
-        );
-    } else if (!options.production && options.development) {
-        wantedDependenciesArray = devDependenciesArray;
-    } else {
-        wantedDependenciesArray = directDependenciesArray;
-    }
+	if (options.production && !options.development) {
+		wantedDependenciesArray = directDependenciesArray.filter(
+			(directDependency) => !devDependenciesArray.includes(directDependency),
+		);
+	} else if (!options.production && options.development) {
+		wantedDependenciesArray = devDependenciesArray;
+	} else {
+		wantedDependenciesArray = directDependenciesArray;
+	}
 
-    allDependenciesArray.forEach((currentDependency) => {
-        if (!wantedDependenciesArray.includes(currentDependency)) {
-            // @ts-ignore
+	allDependenciesArray.forEach((currentDependency) => {
+		if (!wantedDependenciesArray.includes(currentDependency)) {
+			// @ts-ignore
 			delete allDependencies[currentDependency];
-        }
-    });
+		}
+	});
 };
 
-const getRepositoryUrl = function getRepositoryUrl({ clarificationRepository, jsonRepository }: { clarificationRepository?: string; jsonRepository?: any }) {
-    if (clarificationRepository) {
-        return clarificationRepository;
-    }
+const getRepositoryUrl = function getRepositoryUrl({
+	clarificationRepository,
+	jsonRepository,
+}: {
+	clarificationRepository?: string;
+	jsonRepository?: any;
+}) {
+	if (clarificationRepository) {
+		return clarificationRepository;
+	}
 
-    if (typeof jsonRepository?.url === 'string') {
-        return jsonRepository.url
-            .replace('git+ssh://git@', 'git://')
-            .replace('git+https://github.com', 'https://github.com')
-            .replace('git://github.com', 'https://github.com')
-            .replace('git@github.com:', 'https://github.com/')
-            .replace(/\.git$/, '');
-    }
+	if (typeof jsonRepository?.url === 'string') {
+		return jsonRepository.url
+			.replace('git+ssh://git@', 'git://')
+			.replace('git+https://github.com', 'https://github.com')
+			.replace('git://github.com', 'https://github.com')
+			.replace('git@github.com:', 'https://github.com/')
+			.replace(/\.git$/, '');
+	}
 
-    return undefined;
+	return undefined;
 };
 
 const getFirstNotUndefinedOrUndefined = function getFirstNotUndefinedOrUndefined(...args: any[]) {
-    for (let i = 0; i < args.length; i++) {
-        if (typeof args[i] !== 'undefined') {
-            return args[i];
-        }
-    }
+	for (let i = 0; i < args.length; i++) {
+		if (typeof args[i] !== 'undefined') {
+			return args[i];
+		}
+	}
 
-    return undefined;
+	return undefined;
 };
 
 const getAuthorDetails = function getAuthorDetails({ clarification, author }: { clarification?: any; author?: any }) {
-    let publisher = getFirstNotUndefinedOrUndefined(clarification?.publisher, author?.name) as string;
-    let email = getFirstNotUndefinedOrUndefined(clarification?.email, author?.email) as string;
-    let url = getFirstNotUndefinedOrUndefined(clarification?.url, author?.url) as string;
+	let publisher = getFirstNotUndefinedOrUndefined(clarification?.publisher, author?.name) as string;
+	let email = getFirstNotUndefinedOrUndefined(clarification?.email, author?.email) as string;
+	let url = getFirstNotUndefinedOrUndefined(clarification?.url, author?.url) as string;
 
-    return { publisher, email, url };
+	return { publisher, email, url };
 };
 
 const getLinesWithCopyright = function getLinesWithCopyright(fileContents = '') {
-    return fileContents
-        .replace(/\r\n/g, '\n')
-        .split('\n\n')
-        .filter(function selectCopyRightStatements(value) {
-            return (
-                value.startsWith('opyright', 1) && // include copyright statements
-                !value.startsWith('opyright notice', 1) && // exclude lines from from license text
-                !value.startsWith('opyright and related rights', 1)
-            );
-        })
-        .filter(function removeDuplicates(value, index, list) {
-            return index === 0 || value !== list[0];
-        });
+	return fileContents
+		.replace(/\r\n/g, '\n')
+		.split('\n\n')
+		.filter(function selectCopyRightStatements(value) {
+			return (
+				value.startsWith('opyright', 1) && // include copyright statements
+				!value.startsWith('opyright notice', 1) && // exclude lines from from license text
+				!value.startsWith('opyright and related rights', 1)
+			);
+		})
+		.filter(function removeDuplicates(value, index, list) {
+			return index === 0 || value !== list[0];
+		});
 };
 
 const getOptionArray = (option: any) => {
-    if (Array.isArray(option)) {
-        return option;
-    }
+	if (Array.isArray(option)) {
+		return option;
+	}
 
-    if (typeof option === 'string') {
-        return option.split(';');
-    }
+	if (typeof option === 'string') {
+		return option.split(';');
+	}
 
-    return false;
+	return false;
 };
 
 const getCsvData = (sorted: any, customFormat: any, csvComponentPrefix: string) => {
-    const csvDataArr: string[] = [];
+	const csvDataArr: string[] = [];
 
-    Object.entries(sorted).forEach(([key, module]: [string, any]) => {
-        const dataElements = [];
+	Object.entries(sorted).forEach(([key, module]: [string, any]) => {
+		const dataElements = [];
 
-        if (csvComponentPrefix) {
-            dataElements.push(`"${csvComponentPrefix}"`);
-        }
+		if (csvComponentPrefix) {
+			dataElements.push(`"${csvComponentPrefix}"`);
+		}
 
-        // Grab the custom keys from the custom format
-        if (typeof customFormat === 'object' && Object.keys(customFormat).length > 0) {
-            dataElements.push(`"${key}"`);
+		// Grab the custom keys from the custom format
+		if (typeof customFormat === 'object' && Object.keys(customFormat).length > 0) {
+			dataElements.push(`"${key}"`);
 
-            Object.keys(customFormat).forEach((item) => {
-                dataElements.push(`"${(module as any)[item]}"`);
-            });
-        } else {
-            // Be sure to push empty strings for empty values, as this is what CSV expects:
-            dataElements.push(`"${key}"`);
-            dataElements.push(`"${(module as any).licenses || ''}"`);
-            dataElements.push(`"${(module as any).repository || ''}"`);
-        }
+			Object.keys(customFormat).forEach((item) => {
+				dataElements.push(`"${(module as any)[item]}"`);
+			});
+		} else {
+			// Be sure to push empty strings for empty values, as this is what CSV expects:
+			dataElements.push(`"${key}"`);
+			dataElements.push(`"${(module as any).licenses || ''}"`);
+			dataElements.push(`"${(module as any).repository || ''}"`);
+		}
 
-        csvDataArr.push(dataElements.join(','));
-    });
+		csvDataArr.push(dataElements.join(','));
+	});
 
-    return csvDataArr;
+	return csvDataArr;
 };
 
 const getCsvHeaders = (customFormat: any, csvComponentPrefix: string) => {
-    const prefixName = '"component"';
-    const entriesArr = [];
+	const prefixName = '"component"';
+	const entriesArr = [];
 
-    if (csvComponentPrefix) {
-        entriesArr.push(prefixName);
-    }
+	if (csvComponentPrefix) {
+		entriesArr.push(prefixName);
+	}
 
-    if (typeof customFormat === 'object' && Object.keys(customFormat).length > 0) {
-        entriesArr.push('"module name"');
+	if (typeof customFormat === 'object' && Object.keys(customFormat).length > 0) {
+		entriesArr.push('"module name"');
 
-        Object.keys(customFormat).forEach((item) => {
-            entriesArr.push(`"${item}"`);
-        });
-    } else {
-        entriesArr.push('"module name"', '"license"', '"repository"');
-    }
+		Object.keys(customFormat).forEach((item) => {
+			entriesArr.push(`"${item}"`);
+		});
+	} else {
+		entriesArr.push('"module name"', '"license"', '"repository"');
+	}
 
-    return entriesArr.join(',');
+	return entriesArr.join(',');
 };
 
 const getModuleNameForLicenseTextHeader = (moduleName = '') => {
-    const lastIndexOfAtCharacter = moduleName.lastIndexOf('@');
+	const lastIndexOfAtCharacter = moduleName.lastIndexOf('@');
 
-    return `${moduleName.substring(0, lastIndexOfAtCharacter)} ${moduleName.substring(lastIndexOfAtCharacter + 1)}\n`;
+	return `${moduleName.substring(0, lastIndexOfAtCharacter)} ${moduleName.substring(lastIndexOfAtCharacter + 1)}\n`;
 };
 
 // Eventually store the contents of the module's README.md in currentExtendedPackageJson.readme:
 const storeReadmeInJsonIfExists = (modulePath: string, currentExtendedPackageJson: any) => {
-    if (
-        typeof modulePath !== 'string' ||
-        typeof currentExtendedPackageJson !== 'object' ||
-        modulePath === '' ||
-        (typeof currentExtendedPackageJson?.readme === 'string' &&
-            currentExtendedPackageJson?.readme?.toLowerCase()?.indexOf('no readme data found') === -1)
-    ) {
-        return;
-    }
+	if (
+		typeof modulePath !== 'string' ||
+		typeof currentExtendedPackageJson !== 'object' ||
+		modulePath === '' ||
+		(typeof currentExtendedPackageJson?.readme === 'string' &&
+			currentExtendedPackageJson?.readme?.toLowerCase()?.indexOf('no readme data found') === -1)
+	) {
+		return;
+	}
 
-    const readmeFile = path.join(modulePath, 'README.md');
+	const readmeFile = path.join(modulePath, 'README.md');
 
-    if (fs.existsSync(readmeFile)) {
-        currentExtendedPackageJson.readme = fs.readFileSync(readmeFile, 'utf8').toString();
-    }
+	if (fs.existsSync(readmeFile)) {
+		currentExtendedPackageJson.readme = fs.readFileSync(readmeFile, 'utf8').toString();
+	}
 };
 
 export {
-    deleteNonDirectDependenciesFromAllDependencies,
-    getAuthorDetails,
-    getCsvData,
-    getCsvHeaders,
-    getFirstNotUndefinedOrUndefined,
-    getLinesWithCopyright,
-    getModuleNameForLicenseTextHeader,
-    getOptionArray,
-    getRepositoryUrl,
-    storeReadmeInJsonIfExists,
+	deleteNonDirectDependenciesFromAllDependencies,
+	getAuthorDetails,
+	getCsvData,
+	getCsvHeaders,
+	getFirstNotUndefinedOrUndefined,
+	getLinesWithCopyright,
+	getModuleNameForLicenseTextHeader,
+	getOptionArray,
+	getRepositoryUrl,
+	storeReadmeInJsonIfExists,
 };

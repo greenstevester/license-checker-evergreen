@@ -6,8 +6,6 @@ http://yuilibrary.com/license/
 
 // @ts-nocheck
 
-
-
 const LICENSE_TITLE_UNKNOWN = 'UNKNOWN';
 const LICENSE_TITLE_UNLICENSED = 'UNLICENSED';
 
@@ -36,7 +34,6 @@ import debug from 'debug';
 import fs from 'node:fs';
 import { mkdirp } from 'mkdirp';
 import path from 'node:path';
-
 
 // @ts-ignore
 import readInstalledPackages from 'read-installed-packages';
@@ -118,7 +115,10 @@ const recursivelyCollectAllDependencies = (options: any) => {
 	if (mustInclude('url')) {
 		// TODO: Figure out where the check for currentExtendedPackageJson.url.web comes from. It's in the original license-checker,
 		//       but I can't find any documentation on it.
-		let url = helpers.getFirstNotUndefinedOrUndefined(clarification?.url, (currentExtendedPackageJson as any)?.url?.web);
+		let url = helpers.getFirstNotUndefinedOrUndefined(
+			clarification?.url,
+			(currentExtendedPackageJson as any)?.url?.web,
+		);
 		/*istanbul ignore next*/
 		if (url) {
 			moduleInfo.url = url;
@@ -170,10 +170,7 @@ const recursivelyCollectAllDependencies = (options: any) => {
 
 	if (licenseData) {
 		// License information has been collected from either the clarification file or from the package.json file
-		const licensesList: string[] = Array.isArray(moduleInfo.licenses)
-			? moduleInfo.licenses
-			: [moduleInfo.licenses];
-
+		const licensesList: string[] = Array.isArray(moduleInfo.licenses) ? moduleInfo.licenses : [moduleInfo.licenses];
 
 		if (licensesList.length > 0) {
 			if (Array.isArray(licenseData)) {
@@ -204,7 +201,10 @@ const recursivelyCollectAllDependencies = (options: any) => {
 					moduleInfo.licenses = [licenseData];
 				}
 			}
-		} else if (typeof helpers.getFirstNotUndefinedOrUndefined((licenseData as any).type, (licenseData as any).name) === 'string') {
+		} else if (
+			typeof helpers.getFirstNotUndefinedOrUndefined((licenseData as any).type, (licenseData as any).name) ===
+			'string'
+		) {
 			// @ts-ignore
 			moduleInfo.licenses = getLicenseTitle(
 				helpers.getFirstNotUndefinedOrUndefined((licenseData as any).type, (licenseData as any).name) as string,
@@ -320,7 +320,7 @@ const recursivelyCollectAllDependencies = (options: any) => {
 							// @ts-ignore
 							endIndex = moduleInfo.licenseText.length;
 						}
-// @ts-ignore
+						// @ts-ignore
 						moduleInfo.licenseText = moduleInfo.licenseText.substring(startIndex, endIndex);
 					}
 				}
@@ -452,7 +452,7 @@ const init = (args: any, callback: (error: Error | null, result?: any) => void) 
 	}
 
 	// An object mapping from Package name -> list of what contents it should have, including a semver range for each entry
-	let clarifications: {[key: string]: any} = {};
+	let clarifications: { [key: string]: any } = {};
 	if (args.clarificationsFile) {
 		const clarificationsFromFile = parseJson(args.clarificationsFile);
 
@@ -506,7 +506,7 @@ const init = (args: any, callback: (error: Error | null, result?: any) => void) 
 		if (args.clarificationsMatchAll) {
 			const unusedClarifications: string[] = [];
 			for (const [packageName, entries] of Object.entries(clarifications)) {
-				for (const clarification of (entries as any[])) {
+				for (const clarification of entries as any[]) {
 					if (!clarification.used) {
 						unusedClarifications.push(`${packageName}@${clarification.semverRange}`);
 					}
