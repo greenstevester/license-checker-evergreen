@@ -52,7 +52,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
 
       - name: Run CLI on self
-        run: node dist/bin/license-checker-evergreen.js --json --onlyAllow "BSD-3-Clause;MIT;ISC;Apache-2.0"
+        run: node dist/bin/license-checker-evergreen.js --json --onlyAllow "BSD-3-Clause;MIT;ISC;Apache-2.0;Python-2.0"
         if: matrix.os == 'ubuntu-latest'
 
   security:
