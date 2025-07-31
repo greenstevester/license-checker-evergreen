@@ -68,12 +68,30 @@ jobs:
           git checkout main
           git pull origin main
           
-          # Regenerate changelog from main branch
+          # Determine commit range
           LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -z "$LAST_TAG" ]; then
             RANGE="HEAD"
           else
             RANGE="$LAST_TAG..HEAD"
+          fi
+          
+          # Check if there are any user-facing changes (not just workflow updates)
+          USER_FACING_CHANGES=false
+          
+          # Check for features, fixes, improvements, or docs that aren't workflow-related
+          if git log --pretty=format:"%s" $RANGE | grep -E "^(feat|feature|fix|chore|refactor|perf|improvement|docs?):" | grep -vE "(workflow|\.yml|actions|ci\/cd|CI\/CD|github action)" > /dev/null; then
+            USER_FACING_CHANGES=true
+          fi
+          
+          # Also check for changes outside of .github directory
+          if git diff --name-only $RANGE | grep -v "^\.github/" > /dev/null; then
+            USER_FACING_CHANGES=true
+          fi
+          
+          if [ "$USER_FACING_CHANGES" = "false" ]; then
+            echo "No user-facing changes detected (only workflow updates). Skipping changelog update."
+            exit 0
           fi
 
           # Create temporary changelog
@@ -82,25 +100,25 @@ jobs:
           echo "## [${{ steps.extract_version.outputs.version }}] - $(date +%Y-%m-%d)" >> temp_changelog.md
           echo "" >> temp_changelog.md
 
-          # Group commits by type
+          # Group commits by type (excluding workflow-only fixes)
           echo "### 🚀 Features" >> temp_changelog.md
-          git log --pretty=format:"- %s" $RANGE | grep -E "^- (feat|feature):" | sed 's/^- feat[ure]*: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
+          git log --pretty=format:"- %s" $RANGE | grep -E "^- (feat|feature):" | grep -vE "(workflow|\.yml|actions|ci\/cd|CI\/CD|github action)" | sed 's/^- feat[ure]*: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
           echo "" >> temp_changelog.md
 
           echo "### 🐛 Bug Fixes" >> temp_changelog.md
-          git log --pretty=format:"- %s" $RANGE | grep -E "^- fix:" | sed 's/^- fix: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
+          git log --pretty=format:"- %s" $RANGE | grep -E "^- fix:" | grep -vE "(workflow|\.yml|actions|ci\/cd|CI\/CD|github action)" | sed 's/^- fix: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
           echo "" >> temp_changelog.md
 
           echo "### 🔧 Improvements" >> temp_changelog.md
-          git log --pretty=format:"- %s" $RANGE | grep -E "^- (chore|refactor|perf|improvement):" | sed 's/^- [^:]*: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
+          git log --pretty=format:"- %s" $RANGE | grep -E "^- (chore|refactor|perf|improvement):" | grep -vE "(workflow|\.yml|actions|ci\/cd|CI\/CD|github action)" | sed 's/^- [^:]*: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
           echo "" >> temp_changelog.md
 
           echo "### 📚 Documentation" >> temp_changelog.md
-          git log --pretty=format:"- %s" $RANGE | grep -E "^- docs?:" | sed 's/^- docs*: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
+          git log --pretty=format:"- %s" $RANGE | grep -E "^- docs?:" | grep -vE "(workflow|\.yml|actions|ci\/cd|CI\/CD|github action)" | sed 's/^- docs*: /- /' >> temp_changelog.md || echo "" >> temp_changelog.md
           echo "" >> temp_changelog.md
 
           echo "### Other Changes" >> temp_changelog.md
-          git log --pretty=format:"- %s" $RANGE | grep -vE "^- (feat|feature|fix|chore|refactor|perf|improvement|docs?):" >> temp_changelog.md || echo "" >> temp_changelog.md
+          git log --pretty=format:"- %s" $RANGE | grep -vE "^- (feat|feature|fix|chore|refactor|perf|improvement|docs?):" | grep -vE "(workflow|\.yml|actions|ci\/cd|CI\/CD|github action)" >> temp_changelog.md || echo "" >> temp_changelog.md
           echo "" >> temp_changelog.md
 
           # Prepend to existing CHANGELOG.md if it exists
