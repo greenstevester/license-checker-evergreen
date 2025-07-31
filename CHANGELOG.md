@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.0.1] - 2025-07-31
+
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+
+### 📚 Documentation
+- update CHANGELOG.md with unreleased changes
+
+### Other Changes
+
+
+
+
 ## [Unreleased] - 2025-07-31
 
 _Changes since 
