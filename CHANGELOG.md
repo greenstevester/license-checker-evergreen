@@ -1,5 +1,32 @@
 # Changelog
 
+## [Unreleased] - 2025-07-31
+
+_Changes since 
+
+**3 commit(s) in this update**
+
+### 🚀 New Features
+_No new features in this update_
+
+### 🐛 Bug Fixes
+_No bug fixes in this update_
+
+### ⚡ Performance Improvements
+_No performance improvements in this update_
+
+### 🔧 Maintenance & Improvements
+- remove custom GitHub action file (4402f2f)
+
+### 🧪 Tests
+_No test changes in this update_
+
+### 📚 Documentation
+- update CHANGELOG.md for v5.0.0 (de44f33)
+
+### 🔄 Other Changes
+
+
 ## [5.0.0] - 2025-07-31
 
 ### 🚀 Features
