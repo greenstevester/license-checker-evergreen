@@ -111,7 +111,7 @@ jobs:
       - name: Setup Node.js for NPM
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
           cache: 'npm'
           registry-url: 'https://registry.npmjs.org'
 
@@ -134,29 +134,16 @@ jobs:
 
       - name: Publish to NPM
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_OTP: ${{ secrets.NPM_OTP }}
+            NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          # Enable NPM provenance for supply chain security
-          if [ -n "$NPM_OTP" ]; then
-            npm publish --access public --provenance --otp="$NPM_OTP"
-          else
-            # Try without OTP first (for automation tokens)
-            npm publish --access public --provenance || {
-              echo "❌ NPM publish failed. If you're using 2FA:"
-              echo "1. Use an NPM Automation token (recommended)"
-              echo "2. Or add NPM_OTP secret with your current OTP code"  
-              echo "3. Automation tokens bypass 2FA: https://www.npmjs.com/settings/tokens"
-              exit 1
-            }
-          fi
+          npm publish
           echo "Successfully published license-checker-evergreen@${{ needs.build-and-test.outputs.version }}"
 
       - name: Verify NPM publication
         run: |
           # Wait a moment for NPM to propagate
           sleep 15
-          
+
           # Verify the package is available
           if npm view license-checker-evergreen@${{ needs.build-and-test.outputs.version }} version; then
             echo "✅ Package successfully published and available on NPM"
@@ -222,7 +209,7 @@ jobs:
           echo "**Node.js:** 18" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ needs.publish-npm.result }}" = "success" ]; then
             echo "### ✅ NPM Registry" >> $GITHUB_STEP_SUMMARY
             echo "- **Status:** Published successfully" >> $GITHUB_STEP_SUMMARY
@@ -236,7 +223,7 @@ jobs:
             echo "- **Status:** Skipped (not requested)" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ needs.publish-github.result }}" = "success" ]; then
             echo "### ✅ GitHub Packages" >> $GITHUB_STEP_SUMMARY
             echo "- **Status:** Published successfully" >> $GITHUB_STEP_SUMMARY
@@ -250,7 +237,7 @@ jobs:
             echo "- **Status:** Skipped (not requested)" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           echo "### 📋 Build Information" >> $GITHUB_STEP_SUMMARY
           echo "- **Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

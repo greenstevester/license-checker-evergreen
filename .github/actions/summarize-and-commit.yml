@@ -1,0 +1,136 @@
+name: 'Summarize Changes and Commit'
+description: 'Creates a comprehensive commit with a summary of all staged changes'
+inputs:
+  commit_type:
+    description: 'Type of commit (feat, fix, chore, docs, etc.)'
+    required: false
+    default: 'chore'
+  scope:
+    description: 'Optional scope for the commit (e.g., workflows, deps, build)'
+    required: false
+    default: ''
+  title:
+    description: 'Brief title describing the changes'
+    required: true
+  include_file_list:
+    description: 'Whether to include list of changed files in commit body'
+    required: false
+    default: 'true'
+  auto_stage:
+    description: 'Whether to automatically stage all changes before committing'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Auto-stage changes if requested
+      if: inputs.auto_stage == 'true'
+      shell: bash
+      run: git add -A
+
+    - name: Check for staged changes
+      id: check_changes
+      shell: bash
+      run: |
+        if git diff --staged --quiet; then
+          echo "No staged changes found to commit"
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        echo "has_changes=true" >> $GITHUB_OUTPUT
+
+    - name: Generate commit summary
+      if: steps.check_changes.outputs.has_changes == 'true'
+      id: summary
+      shell: bash
+      run: |
+        # Build commit message components
+        SCOPE=""
+        if [ -n "${{ inputs.scope }}" ]; then
+          SCOPE="(${{ inputs.scope }})"
+        fi
+        
+        # Create commit title
+        COMMIT_TITLE="${{ inputs.commit_type }}${SCOPE}: ${{ inputs.title }}"
+        
+        # Get list of changed files
+        CHANGED_FILES=$(git diff --staged --name-only | sort)
+        FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l | tr -d ' ')
+        
+        # Create commit body
+        COMMIT_BODY=""
+        
+        # Add file summary if requested
+        if [ "${{ inputs.include_file_list }}" = "true" ] && [ "$FILE_COUNT" -gt 0 ]; then
+          COMMIT_BODY="${COMMIT_BODY}Modified $FILE_COUNT file(s):"$'\n'
+          while IFS= read -r file; do
+            if [ -n "$file" ]; then
+              COMMIT_BODY="${COMMIT_BODY}- $file"$'\n'
+            fi
+          done <<< "$CHANGED_FILES"
+          COMMIT_BODY="${COMMIT_BODY}"$'\n'
+        fi
+        
+        # Add diff stats
+        DIFF_STATS=$(git diff --staged --stat)
+        if [ -n "$DIFF_STATS" ]; then
+          COMMIT_BODY="${COMMIT_BODY}Changes summary:"$'\n'
+          COMMIT_BODY="${COMMIT_BODY}$DIFF_STATS"$'\n'$'\n'
+        fi
+        
+        # Add standard footer
+        COMMIT_BODY="${COMMIT_BODY}🤖 Generated with Claude Code"$'\n'$'\n'
+        COMMIT_BODY="${COMMIT_BODY}Co-Authored-By: Claude <noreply@anthropic.com>"
+        
+        # Export for next step
+        echo "commit_title=$COMMIT_TITLE" >> $GITHUB_OUTPUT
+        echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
+        
+        # Save commit body to file for heredoc usage
+        cat > /tmp/commit_body.txt << 'EOF'
+        $COMMIT_BODY
+        EOF
+
+    - name: Create commit
+      if: steps.check_changes.outputs.has_changes == 'true'
+      shell: bash
+      run: |
+        # Read the commit body from file
+        COMMIT_BODY=$(cat /tmp/commit_body.txt)
+        
+        # Create the commit using heredoc for proper formatting
+        git commit -m "$(cat <<'COMMIT_EOF'
+        ${{ steps.summary.outputs.commit_title }}
+        
+        $COMMIT_BODY
+        COMMIT_EOF
+        )"
+        
+        echo "✅ Successfully created commit: ${{ steps.summary.outputs.commit_title }}"
+        echo "📁 Files changed: ${{ steps.summary.outputs.file_count }}"
+        
+        # Clean up
+        rm -f /tmp/commit_body.txt
+
+    - name: Display commit info
+      if: steps.check_changes.outputs.has_changes == 'true'
+      shell: bash
+      run: |
+        echo "## 📝 Commit Created" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Title:** ${{ steps.summary.outputs.commit_title }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Files:** ${{ steps.summary.outputs.file_count }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Recent Commits" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        git log --oneline -3 >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+    - name: No changes notification
+      if: steps.check_changes.outputs.has_changes == 'false'
+      shell: bash
+      run: |
+        echo "## ℹ️ No Changes to Commit" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "No staged changes were found. Use \`git add\` to stage files before running this action." >> $GITHUB_STEP_SUMMARY
