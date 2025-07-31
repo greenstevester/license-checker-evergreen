@@ -135,9 +135,21 @@ jobs:
       - name: Publish to NPM
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_OTP: ${{ secrets.NPM_OTP }}
         run: |
           # Enable NPM provenance for supply chain security
-          npm publish --access public --provenance
+          if [ -n "$NPM_OTP" ]; then
+            npm publish --access public --provenance --otp="$NPM_OTP"
+          else
+            # Try without OTP first (for automation tokens)
+            npm publish --access public --provenance || {
+              echo "❌ NPM publish failed. If you're using 2FA:"
+              echo "1. Use an NPM Automation token (recommended)"
+              echo "2. Or add NPM_OTP secret with your current OTP code"  
+              echo "3. Automation tokens bypass 2FA: https://www.npmjs.com/settings/tokens"
+              exit 1
+            }
+          fi
           echo "Successfully published license-checker-evergreen@${{ needs.build-and-test.outputs.version }}"
 
       - name: Verify NPM publication
