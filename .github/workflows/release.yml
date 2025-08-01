@@ -67,7 +67,7 @@ jobs:
           git fetch origin main
           git checkout main
           git pull origin main
-          
+
           # Determine commit range
           LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -z "$LAST_TAG" ]; then
@@ -75,20 +75,20 @@ jobs:
           else
             RANGE="$LAST_TAG..HEAD"
           fi
-          
+
           # Check if there are any user-facing changes (not just workflow updates)
           USER_FACING_CHANGES=false
-          
+
           # Check for features, fixes, improvements, or docs that aren't workflow-related
           if git log --pretty=format:"%s" $RANGE | grep -E "^(feat|feature|fix|chore|refactor|perf|improvement|docs?):" | grep -vE "(workflow|\.yml|actions|ci\/cd|CI\/CD|github action)" > /dev/null; then
             USER_FACING_CHANGES=true
           fi
-          
+
           # Also check for changes outside of .github directory
           if git diff --name-only $RANGE | grep -v "^\.github/" > /dev/null; then
             USER_FACING_CHANGES=true
           fi
-          
+
           if [ "$USER_FACING_CHANGES" = "false" ]; then
             echo "No user-facing changes detected (only workflow updates). Skipping changelog update."
             exit 0
@@ -128,7 +128,7 @@ jobs:
           fi
 
           mv temp_changelog.md CHANGELOG.md
-          
+
           # Commit changes if any
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -165,28 +165,6 @@ jobs:
           prerelease: false
           files: ./license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
 
-      - name: Publish to NPM
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_OTP: ${{ secrets.NPM_OTP }}
-        run: |
-          # Verify package builds correctly
-          npm run build
-          npm pack --dry-run
-
-          # Publish to NPM (with OTP support if provided)
-          if [ -n "$NPM_OTP" ]; then
-            npm publish --access public --otp="$NPM_OTP"
-          else
-            # Try without OTP first (for automation tokens)
-            npm publish --access public || {
-              echo "❌ NPM publish failed. If you're using 2FA:"
-              echo "1. Use an NPM Automation token (recommended)"
-              echo "2. Or add NPM_OTP secret with your current OTP code"
-              echo "3. Automation tokens bypass 2FA: https://www.npmjs.com/settings/tokens"
-              exit 1
-            }
-          fi
 
       - name: Create GitHub Release Assets
         run: |
