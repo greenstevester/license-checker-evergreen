@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.0.2] - 2025-08-01
+
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+
+### 📚 Documentation
+- clean up duplicate sections in CHANGELOG.md
+- update CHANGELOG.md for v5.0.1
+- update CHANGELOG.md with unreleased changes
+
+### Other Changes
+
+
+
+
 ## [5.0.1] - 2025-07-31
 
 ### 🚀 Features
