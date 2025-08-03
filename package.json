@@ -158,7 +158,7 @@
         "eslint-config-prettier": "10.1.8",
         "eslint-plugin-prettier": "5.5.3",
         "git-contributors": "0.2.5",
-        "github-changes": "2.0.3",
+        "github-changes": "^2.0.0",
         "jest": "30.0.5",
         "prettier": "3.6.2",
         "rimraf": "6.0.1",
