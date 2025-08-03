@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-import { writeFileSync } from 'fs';
-import { join } from 'path';
-import sgMail from '@sendgrid/mail';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
 const PACKAGE_NAME = 'license-checker-evergreen';
 const NPM_API_BASE = 'https://api.npmjs.org/downloads';
 
-// Initialize SendGrid
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Initialize AWS SES client
+const sesClient = new SESClient({
+	region: process.env.AWS_REGION || 'eu-west-1'
+});
 
 async function fetchDownloadStats(period) {
 	const url = `${NPM_API_BASE}/point/${period}/${PACKAGE_NAME}`;
@@ -40,11 +40,11 @@ function calculatePercentageChange(current, previous) {
 
 function generateHTMLReport(stats) {
 	const { daily, weekly, monthly, comparison } = stats;
-	const currentDate = new Date().toLocaleDateString('en-US', { 
-		weekday: 'long', 
-		year: 'numeric', 
-		month: 'long', 
-		day: 'numeric' 
+	const currentDate = new Date().toLocaleDateString('en-US', {
+		weekday: 'long',
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric'
 	});
 
 	return `<!DOCTYPE html>
@@ -130,10 +130,10 @@ function generateHTMLReport(stats) {
 <body>
     <div class="container">
         <h1>📊 NPM Download Statistics Report</h1>
-        
+
         <p><strong>Package:</strong> <a href="https://www.npmjs.com/package/${PACKAGE_NAME}" class="package-link">${PACKAGE_NAME}</a></p>
         <p><strong>Report Date:</strong> ${currentDate}</p>
-        
+
         <div class="stats-grid">
             <div class="stat-box">
                 <div class="stat-label">Daily Downloads</div>
@@ -142,7 +142,7 @@ function generateHTMLReport(stats) {
                     ${comparison.dailyChange}
                 </div>
             </div>
-            
+
             <div class="stat-box">
                 <div class="stat-label">Weekly Downloads</div>
                 <div class="stat-value">${weekly.downloads.toLocaleString()}</div>
@@ -150,17 +150,17 @@ function generateHTMLReport(stats) {
                     ${comparison.weeklyChange}
                 </div>
             </div>
-            
+
             <div class="stat-box">
                 <div class="stat-label">Monthly Downloads</div>
                 <div class="stat-value">${monthly.downloads.toLocaleString()}</div>
                 <div class="stat-change neutral">Last 30 days</div>
             </div>
         </div>
-        
+
         <div class="footer">
             <p>This automated report is generated daily by GitHub Actions.</p>
-            <p>View the package on <a href="https://www.npmjs.com/package/${PACKAGE_NAME}" class="package-link">npm</a> | 
+            <p>View the package on <a href="https://www.npmjs.com/package/${PACKAGE_NAME}" class="package-link">npm</a> |
                <a href="https://github.com/evergreen-codes/license-checker-evergreen" class="package-link">GitHub</a></p>
         </div>
     </div>
@@ -171,7 +171,7 @@ function generateHTMLReport(stats) {
 async function main() {
 	try {
 		console.log(`Fetching NPM download statistics for ${PACKAGE_NAME}...`);
-		
+
 		// Get current stats
 		const [dailyStats, weeklyStats, monthlyStats] = await Promise.all([
 			fetchDownloadStats('last-day'),
@@ -185,7 +185,7 @@ async function main() {
 		yesterday.setDate(yesterday.getDate() - 1);
 		const twoDaysAgo = new Date(today);
 		twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-		
+
 		const lastWeekStart = new Date(today);
 		lastWeekStart.setDate(lastWeekStart.getDate() - 14);
 		const lastWeekEnd = new Date(today);
@@ -217,22 +217,35 @@ async function main() {
 
 		// Generate HTML report
 		const htmlReport = generateHTMLReport(stats);
-		
-		// Send email via SendGrid
-		const msg = {
-			to: process.env.EMAIL_TO,
-			from: process.env.EMAIL_FROM,
-			subject: `NPM Download Stats Report - ${PACKAGE_NAME} - ${new Date().toLocaleDateString()}`,
-			html: htmlReport,
+
+		// Send email via AWS SES
+		const params = {
+			Destination: {
+				ToAddresses: [process.env.EMAIL_TO]
+			},
+			Message: {
+				Body: {
+					Html: {
+						Data: htmlReport,
+						Charset: 'UTF-8'
+					}
+				},
+				Subject: {
+					Data: `NPM Download Stats Report - ${PACKAGE_NAME} - ${new Date().toLocaleDateString()}`,
+					Charset: 'UTF-8'
+				}
+			},
+			Source: process.env.EMAIL_FROM
 		};
 
-		await sgMail.send(msg);
-		
-		console.log('✅ Report sent successfully!');
+		const command = new SendEmailCommand(params);
+		await sesClient.send(command);
+
+		console.log('✅ Report sent successfully via AWS SES!');
 		console.log(`📊 Daily: ${dailyStats.downloads} (${dailyChange})`);
 		console.log(`📊 Weekly: ${weeklyStats.downloads} (${weeklyChange})`);
 		console.log(`📊 Monthly: ${monthlyStats.downloads}`);
-		
+
 	} catch (error) {
 		console.error('❌ Error generating/sending report:', error.message);
 		process.exit(1);

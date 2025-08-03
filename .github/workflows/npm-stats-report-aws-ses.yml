@@ -1,4 +1,4 @@
-name: NPM Download Stats Report (SendGrid)
+name: NPM Download Stats Report (AWS SES)
 
 on:
   schedule:
@@ -19,13 +19,15 @@ jobs:
         with:
           node-version: '20'
       
-      - name: Install SendGrid
-        run: npm install --no-save @sendgrid/mail
+      - name: Install AWS SDK
+        run: npm install --no-save @aws-sdk/client-ses
       
       - name: Generate and send report
         env:
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
         run: |
-          node scripts/generate-npm-stats-report-sendgrid.js
+          node scripts/generate-npm-stats-report-aws-ses.js
