@@ -1,5 +1,29 @@
 # Changelog
 
+## [5.0.3] - 2025-10-05
+
+### 🚀 Features
+- add automated NPM download stats email reports
+
+### 🐛 Bug Fixes
+- version bump and package.json update
+- version bump and package.json update
+
+### 🔧 Improvements
+- migrate email implementation from SendGrid to AWS SES
+
+### 📚 Documentation
+- add npm badges and optimize package.json for SEO
+- comprehensive README improvements for better user onboarding
+- update CHANGELOG.md for v5.0.2
+
+### Other Changes
+- Merge pull request #3 from greenstevester/readme-review-improvements
+- fix(security): resolve ReDoS vulnerabilities in @octokit dependencies
+- style(docs): add maintainer backstory and fix code formatting
+
+
+
 ## [5.0.2] - 2025-08-01
 
 ### 🚀 Features
