@@ -60,12 +60,37 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Release version: $VERSION"
 
+      - name: Update package.json version
+        run: |
+          # Sync package.json version with tag
+          npm version ${{ steps.extract_version.outputs.version }} --no-git-tag-version --allow-same-version
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Switch to main branch and update version there
+          git fetch origin main
+          git checkout main
+          git pull origin main
+
+          # Apply version change
+          npm version ${{ steps.extract_version.outputs.version }} --no-git-tag-version --allow-same-version
+
+          # Commit and push if there are changes
+          git add package.json package-lock.json
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: bump version to ${{ steps.extract_version.outputs.version }} [skip ci]"
+            git push origin main
+          fi
+
+          # Reinstall and rebuild after version update
+          npm ci
+          npm run build
 
       - name: Commit updated CHANGELOG.md
         run: |
-          # Switch to main branch to make changes there
-          git fetch origin main
-          git checkout main
+          # Already on main branch from previous step
           git pull origin main
 
           # Determine commit range
@@ -138,6 +163,12 @@ jobs:
             git push origin main
           fi
 
+      - name: Create GitHub Release Assets
+        run: |
+          # Create tarball for GitHub release
+          npm pack
+          mv license-checker-evergreen-${{ steps.extract_version.outputs.version }}.tgz license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         env:
@@ -164,11 +195,4 @@ jobs:
           draft: false
           prerelease: false
           files: ./license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
-
-
-      - name: Create GitHub Release Assets
-        run: |
-          # Create tarball for GitHub release
-          npm pack
-          mv license-checker-evergreen-${{ steps.extract_version.outputs.version }}.tgz license-checker-evergreen-v${{ steps.extract_version.outputs.version }}.tgz
 
