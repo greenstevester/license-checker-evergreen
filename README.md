@@ -10,7 +10,7 @@ A modern, actively maintained fork of the popular [license-checker](https://gith
 [![license](https://img.shields.io/npm/l/license-checker-evergreen.svg)](https://github.com/greenstevester/license-checker-evergreen/blob/main/LICENSE)
 [![node version](https://img.shields.io/node/v/license-checker-evergreen.svg)](https://www.npmjs.com/package/license-checker-evergreen)
 
-[![NPM](https://nodei.co/npm/license-checker-evergreen.png)](https://nodei.co/npm/license-checker-evergreen/)
+[![NPM](https://nodei.co/npm/license-checker-evergreen.png)](https://www.npmjs.com/package/license-checker-evergreen)
 
 ## Why Use This?
 
