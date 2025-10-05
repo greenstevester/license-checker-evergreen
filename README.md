@@ -4,6 +4,12 @@
 
 A modern, actively maintained fork of the popular [license-checker](https://github.com/davglass/license-checker) with TypeScript, performance improvements, and new features.
 
+[![npm version](https://img.shields.io/npm/v/license-checker-evergreen.svg)](https://www.npmjs.com/package/license-checker-evergreen)
+[![npm downloads](https://img.shields.io/npm/dm/license-checker-evergreen.svg)](https://www.npmjs.com/package/license-checker-evergreen)
+[![npm total downloads](https://img.shields.io/npm/dt/license-checker-evergreen.svg)](https://www.npmjs.com/package/license-checker-evergreen)
+[![license](https://img.shields.io/npm/l/license-checker-evergreen.svg)](https://github.com/greenstevester/license-checker-evergreen/blob/main/LICENSE)
+[![node version](https://img.shields.io/node/v/license-checker-evergreen.svg)](https://www.npmjs.com/package/license-checker-evergreen)
+
 [![NPM](https://nodei.co/npm/license-checker-evergreen.png)](https://nodei.co/npm/license-checker-evergreen/)
 
 ## Why Use This?
