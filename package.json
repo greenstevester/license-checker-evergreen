@@ -2,7 +2,7 @@
     "name": "license-checker-evergreen",
     "description": "NPM license audit and dependency compliance checker - Scan, validate, and analyze open source licenses with SPDX validation. Feature-enhanced, TypeScript-based fork of license-checker with better performance and reliability.",
     "author": "greenstevester",
-    "version": "5.0.4",
+    "version": "5.0.5",
     "license": "BSD-3-Clause",
     "private": false,
     "type": "module",
