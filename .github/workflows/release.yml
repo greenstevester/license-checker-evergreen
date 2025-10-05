@@ -62,19 +62,16 @@ jobs:
 
       - name: Update package.json version
         run: |
-          # Sync package.json version with tag
-          npm version ${{ steps.extract_version.outputs.version }} --no-git-tag-version --allow-same-version
-
           # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Switch to main branch and update version there
+          # Switch to main branch first (before making any changes)
           git fetch origin main
           git checkout main
           git pull origin main
 
-          # Apply version change
+          # Apply version change to match the tag
           npm version ${{ steps.extract_version.outputs.version }} --no-git-tag-version --allow-same-version
 
           # Commit and push if there are changes
