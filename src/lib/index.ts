@@ -194,22 +194,24 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 
 		if (licensesList.length > 0) {
 			if (Array.isArray(licenseData)) {
-				moduleInfo.licenses = licenseData.map((moduleLicense: any) => {
-					const moduleLicenseTypeOrName = helpers.getFirstNotUndefinedOrUndefined(
-						moduleLicense.type,
-						moduleLicense.name,
-					);
+				moduleInfo.licenses = licenseData
+					.map((moduleLicense: any) => {
+						const moduleLicenseTypeOrName = helpers.getFirstNotUndefinedOrUndefined(
+							moduleLicense.type,
+							moduleLicense.name,
+						);
 
-					if (typeof moduleLicenseTypeOrName === 'string') {
-						return moduleLicenseTypeOrName;
-					}
+						if (typeof moduleLicenseTypeOrName === 'string') {
+							return moduleLicenseTypeOrName;
+						}
 
-					if (typeof moduleLicense === 'string') {
-						return moduleLicense;
-					}
-					
-					return 'UNKNOWN';
-				}).filter((license): license is string => typeof license === 'string');
+						if (typeof moduleLicense === 'string') {
+							return moduleLicense;
+						}
+
+						return 'UNKNOWN';
+					})
+					.filter((license): license is string => typeof license === 'string');
 			} else {
 				// licenseData is a single license, not an array
 				const moduleLicenseTypeOrName = helpers.getFirstNotUndefinedOrUndefined(

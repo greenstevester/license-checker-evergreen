@@ -190,7 +190,7 @@ export class LicenseFileCache {
 		hitRate: number;
 		cacheSize: number;
 		asyncCacheSize: number;
-	} {
+		} {
 		return {
 			...this.stats,
 			hitRate: this.stats.totalReads > 0 ? this.stats.hits / this.stats.totalReads : 0,

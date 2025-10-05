@@ -228,7 +228,7 @@ export class PackageCollection {
 		packageCount: number;
 		cachedResults: number;
 		poolSize: number;
-	} {
+		} {
 		let totalMemory = 0;
 
 		// Estimate memory usage
