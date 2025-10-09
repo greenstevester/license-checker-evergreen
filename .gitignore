@@ -10,6 +10,7 @@
 .svn
 .vscode/
 .zed/
+.claude
 artifacts
 coverage/
 CVS/

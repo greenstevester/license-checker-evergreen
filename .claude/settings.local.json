@@ -1,11 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(rm:*)",
-      "Bash(ls:*)",
-      "Bash(DEBUG=license-checker-evergreen*)",
-      "Bash(timeout 60s npm test tests/test.ts -- --testNamePattern=\"should parse local with unknown and give us results\")"
-    ],
+    "allow": [],
     "deny": []
   }
 }
