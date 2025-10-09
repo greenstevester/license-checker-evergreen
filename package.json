@@ -66,7 +66,7 @@
     },
     "preferGlobal": true,
     "bugs": {
-        "url": "http://github.com/evergreen/license-checker-evergreen/issues"
+        "url": "http://github.com/greenstevester/license-checker-evergreen/issues"
     },
     "repository": {
         "type": "git",
