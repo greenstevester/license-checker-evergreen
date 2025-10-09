@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.0.6] - 2025-10-09
+
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+- bump version to 5.0.6 [skip ci]
+- bump version to 5.0.5 [skip ci]
+
+### 📚 Documentation
+- update CHANGELOG.md for v5.0.5
+
+### Other Changes
+- Update README.md
+
+
+
 ## [5.0.5] - 2025-10-05
 
 ### 🚀 Features
