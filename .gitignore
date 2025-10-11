@@ -18,3 +18,4 @@ dist/
 node_modules/
 tmp/
 preview.html
+readme-preview.html
