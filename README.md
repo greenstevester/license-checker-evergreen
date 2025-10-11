@@ -39,38 +39,73 @@ npx license-checker-evergreen
 ```bash
 # Scan current project
 license-checker-evergreen
-
-# Example output:
-# ├─ express@4.18.2
-# │  ├─ licenses: MIT
-# │  ├─ repository: https://github.com/expressjs/express
-# │  └─ path: ./node_modules/express
-# ├─ lodash@4.17.21
-# │  ├─ licenses: MIT
-# │  └─ path: ./node_modules/lodash
 ```
+
+![Basic Usage Demo](demos/basic-usage.gif)
+
+See the tool in action scanning your project dependencies and displaying license information in an easy-to-read tree format.
 
 ### Common Use Cases
 
+<details>
+<summary><b>📄 Export to JSON file</b></summary>
+
 ```bash
-# Export to JSON file
 license-checker-evergreen --json --out licenses.json
+```
 
-# Find packages with unknown licenses
+![JSON Output Demo](demos/json-output.gif)
+</details>
+
+<details>
+<summary><b>🔍 Find packages with unknown licenses</b></summary>
+
+```bash
 license-checker-evergreen --onlyunknown
+```
 
-# Check only production dependencies (skip devDependencies)
+![Unknown Licenses Demo](demos/unknown-licenses.gif)
+</details>
+
+<details>
+<summary><b>🏭 Check only production dependencies</b></summary>
+
+```bash
 license-checker-evergreen --production
+```
 
-# Exclude common permissive licenses
-license-checker-evergreen --excludeLicenses 'MIT;Apache-2.0;BSD-3-Clause'
+![Production Only Demo](demos/production-only.gif)
+</details>
 
-# Fail build if GPL licenses found
+<details>
+<summary><b>📊 Export to CSV format</b></summary>
+
+```bash
+license-checker-evergreen --csv --out licenses.csv
+```
+
+![CSV Output Demo](demos/csv-output.gif)
+</details>
+
+<details>
+<summary><b>🚫 Fail build if GPL licenses found</b></summary>
+
+```bash
 license-checker-evergreen --failOn 'GPL;AGPL'
+```
 
-# Scan only direct dependencies (no sub-dependencies)
+![Fail On Licenses Demo](demos/fail-on-licenses.gif)
+</details>
+
+<details>
+<summary><b>🎯 Scan only direct dependencies</b></summary>
+
+```bash
 license-checker-evergreen --direct
 ```
+
+![Direct Dependencies Demo](demos/direct-deps.gif)
+</details>
 
 ## Table of Contents
 
@@ -136,6 +171,8 @@ lodash@4.17.21,MIT,,./node_modules/lodash
 ```bash
 license-checker-evergreen --markdown
 ```
+
+![Markdown Output Demo](demos/markdown-output.gif)
 
 ```markdown
 - **express@4.18.2**
