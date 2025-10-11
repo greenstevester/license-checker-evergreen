@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.0.8] - 2025-10-11
+
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+- bump version to 5.0.8 [skip ci]
+
+### 📚 Documentation
+
+### Other Changes
+- Merge pull request #6 from greenstevester/feature/vhs-cli-animations
+- Merge pull request #5 from greenstevester/feature/vhs-cli-animations
+
+
+
 ## [5.0.7] - 2025-10-09
 
 ### 🚀 Features
