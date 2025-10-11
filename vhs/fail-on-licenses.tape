@@ -4,7 +4,7 @@
 Output demos/fail-on-licenses.gif
 
 Set Shell "bash"
-Set FontSize 16
+Set FontSize 13
 Set Width 1400
 Set Height 800
 Set Padding 20
@@ -24,7 +24,7 @@ Sleep 500ms
 Enter
 Sleep 300ms
 
-Type "license-checker-evergreen --failOn 'GPL;AGPL;LGPL'"
+Type "license-checker-evergreen --failOn 'GPL;AGPL;LGPL' --relativeModulePath"
 Sleep 800ms
 Enter
 

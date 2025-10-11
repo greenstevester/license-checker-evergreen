@@ -69,7 +69,7 @@ Each `.tape` file consists of VHS commands that control the terminal simulation:
 # Configuration
 Output demos/example.gif          # Output file path
 Set Shell "bash"                  # Shell to use
-Set FontSize 16                   # Terminal font size (GitHub-standard)
+Set FontSize 13                   # Terminal font size (compact, readable)
 Set Width 1400                    # Terminal width
 Set Height 800                    # Terminal height
 Set Theme "Dracula"               # Color theme
@@ -112,18 +112,19 @@ To hide personal directory paths:
 2. Set a minimal prompt: `Type "PS1='$ '" Enter`
 3. Clear the screen: `Type "clear" Enter`
 4. Use `Show` to resume recording
+5. **Important**: Add `--relativeModulePath` flag to all commands to show relative paths instead of absolute paths
 
-This ensures no personal directory information appears in the recordings.
+This ensures no personal directory information appears in the recordings or command output.
 
 ## Style Guidelines
 
 To maintain consistency with GitHub CLI animations:
 
 1. **Clean and professional**: Use the Dracula theme with Colorful window bar
-2. **Readable**: FontSize 16 (standard), 1400x800 dimensions
+2. **Readable**: FontSize 13 (compact), 1400x800 dimensions
 3. **Paced well**: Not too fast, not too slow (50ms typing speed)
 4. **Contextual**: Show comments explaining what each command does
-5. **Privacy-focused**: Use clean prompts without personal directory paths
+5. **Privacy-focused**: Use clean prompts and `--relativeModulePath` to hide personal paths
 6. **Complete**: Let commands finish and show meaningful output
 
 ## Publishing Animations
