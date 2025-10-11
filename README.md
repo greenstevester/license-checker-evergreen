@@ -140,7 +140,7 @@ license-checker-evergreen --direct
 license-checker-evergreen --json
 ```
 
-```json
+```
 {
   "express@4.18.2": {
     "licenses": "MIT",
@@ -160,7 +160,7 @@ license-checker-evergreen --json
 license-checker-evergreen --csv --out licenses.csv
 ```
 
-```csv
+```
 module_name,licenses,repository,path
 express@4.18.2,MIT,https://github.com/expressjs/express,./node_modules/express
 lodash@4.17.21,MIT,,./node_modules/lodash
@@ -174,7 +174,7 @@ license-checker-evergreen --markdown
 
 ![Markdown Output Demo](demos/markdown-output.gif)
 
-```markdown
+```
 - **express@4.18.2**
   - licenses: MIT
   - repository: https://github.com/expressjs/express
