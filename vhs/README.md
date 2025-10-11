@@ -69,11 +69,12 @@ Each `.tape` file consists of VHS commands that control the terminal simulation:
 # Configuration
 Output demos/example.gif          # Output file path
 Set Shell "bash"                  # Shell to use
-Set FontSize 13                   # Terminal font size (compact, readable)
+Set FontSize 15                   # Terminal font size (readable)
 Set Width 1400                    # Terminal width
 Set Height 800                    # Terminal height
 Set Theme "Dracula"               # Color theme
 Set TypingSpeed 50ms              # Typing simulation speed
+Set PlaybackSpeed 1.25            # 25% faster playback
 Set WindowBar "Colorful"          # Window decoration style
 
 # Hide personal paths and set clean prompt
@@ -121,8 +122,8 @@ This ensures no personal directory information appears in the recordings or comm
 To maintain consistency with GitHub CLI animations:
 
 1. **Clean and professional**: Use the Dracula theme with Colorful window bar
-2. **Readable**: FontSize 13 (compact), 1400x800 dimensions
-3. **Paced well**: Not too fast, not too slow (50ms typing speed)
+2. **Readable**: FontSize 15, 1400x800 dimensions
+3. **Paced well**: 50ms typing speed with 1.25x playback speed (25% faster)
 4. **Contextual**: Show comments explaining what each command does
 5. **Privacy-focused**: Use clean prompts and `--relativeModulePath` to hide personal paths
 6. **Complete**: Let commands finish and show meaningful output
