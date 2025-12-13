@@ -19,3 +19,10 @@ node_modules/
 tmp/
 preview.html
 readme-preview.html
+
+# Private - not for public repo
+marketing/
+data/
+settings.local.json
+scripts/generate-outreach.ts
+todos.md

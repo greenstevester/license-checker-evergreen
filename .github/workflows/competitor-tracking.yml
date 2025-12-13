@@ -1,0 +1,57 @@
+name: Competitor Tracking Report
+
+on:
+  schedule:
+    # Run every Monday at 8:00 AM UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch: # Allow manual triggering for testing
+    inputs:
+      skip_email:
+        description: 'Skip sending email report'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  track-competitors:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install --no-save @aws-sdk/client-ses tsx
+
+      - name: Run competitor tracker
+        env:
+          # Libraries.io API key (optional but recommended)
+          LIBRARIES_IO_API_KEY: ${{ secrets.LIBRARIES_IO_API_KEY }}
+          # GitHub token for fetching dependents
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # AWS SES for email (optional)
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          EMAIL_TO: ${{ inputs.skip_email == 'true' && '' || secrets.EMAIL_TO }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+        run: |
+          npx tsx scripts/competitor-tracker.ts
+
+      # Reports stored as artifacts (private to repo owner)
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: competitor-report-${{ github.run_number }}
+          path: |
+            data/latest-competitor-report.md
+            data/competitor-tracking.json
+          retention-days: 90

@@ -62,7 +62,9 @@
         "lint-prettier": "npm run prettier:fix && npm run lint:fix",
         "clean": "rimraf ./dist/ ./exec/",
         "clean_node_modules": "rimraf ./node_modules package-lock.json",
-        "clean-all": "npm run clean && npm run clean_node_modules"
+        "clean-all": "npm run clean && npm run clean_node_modules",
+        "track:competitors": "npx tsx scripts/competitor-tracker.ts",
+        "generate:outreach": "npx tsx scripts/generate-outreach.ts"
     },
     "preferGlobal": true,
     "bugs": {
@@ -166,6 +168,7 @@
         "treeify": "1.1.0"
     },
     "devDependencies": {
+        "@aws-sdk/client-ses": "^3.948.0",
         "@eslint/js": "9.32.0",
         "@jest/globals": "30.0.5",
         "@types/debug": "4.1.12",
@@ -189,6 +192,8 @@
         "rimraf": "6.0.1",
         "ts-jest": "29.4.0",
         "ts-node": "10.9.2",
+        "tslib": "^2.8.1",
+        "tsx": "^4.21.0",
         "typescript": "5.8.3"
     },
     "overrides": {

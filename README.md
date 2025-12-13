@@ -113,10 +113,10 @@ license-checker-evergreen --direct
 - [Output Formats](#output-formats)
 - [CLI Options](#cli-options)
 - [Programmatic Usage](#programmatic-usage)
-- [Advanced Features](#advanced-features)
-- [Troubleshooting](#troubleshooting)
+- [Advanced Features](docs/advanced-features.md)
+- [Troubleshooting](docs/troubleshooting.md)
 - [Contributing](#contributing)
-- [License & Maintainers](#license--maintainers)
+- [License & Maintainers](docs/license-and-maintainers.md)
 
 ## Output Formats
 
@@ -335,158 +335,6 @@ All CLI options are available programmatically with camelCase names:
 }
 ```
 
-## Advanced Features
-
-### License Clarifications
-
-Override detected license information for specific packages using a clarifications file:
-
-```bash
-license-checker-evergreen --clarificationsFile clarifications.json
-```
-
-**clarifications.json:**
-```json
-{
-    "package-name@1.0.0": {
-        "licenses": "MIT",
-        "licenseFile": "path/to/LICENSE",
-        "licenseText": "Full license text...",
-        "checksum": "sha256-hash-of-license-file",
-        "licenseStart": "## License",
-        "licenseEnd": "## End"
-    }
-}
-```
-
-**Features:**
-- Use exact versions (`package@1.0.0`) or semver ranges (`package@^1.0.0`)
-- Optional SHA-256 checksum to detect license changes
-- Extract subregions of license files with `licenseStart`/`licenseEnd`
-- Validate all clarifications are used with `--clarificationsMatchAll`
-
-**Example with version ranges:**
-```json
-{
-    "old-package@^1": {
-        "licenses": "GPL-2.0"
-    },
-    "old-package@^2": {
-        "licenses": "MIT"
-    }
-}
-```
-
-### Custom Output Format
-
-Customize output fields and defaults using a JSON format file:
-
-```bash
-license-checker-evergreen --customPath custom-format.json --csv
-```
-
-**custom-format.json:**
-```json
-{
-    "name": "",
-    "version": "",
-    "licenses": "",
-    "repository": "",
-    "licenseFile": "none",
-    "licenseText": "none",
-    "copyright": "",
-    "email": "",
-    "customField": "default value"
-}
-```
-
-**Available fields:**
-- `copyright` - Copyright holder information
-- `description` - Package description
-- `email` - Maintainer email
-- `licenseFile` - Path to license file
-- `licenseModified` - Whether license was modified
-- `licenses` - License identifier(s)
-- `licenseText` - Full license text
-- `name` - Package name
-- `publisher` - Package publisher
-- `repository` - Repository URL
-- `url` - Package URL
-- `version` - Package version
-
-**Notes:**
-- CSV format: First column (`module_name`) is always included
-- JSON format: Custom fields are merged with default output
-- Avoid `licenseText` with Markdown format (produces very long output)
-
-See [customFormatExample.json](customFormatExample.json) for a complete example.
-
-### How License Detection Works
-
-The tool uses a multi-step approach to identify licenses:
-
-1. **SPDX Validation**: First checks `package.json` for valid [SPDX license identifiers](https://spdx.org/licenses/)
-2. **File Scanning**: Searches for license files in this order:
-   - `LICENSE` / `LICENCE`
-   - `COPYING`
-   - `README` files
-3. **Pattern Matching**: Parses file contents against known license text patterns
-4. **Marking**: Licenses detected from files (not package.json) are marked with `*`
-
-**Supported License Formats:**
-- SPDX identifiers (e.g., `MIT`, `Apache-2.0`)
-- SPDX expressions (e.g., `MIT OR Apache-2.0`)
-- Non-SPDX strings (e.g., `Public Domain`)
-
-## Troubleshooting
-
-### Common Issues
-
-**Problem: "Unknown" licenses showing up**
-```bash
-# Find all unknown licenses
-license-checker-evergreen --onlyunknown
-
-# Solution: Use clarifications file to specify correct license
-license-checker-evergreen --clarificationsFile clarifications.json
-```
-
-**Problem: Too many dependencies in output**
-```bash
-# Solution: Limit to production dependencies
-license-checker-evergreen --production
-
-# Or limit depth
-license-checker-evergreen --depth 1
-```
-
-**Problem: Need to validate license compliance in CI/CD**
-```bash
-# Fail build if GPL licenses found
-license-checker-evergreen --failOn 'GPL;AGPL;LGPL'
-
-# Or allow only specific licenses
-license-checker-evergreen --onlyAllow 'MIT;Apache-2.0;BSD-3-Clause'
-```
-
-### Debug Mode
-
-Enable detailed logging with the `DEBUG` environment variable:
-
-```bash
-# Show all debug output
-DEBUG=license-checker-evergreen* license-checker-evergreen
-
-# Show only errors
-DEBUG=license-checker-evergreen:error license-checker-evergreen
-```
-
-### Getting Help
-
-- Report issues: [GitHub Issues](https://github.com/greenstevester/license-checker-evergreen/issues)
-- View examples: [customFormatExample.json](customFormatExample.json), [clarificationExample.json](clarificationExample.json)
-- License resources: [ChooseALicense.com](https://choosealicense.com/), [TLDRLegal.com](https://tldrlegal.com/)
-
 ## Contributing
 
 We welcome contributions! Here's how to get started:
@@ -542,29 +390,6 @@ __tests__/                  # Jest test suite
 dist/                       # Compiled output
 ```
 
-## License & Maintainers
-
-### Current Maintainer & Micro backstory
-
-**[@greenstevester](https://github.com/greenstevester)** - Revamped the project with TypeScript, modern tooling, and performance improvements.
-Why? Let's be honest, the project needed some TLC and [@rseidelsohn](https://github.com/RSeidelsohn) openly said he had NO time to update it.
-
-Greenstevester took over the project and renamed it to `license-checker-evergreen`. Funny thing is, it was purely an tangent activity while revamping another project, I ran into a problem with licence-checker dependency, tried to fix it, then saw it was a deeper problem, pulled the source, ran the tests, then reached a tipping point where it was "ok this poor thing is looking a little tired, let's give it a revamp with help from claude code. Feel free to check out claude's own tasklist (that it created itself) in todos.md. This of course was an experiment to learn claude code and see how far it could go with a well-used OSS project. To my surprise, it did surprisingly well.
-
-### Project History
-
-This is an actively maintained fork of the popular [license-checker](https://github.com/davglass/license-checker) by [@davglass](https://github.com/davglass).
-
-**Previous Maintainers:**
-- [@rseidelsohn](https://github.com/RSeidelsohn) - Maintained the project for ages, adding features and fixes
-- [@davglass](https://github.com/davglass) - Original creator
-
-### License
-
-BSD-3-Clause - See [LICENSE.md](LICENSE.md)
-
----
-
 ## What's New
 
 ### Version 5.0.x (Current)
@@ -583,3 +408,7 @@ BSD-3-Clause - See [LICENSE.md](LICENSE.md)
 - Multiple output format improvements
 
 **[View Full Changelog →](CHANGELOG.md)** | **[View Releases →](https://github.com/greenstevester/license-checker-evergreen/releases)**
+
+---
+
+**[Advanced Features](docs/advanced-features.md)** | **[Troubleshooting](docs/troubleshooting.md)** | **[License & Maintainers](docs/license-and-maintainers.md)**
