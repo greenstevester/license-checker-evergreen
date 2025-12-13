@@ -46,5 +46,5 @@ DEBUG=license-checker-evergreen:error license-checker-evergreen
 ## Getting Help
 
 - Report issues: [GitHub Issues](https://github.com/greenstevester/license-checker-evergreen/issues)
-- View examples: [customFormatExample.json](../customFormatExample.json), [clarificationExample.json](../clarificationExample.json)
+- View examples: [customFormatExample.json](customFormatExample.json), [clarificationExample.json](clarificationExample.json)
 - License resources: [ChooseALicense.com](https://choosealicense.com/), [TLDRLegal.com](https://tldrlegal.com/)

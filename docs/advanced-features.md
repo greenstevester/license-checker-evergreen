@@ -84,7 +84,7 @@ license-checker-evergreen --customPath custom-format.json --csv
 - JSON format: Custom fields are merged with default output
 - Avoid `licenseText` with Markdown format (produces very long output)
 
-See [customFormatExample.json](../customFormatExample.json) for a complete example.
+See [customFormatExample.json](customFormatExample.json) for a complete example.
 
 ## How License Detection Works
 
