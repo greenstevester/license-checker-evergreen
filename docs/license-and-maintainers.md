@@ -10,7 +10,7 @@ Why? Let's be honest, the project needed some TLC and [@rseidelsohn](https://git
 
 Greenstevester took over the project and renamed it to `license-checker-evergreen`. Funny thing is, it was purely a tangent activity while revamping another project. I ran into a problem with licence-checker dependency, tried to fix it, then saw it was a deeper problem, pulled the source, ran the tests, then reached a tipping point where it was "ok this poor thing is looking a little tired, let's give it a revamp with help from claude code."
 
-Feel free to check out claude's own tasklist (that it created itself) in todos.md. This of course was an experiment to learn claude code and see how far it could go with a well-used OSS project. To my surprise, it did surprisingly well.
+This was an experiment to learn claude code and see how far it could go with a well-used OSS project. To my surprise, it did surprisingly well.
 
 ## Project History
 
