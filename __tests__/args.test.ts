@@ -25,27 +25,26 @@ describe('Arguments and Configuration Tests', (): void => {
 			expect(result.start).toBe(path.resolve(path.join(__dirname, '../')));
 		});
 
-		test('should handle direct undefined', (): void => {
+		test('should handle depth undefined (defaults to Infinity)', (): void => {
 			const result = args.setDefaultArguments({
-				direct: undefined,
+				depth: undefined,
 				start: path.resolve(path.join(__dirname, '../')),
 			});
 			expect(result.direct).toBe(Infinity);
 			expect(result.start).toBe(path.resolve(path.join(__dirname, '../')));
 		});
 
-		test('should handle direct true', (): void => {
+		test('should handle depth 0 (direct dependencies only)', (): void => {
 			const result = args.setDefaultArguments({
-				direct: true,
+				depth: 0,
 				start: path.resolve(path.join(__dirname, '../')),
 			});
-			expect(result.direct).toBe(Infinity);
+			expect(result.direct).toBe(0);
 			expect(result.start).toBe(path.resolve(path.join(__dirname, '../')));
 		});
 
-		test('should override direct option with depth option', (): void => {
+		test('should handle depth as positive number', (): void => {
 			const result = args.setDefaultArguments({
-				direct: '9',
 				depth: 99,
 				start: path.resolve(path.join(__dirname, '../')),
 			});
@@ -53,12 +52,12 @@ describe('Arguments and Configuration Tests', (): void => {
 			expect(result.start).toBe(path.resolve(path.join(__dirname, '../')));
 		});
 
-		test('should use depth for direct option when direct is not provided', (): void => {
+		test('should handle negative depth (normalizes to 0)', (): void => {
 			const result = args.setDefaultArguments({
-				depth: 99,
+				depth: -5,
 				start: path.resolve(path.join(__dirname, '../')),
 			});
-			expect(result.direct).toBe(99);
+			expect(result.direct).toBe(0);
 			expect(result.start).toBe(path.resolve(path.join(__dirname, '../')));
 		});
 

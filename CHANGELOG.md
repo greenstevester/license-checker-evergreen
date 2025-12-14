@@ -1,5 +1,45 @@
 # Changelog
 
+## [6.0.0] - 2025-12-14
+
+### ⚠️ BREAKING CHANGES
+
+This release removes deprecated and redundant CLI options. Users must update their scripts accordingly.
+
+#### Removed Options
+
+| Removed Option | Migration |
+|----------------|-----------|
+| `--direct` | Use `--depth` instead. `--depth 0` = direct dependencies only, `--depth 1` = one level deep, etc. |
+| `--angularCli` | Use `--plainVertical` instead (identical functionality) |
+| `--memoryOptimized` | Removed entirely (was undocumented and untested) |
+
+#### Migration Examples
+
+```bash
+# Before (v5.x)
+license-checker-evergreen --direct 0
+license-checker-evergreen --direct true
+license-checker-evergreen --angularCli
+
+# After (v6.x)
+license-checker-evergreen --depth 0
+license-checker-evergreen              # no depth = all dependencies (Infinity)
+license-checker-evergreen --plainVertical
+```
+
+### 🔧 Improvements
+
+- Simplified argument parsing logic (removed ~60 lines of complex type coercion)
+- Removed ~220 lines of duplicated memory-optimized code path
+- Fixed typo in codebase (`angluarCli` → removed entirely)
+- Updated dev dependencies to latest versions
+- Updated production dependencies (chalk, debug, semver)
+
+### 📚 Documentation
+
+- Updated help text to clarify `--depth` usage
+
 ## [5.0.8] - 2025-10-11
 
 ### 🚀 Features

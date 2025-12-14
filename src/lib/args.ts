@@ -9,7 +9,6 @@ import chalk from 'chalk';
 import path from 'node:path';
 
 interface ParsedArguments {
-	angularCli?: boolean;
 	clarificationsFile?: string;
 	clarificationsMatchAll?: boolean;
 	color?: boolean | null;
@@ -19,7 +18,7 @@ interface ParsedArguments {
 	customPath?: string;
 	depth?: number;
 	development?: boolean;
-	direct?: string | boolean | number | null;
+	direct?: number; // Internal property - stores normalized depth value
 	excludeLicenses?: string;
 	excludePackages?: string;
 	excludePackagesStartingWith?: string;
@@ -32,7 +31,6 @@ interface ParsedArguments {
 	json?: boolean;
 	limitAttributes?: string;
 	markdown?: boolean;
-	memoryOptimized?: boolean;
 	nopeer?: boolean;
 	onlyAllow?: string;
 	onlyunknownOpts?: boolean;
@@ -54,7 +52,6 @@ interface ParsedArguments {
 
 // For the format requirements of "knownOptions", see the documentation for nopt: https://www.npmjs.com/package/nopt
 const knownOptions = {
-	angularCli: Boolean,
 	clarificationsFile: path,
 	clarificationsMatchAll: Boolean,
 	color: Boolean,
@@ -62,9 +59,8 @@ const knownOptions = {
 	csvComponentPrefix: String,
 	customFormat: {},
 	customPath: path,
-	depth: Number, // Meant to replace the misleading "--direct" option
+	depth: Number,
 	development: Boolean,
-	direct: [String, null],
 	excludeLicenses: String,
 	excludePackages: String,
 	excludePackagesStartingWith: String,
@@ -77,7 +73,6 @@ const knownOptions = {
 	json: Boolean,
 	limitAttributes: String,
 	markdown: Boolean,
-	memoryOptimized: Boolean,
 	nopeer: Boolean,
 	onlyAllow: String,
 	onlyunknownOpts: Boolean,
@@ -118,58 +113,18 @@ const parseArguments = function parseArguments(args?: string[]): ParsedArguments
 };
 
 /**
- * Converts a value for the "--direct" option into a number. The "--direct"
- * option is meant to accept either a Boolen or a Number. Either of those
- * values will then be taken for determining the depth:
- * - Passing in no value or leaving the parameter off will be interpreted as Infinity
- * - Passing in true will be interpreted as Infinity
- * - Passing in false will be interpreted as 0
- * - Passing in a number will be interpreted as that number
- * - Passing in any other value that can't be recognized as a number will be interpreted as Infinity
+ * Converts the --depth option value to a valid depth number.
+ * - If no value provided, returns Infinity (scan all depths)
+ * - If a number is provided, returns that number (minimum 0)
  *
- * @param {*} value
- * @returns Number
+ * @param value - The depth value from CLI arguments
+ * @returns The normalized depth number
  */
-const toDepthNumber = function toDepthNumber(value: string | boolean | number | null | undefined = Infinity): number {
-	let numberValue = 0;
-
-	/* eslint-disable indent */
-	switch (typeof value) {
-		case 'string':
-			numberValue = depthStringToNumber(value);
-			break;
-		case 'boolean':
-			numberValue = value ? Infinity : 0;
-			break;
-		case 'number':
-			numberValue = Math.max(0, value);
-			break;
-		default:
-			numberValue = Infinity;
+const toDepthNumber = function toDepthNumber(value: number | undefined): number {
+	if (value === undefined || value === null) {
+		return Infinity;
 	}
-	/* eslint-enable indent */
-
-	return numberValue;
-};
-
-const depthStringToNumber = function depthStringToNumber(depthString: string): number {
-	let numberValue: string | number = depthString.toLowerCase();
-
-	if (numberValue === 'true') {
-		numberValue = Infinity;
-	} else if (numberValue === 'false') {
-		numberValue = 0;
-	} else {
-		numberValue = Number(numberValue);
-
-		if (Number.isNaN(numberValue)) {
-			numberValue = Infinity;
-		} else {
-			numberValue = Math.max(0, numberValue);
-		}
-	}
-
-	return numberValue;
+	return Math.max(0, value);
 };
 
 const setDefaultArguments = function setDefaultArguments(parsedArguments: ParsedArguments = {}): ParsedArguments {
@@ -186,8 +141,8 @@ const setDefaultArguments = function setDefaultArguments(parsedArguments: Parsed
 	argumentsWithDefaults.start = argumentsWithDefaults.start ?? process.cwd();
 	argumentsWithDefaults.relativeLicensePath = Boolean(argumentsWithDefaults.relativeLicensePath);
 	argumentsWithDefaults.relativeModulePath = Boolean(argumentsWithDefaults.relativeModulePath);
-	// "--depth" should replace "--direct", as it is better understandable:
-	argumentsWithDefaults.direct = toDepthNumber(argumentsWithDefaults.depth ?? argumentsWithDefaults.direct) as number;
+	// Store normalized depth value in 'direct' for internal use (maintains backward compatibility with internal code)
+	argumentsWithDefaults.direct = toDepthNumber(argumentsWithDefaults.depth);
 
 	return argumentsWithDefaults;
 };

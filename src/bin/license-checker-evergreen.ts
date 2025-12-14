@@ -13,14 +13,15 @@ import * as licenseCheckerMain from '../lib/index.js';
 
 const parsedArgs = args.parse();
 const knownOptions = Object.keys(args.knownOptions);
-const unknownArgs = Object.keys(parsedArgs).filter((arg) => !knownOptions.includes(arg));
+// 'direct' is an internal property set by setDefaultArguments (stores normalized depth value)
+const internalProperties = ['direct'];
+const unknownArgs = Object.keys(parsedArgs).filter(
+	(arg) => !knownOptions.includes(arg) && !internalProperties.includes(arg),
+);
 
 exitProcessOrWarnIfNeeded({ unknownArgs, parsedArgs });
 
-// Choose the appropriate initialization function based on optimization level
-const initFunction = parsedArgs.memoryOptimized ? licenseCheckerMain.initMemoryOptimized : licenseCheckerMain.init;
-
-initFunction(parsedArgs, async function (err: Error | null, foundLicensesJson: Record<string, unknown>) {
+licenseCheckerMain.init(parsedArgs, async function (err: Error | null, foundLicensesJson: Record<string, unknown>) {
 	if (err) {
 		console.error('An error has occurred:');
 		console.error(err);

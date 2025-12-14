@@ -1,7 +1,7 @@
 import { usageMessage } from './usageMessage.js';
 import type { ParsedArguments } from './args.js';
 
-const version = '4.4.2';
+const version = '6.0.0';
 
 interface ExitProcessParams {
 	unknownArgs: string[];

@@ -75,7 +75,7 @@ const getFormattedOutput = async function getFormattedOutput(modulesWithVersions
 		return licenseChecker.asSummary(jsonCopy);
 	}
 
-	if (args.plainVertical || args.angluarCli) {
+	if (args.plainVertical) {
 		return await licenseChecker.asPlainVertical(jsonCopy);
 	}
 
