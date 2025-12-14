@@ -59,7 +59,7 @@ describe('clarifications', (): void => {
 	const result: TestResult = {};
 	const clarifications_path = './fixtures/clarifications';
 
-	beforeAll(parseAndClarify(clarifications_path, '../clarificationExample.json', result));
+	beforeAll(parseAndClarify(clarifications_path, '../docs/clarificationExample.json', result));
 
 	test('should replace existing license', (): void => {
 		const output = result.output?.['license-checker-evergreen@0.0.0'];
