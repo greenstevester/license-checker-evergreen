@@ -2,6 +2,22 @@
 
 ## [6.0.0] - 2025-12-14
 
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+- bump version to 6.0.0 [skip ci]
+
+### 📚 Documentation
+
+### Other Changes
+
+
+
+
+## [6.0.0] - 2025-12-14
+
 ### ⚠️ BREAKING CHANGES
 
 This release removes deprecated and redundant CLI options. Users must update their scripts accordingly.
