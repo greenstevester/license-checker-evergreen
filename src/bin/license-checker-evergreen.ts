@@ -21,10 +21,12 @@ const unknownArgs = Object.keys(parsedArgs).filter(
 
 exitProcessOrWarnIfNeeded({ unknownArgs, parsedArgs });
 
-licenseCheckerMain.init(parsedArgs, async function (err: Error | null, foundLicensesJson: Record<string, unknown>) {
+// Result handler for both fast and legacy modes
+const handleResult = async function (err: Error | null, foundLicensesJson: Record<string, unknown>) {
 	if (err) {
 		console.error('An error has occurred:');
 		console.error(err);
+		process.exit(1);
 	}
 
 	if (!parsedArgs.out) {
@@ -35,4 +37,13 @@ licenseCheckerMain.init(parsedArgs, async function (err: Error | null, foundLice
 		const formattedOutput = await helpers.getFormattedOutput(foundLicensesJson, parsedArgs);
 		console.log(formattedOutput);
 	}
-});
+};
+
+// Use fast mode by default, legacy mode with --legacy flag
+if (parsedArgs.legacy) {
+	// Legacy mode using read-installed (slower but more compatible)
+	licenseCheckerMain.init(parsedArgs, handleResult);
+} else {
+	// Fast mode using parallel package scanner (8-12x faster)
+	licenseCheckerMain.initFast(parsedArgs, handleResult);
+}

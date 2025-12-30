@@ -29,6 +29,7 @@ interface ParsedArguments {
 	includeLicenses?: string;
 	includePackages?: string;
 	json?: boolean;
+	legacy?: boolean; // Use legacy read-installed scanner (slower)
 	limitAttributes?: string;
 	markdown?: boolean;
 	nopeer?: boolean;
@@ -71,6 +72,7 @@ const knownOptions = {
 	includeLicenses: String,
 	includePackages: String,
 	json: Boolean,
+	legacy: Boolean,
 	limitAttributes: String,
 	markdown: Boolean,
 	nopeer: Boolean,
