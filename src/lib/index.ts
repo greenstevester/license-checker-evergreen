@@ -38,12 +38,15 @@ import { promises as fsPromises } from 'node:fs';
 import { mkdirp } from 'mkdirp';
 import path from 'node:path';
 
-// @ts-ignore - No TypeScript definitions available for read-installed-packages
-import readInstalledPackages from 'read-installed-packages';
+// Use createRequire to import CommonJS module in ESM context
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 
-// Simple pass-through wrapper - the original library seems to work fine now
-// We'll use the original readInstalledPackages directly
-const readInstalledPackagesSafe = readInstalledPackages;
+// @ts-ignore - No TypeScript definitions available for read-installed
+const readInstalled = require('read-installed');
+
+// Wrapper for read-installed to maintain consistent API
+const readInstalledPackagesSafe = readInstalled;
 
 // @ts-ignore - No TypeScript definitions available for spdx-correct
 import spdxCorrect from 'spdx-correct';
