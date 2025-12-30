@@ -109,16 +109,8 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 		moduleInfo.private = true;
 	}
 
-	// Apply single-pass filtering if pipeline is provided
-	if (options.filterPipeline) {
-		const filteredData = options.filterPipeline.processPackage(currentPackageNameAndVersion, moduleInfo);
-		if (filteredData) {
-			data[currentPackageNameAndVersion] = filteredData;
-		}
-		// If filtered out, don't add to data
-	} else {
-		data[currentPackageNameAndVersion] = moduleInfo;
-	}
+	// Note: Data assignment moved to end of function to ensure all processing
+	// (license detection, clarifications, etc.) is complete before storing
 
 	// Include property in output unless custom format has set property explicitly to false:
 	const mustInclude = (propertyName = '') => options?.customFormat?.[propertyName] !== false;
@@ -438,12 +430,9 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 				unknown,
 				currentRecursionDepth: options.currentRecursionDepth + 1,
 				clarifications: options.clarifications,
+				filterPipeline: options.filterPipeline,
 			});
 		}
-	}
-
-	if (!currentExtendedPackageJson.name || !currentExtendedPackageJson.version) {
-		delete data[currentPackageNameAndVersion];
 	}
 
 	/*istanbul ignore next*/
@@ -458,6 +447,21 @@ const recursivelyCollectAllDependencies = async (options: any) => {
 				);
 			}
 		});
+	}
+
+	// Apply filtering and store processed moduleInfo in data
+	// This is done at the end to ensure all processing (license detection, clarifications, etc.) is complete
+	// Skip packages without name or version
+	if (currentExtendedPackageJson.name && currentExtendedPackageJson.version) {
+		if (options.filterPipeline) {
+			const filteredData = options.filterPipeline.processPackage(currentPackageNameAndVersion, moduleInfo);
+			if (filteredData) {
+				data[currentPackageNameAndVersion] = filteredData;
+			}
+			// If filtered out, don't add to data
+		} else {
+			data[currentPackageNameAndVersion] = moduleInfo;
+		}
 	}
 
 	return data;
