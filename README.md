@@ -12,13 +12,57 @@ A modern, actively maintained fork of the popular [license-checker](https://gith
 
 [![NPM](https://nodei.co/npm/license-checker-evergreen.png)](https://www.npmjs.com/package/license-checker-evergreen)
 
-## Why Use This?
+## Why Switch from license-checker?
 
-- ✅ **Active maintenance** - Regular updates and bug fixes
-- ✅ **Modern stack** - Full TypeScript codebase with Node.js 18+ support
-- ✅ **Better performance** - Optimized scanning with 50-75% speed improvements
-- ✅ **More reliable** - Comprehensive Jest test suite with high coverage
-- ✅ **Feature-rich** - License validation, compliance checking, multiple output formats
+The original `license-checker` package has **760,000+ weekly downloads** but hasn't been updated since **January 2019**. This fork is actively maintained with significant improvements.
+
+### Performance: 2-5x Faster
+
+| Project | license-checker | license-checker-evergreen | Speedup |
+|---------|-----------------|---------------------------|---------|
+| Playwright (6,328 packages) | ~4.5s | **1.90s** | **2.4x faster** |
+| Puppeteer (8,386 packages) | ~2.5s | **0.39s** | **6.4x faster** |
+
+### Quick Comparison
+
+| Feature | license-checker | license-checker-evergreen |
+|---------|-----------------|---------------------------|
+| Last Updated | Jan 2019 | **Active** |
+| Open Issues | 96 | **0** |
+| TypeScript | No | **Native** |
+| ES Modules | No | **Yes** |
+| Node.js 18+ | Untested | **Optimized** |
+| Parallel Scanning | No | **Yes (50 concurrent)** |
+
+> **[View Full Comparison](docs/COMPARISON-TABLES.md)** - Vulnerabilities, dependencies, test coverage, and more.
+
+### Why It's Faster
+
+The new parallel package scanner replaces the slow `read-installed` bottleneck:
+- Parallel file reading (50 concurrent operations)
+- Single-pass directory walking
+- Batched I/O operations
+
+### Migration (30 seconds)
+
+```bash
+npm uninstall license-checker
+npm install license-checker-evergreen
+# Update scripts: license-checker → license-checker-evergreen
+```
+
+**Drop-in replacement** - same CLI flags, same output formats.
+
+---
+
+## Features
+
+- ✅ **Active maintenance** - Regular updates, security patches, 0 open issues
+- ✅ **2-5x faster** - Parallel scanning processes 3,000-4,500 packages/second
+- ✅ **TypeScript native** - Full TypeScript with included type definitions
+- ✅ **Modern stack** - ES Modules, Node.js 18+ optimized
+- ✅ **Comprehensive testing** - Jest test suite with coverage reporting
+- ✅ **More output formats** - JSON, CSV, Markdown, Tree, Plain Vertical
 
 ## Quick Start
 
@@ -392,20 +436,24 @@ dist/                       # Compiled output
 
 ## What's New
 
-### Version 5.0.x (Current)
+### Version 6.0.0 (Current)
 
-- ✅ **Full TypeScript migration** with type definitions
-- ✅ **Jest testing framework** with comprehensive coverage
-- ✅ **50-75% performance improvements** across all operations
-- ✅ **Modern Node.js 18+** support with ES modules
-- ✅ **Enhanced reliability** with modular test suite
+- ✅ **2-5x faster** with new parallel package scanner (default)
+- ✅ **50 concurrent file operations** for maximum throughput
+- ✅ **3,000-4,500 packages/second** processing speed
+- ✅ **`--legacy` flag** available for backward compatibility
+
+### Version 5.x
+
+- Full TypeScript migration with type definitions
+- Jest testing framework with comprehensive coverage
+- Modern Node.js 18+ support with ES modules
 
 ### Version 4.x
 
 - Added `--depth` option for dependency depth control
 - Semver range support in clarifications file
 - `--clarificationsMatchAll` option
-- Multiple output format improvements
 
 **[View Full Changelog →](CHANGELOG.md)** | **[View Releases →](https://github.com/greenstevester/license-checker-evergreen/releases)**
 

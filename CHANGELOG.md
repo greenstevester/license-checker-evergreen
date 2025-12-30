@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.1.0] - 2025-12-30
+
+### 📚 Documentation
+
+- Added comprehensive "Why Switch?" section to README with benchmark data
+- Added performance comparison tables (Playwright: 2.4x faster, Puppeteer: 6.4x faster)
+- Added migration guide showing 30-second switch process
+- Added link to full comparison document (vulnerabilities, dependencies, test coverage)
+- Updated "What's New" section to highlight v6.0.0 parallel scanner
+
+### 🔧 Improvements
+
+- Added consumer test suite for high-profile projects (Playwright, Puppeteer, Joplin, Cypress)
+- Added VHS tape template for generating comparison GIFs
+- Created comprehensive comparison tables document
+
 ## [6.0.0] - 2025-12-14
 
 ### 🚀 Features
