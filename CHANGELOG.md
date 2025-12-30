@@ -2,6 +2,22 @@
 
 ## [6.1.0] - 2025-12-30
 
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+- bump version to 6.1.0 [skip ci]
+
+### 📚 Documentation
+
+### Other Changes
+
+
+
+
+## [6.1.0] - 2025-12-30
+
 ### 📚 Documentation
 
 - Added comprehensive "Why Switch?" section to README with benchmark data
