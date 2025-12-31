@@ -23,6 +23,10 @@ The original `license-checker` package has **760,000+ weekly downloads** but has
 | Playwright (6,328 packages) | ~4.5s | **1.90s** | **2.4x faster** |
 | Puppeteer (8,386 packages) | ~2.5s | **0.39s** | **6.4x faster** |
 
+**Time Savings (Playwright):** 2.6s per build → 3 min/day → 21 min/week → 93 min/month
+
+**Time Savings (Puppeteer):** 2.1s per build → 19s/day → 2 min/week → 9.5 min/month
+
 ![Performance Comparison](demos/performance-comparison.gif)
 
 ### Quick Comparison
