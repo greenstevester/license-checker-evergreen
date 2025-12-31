@@ -23,6 +23,8 @@ The original `license-checker` package has **760,000+ weekly downloads** but has
 | Playwright (6,328 packages) | ~4.5s | **1.90s** | **2.4x faster** |
 | Puppeteer (8,386 packages) | ~2.5s | **0.39s** | **6.4x faster** |
 
+![Performance Comparison](demos/performance-comparison.gif)
+
 ### Quick Comparison
 
 | Feature | license-checker | license-checker-evergreen |
