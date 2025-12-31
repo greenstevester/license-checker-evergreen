@@ -15,49 +15,51 @@ Set WindowBar Colorful
 Set WindowBarSize 40
 
 # Title
-Type "license-checker-evergreen: Time Savings"
+Type "echo 'license-checker-evergreen: Time Savings'"
 Enter
-Type "========================================"
+Sleep 500ms
 Enter
-Enter
-Sleep 2s
+Sleep 1500ms
 
 # Playwright
-Type "PLAYWRIGHT (6,328 packages) - 2.4x faster"
+Type "echo 'PLAYWRIGHT (6,328 packages) - 2.4x faster'"
 Enter
-Type "  Per build:  2.6 seconds saved"
+Sleep 500ms
+Type "echo '  Per build:  2.6 seconds saved'"
 Enter
-Type "  Per day:    3 minutes saved (72 CI runs)"
+Type "echo '  Per day:    3 minutes saved (72 CI runs)'"
 Enter
-Type "  Per week:   21 minutes saved"
+Type "echo '  Per week:   21 minutes saved'"
 Enter
-Type "  Per month:  93 minutes saved"
+Type "echo '  Per month:  93 minutes saved'"
 Enter
 Enter
-Sleep 3s
+Sleep 2500ms
 
 # Puppeteer
-Type "PUPPETEER (8,386 packages) - 6.4x faster"
+Type "echo 'PUPPETEER (8,386 packages) - 6.4x faster'"
 Enter
-Type "  Per build:  2.1 seconds saved"
+Sleep 500ms
+Type "echo '  Per build:  2.1 seconds saved'"
 Enter
-Type "  Per day:    19 seconds saved (9 CI runs)"
+Type "echo '  Per day:    19 seconds saved (9 CI runs)'"
 Enter
-Type "  Per week:   2 minutes saved"
+Type "echo '  Per week:   2 minutes saved'"
 Enter
-Type "  Per month:  9.5 minutes saved"
+Type "echo '  Per month:  9.5 minutes saved'"
 Enter
 Enter
-Sleep 3s
+Sleep 2500ms
 
 # Migration
-Type "SWITCH IN 30 SECONDS"
+Type "echo 'SWITCH IN 30 SECONDS'"
 Enter
-Type "  npm uninstall license-checker"
+Sleep 500ms
+Type "echo '  npm uninstall license-checker'"
 Enter
-Type "  npm install license-checker-evergreen"
+Type "echo '  npm install license-checker-evergreen'"
 Enter
 Enter
-Type "Same CLI flags. Drop-in replacement."
+Type "echo 'Same CLI flags. Drop-in replacement.'"
 Enter
-Sleep 4s
+Sleep 3s
