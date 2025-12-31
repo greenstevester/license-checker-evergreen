@@ -6,8 +6,8 @@ Output demos/performance-comparison.gif
 
 Set Shell "bash"
 Set FontSize 14
-Set Width 800
-Set Height 450
+Set Width 700
+Set Height 400
 Set Theme "Dracula"
 Set Padding 20
 Set TypingSpeed 0ms
@@ -15,67 +15,49 @@ Set WindowBar Colorful
 Set WindowBarSize 40
 
 # Title
-Type "license-checker-evergreen: Performance & Time Savings"
+Type "license-checker-evergreen: Time Savings"
 Enter
-Type "=================================================="
+Type "========================================"
 Enter
 Enter
 Sleep 2s
 
 # Playwright
-Type "PLAYWRIGHT (6,328 packages)"
+Type "PLAYWRIGHT (6,328 packages) - 2.4x faster"
 Enter
-Type "  license-checker (original):     4.50s"
+Type "  Per build:  2.6 seconds saved"
 Enter
-Type "  license-checker-evergreen:      1.90s  <- 2.4x FASTER"
+Type "  Per day:    3 minutes saved (72 CI runs)"
 Enter
+Type "  Per week:   21 minutes saved"
 Enter
-Type "  CI runs/day: ~72"
-Enter
-Type "  Time saved/day: 187 seconds (3+ min)"
-Enter
-Type "  Time saved/month: 93 minutes"
+Type "  Per month:  93 minutes saved"
 Enter
 Enter
 Sleep 3s
 
 # Puppeteer
-Type "PUPPETEER (8,386 packages)"
+Type "PUPPETEER (8,386 packages) - 6.4x faster"
 Enter
-Type "  license-checker (original):     2.50s"
+Type "  Per build:  2.1 seconds saved"
 Enter
-Type "  license-checker-evergreen:      0.39s  <- 6.4x FASTER"
+Type "  Per day:    19 seconds saved (9 CI runs)"
 Enter
+Type "  Per week:   2 minutes saved"
 Enter
-Type "  CI runs/day: ~9"
-Enter
-Type "  Time saved/day: 19 seconds"
-Enter
-Type "  Time saved/month: 9.5 minutes"
-Enter
-Enter
-Sleep 3s
-
-# Why faster
-Type "WHY IT'S FASTER"
-Enter
-Type "  - Parallel file reading (50 concurrent operations)"
-Enter
-Type "  - Single-pass directory walking"
-Enter
-Type "  - Batched I/O operations"
+Type "  Per month:  9.5 minutes saved"
 Enter
 Enter
 Sleep 3s
 
 # Migration
-Type "MIGRATION (30 seconds)"
+Type "SWITCH IN 30 SECONDS"
 Enter
 Type "  npm uninstall license-checker"
 Enter
 Type "  npm install license-checker-evergreen"
 Enter
 Enter
-Type "Same CLI flags. Same output formats. Drop-in replacement."
+Type "Same CLI flags. Drop-in replacement."
 Enter
 Sleep 4s
