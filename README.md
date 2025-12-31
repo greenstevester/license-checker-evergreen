@@ -18,13 +18,6 @@ The original `license-checker` package has **760,000+ weekly downloads** but has
 
 ### Performance: 2-5x Faster
 
-| Project | license-checker | license-checker-evergreen | Speedup |
-|---------|-----------------|---------------------------|---------|
-| Playwright (1,312 packages) | 0.86s | **0.71s** | **1.2x faster** |
-| Puppeteer (4,911 packages) | 1.17s | **0.46s** | **2.5x faster** |
-
-**Time Savings (Puppeteer):** 0.71s per build → 6s/day → 45s/week → 3 min/month (9 CI runs/day)
-
 ![Performance Comparison](demos/performance-comparison.gif)
 
 ### Quick Comparison
