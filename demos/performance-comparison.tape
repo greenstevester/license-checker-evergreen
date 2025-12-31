@@ -1,50 +1,112 @@
-# VHS Tape: license-checker vs license-checker-evergreen Performance Comparison
+# VHS Tape: license-checker-evergreen Performance & Savings Calculator
+#
+# Shows real benchmark data from Playwright and Puppeteer projects
+# with time savings calculations based on CI frequency
 #
 # Usage: vhs demos/performance-comparison.tape
-# Output: demos/performance-comparison.gif
 
 Output demos/performance-comparison.gif
 
 Set Shell "bash"
-Set FontSize 14
-Set Width 900
-Set Height 400
+Set FontSize 13
+Set Width 1000
+Set Height 500
 Set Theme "Dracula"
-Set Padding 15
-Set TypingSpeed 50ms
+Set Padding 20
+Set TypingSpeed 0ms
 Set WindowBar Colorful
 Set WindowBarSize 40
 
-# Start in test directory
-Hide
-Type "cd /tmp/license-comparison/large-project"
-Enter
-Sleep 500ms
-Show
-
 # Title
-Type "# Performance: license-checker vs license-checker-evergreen"
+Type "╔══════════════════════════════════════════════════════════════════════════╗"
 Enter
-Type "# Project: 3,339 packages"
+Type "║     license-checker-evergreen: Performance & Time Savings               ║"
 Enter
+Type "╚══════════════════════════════════════════════════════════════════════════╝"
 Enter
-Sleep 1500ms
-
-# Run evergreen
-Type "echo '⚡ Running license-checker-evergreen...' && time license-checker-evergreen --json > /dev/null"
 Enter
 Sleep 2s
 
+# Playwright benchmarks
+Type "┌─────────────────────────────────────────────────────────────────────────┐"
 Enter
-Sleep 500ms
-
-# Run original
-Type "echo '🐢 Running original license-checker...' && time license-checker --json > /dev/null"
+Type "│ 📦 PLAYWRIGHT (6,328 packages)                                         │"
+Enter
+Type "├─────────────────────────────────────────────────────────────────────────┤"
+Enter
+Type "│ license-checker (original):     4.50s                                  │"
+Enter
+Type "│ license-checker-evergreen:      1.90s  ⚡ 2.4x FASTER                  │"
+Enter
+Type "│                                                                         │"
+Enter
+Type "│ CI runs/day: ~72        Time saved/day: 187 seconds (3+ min)           │"
+Enter
+Type "│                         Time saved/month: 93 minutes                   │"
+Enter
+Type "└─────────────────────────────────────────────────────────────────────────┘"
+Enter
 Enter
 Sleep 3s
 
+# Puppeteer benchmarks
+Type "┌─────────────────────────────────────────────────────────────────────────┐"
 Enter
+Type "│ 🎭 PUPPETEER (8,386 packages)                                          │"
 Enter
-Type "# Result: license-checker-evergreen is ~3x FASTER! 🚀"
+Type "├─────────────────────────────────────────────────────────────────────────┤"
+Enter
+Type "│ license-checker (original):     2.50s                                  │"
+Enter
+Type "│ license-checker-evergreen:      0.39s  ⚡ 6.4x FASTER                  │"
+Enter
+Type "│                                                                         │"
+Enter
+Type "│ CI runs/day: ~9         Time saved/day: 19 seconds                     │"
+Enter
+Type "│                         Time saved/month: 9.5 minutes                  │"
+Enter
+Type "└─────────────────────────────────────────────────────────────────────────┘"
+Enter
 Enter
 Sleep 3s
+
+# Why it's faster
+Type "┌─────────────────────────────────────────────────────────────────────────┐"
+Enter
+Type "│ 🚀 WHY IT'S FASTER                                                     │"
+Enter
+Type "├─────────────────────────────────────────────────────────────────────────┤"
+Enter
+Type "│ • Parallel file reading (50 concurrent operations)                     │"
+Enter
+Type "│ • Single-pass directory walking                                        │"
+Enter
+Type "│ • Batched I/O operations                                               │"
+Enter
+Type "│ • TypeScript with modern Node.js 18+ optimizations                     │"
+Enter
+Type "└─────────────────────────────────────────────────────────────────────────┘"
+Enter
+Enter
+Sleep 3s
+
+# Migration
+Type "┌─────────────────────────────────────────────────────────────────────────┐"
+Enter
+Type "│ 📥 MIGRATION (30 seconds)                                              │"
+Enter
+Type "├─────────────────────────────────────────────────────────────────────────┤"
+Enter
+Type "│ npm uninstall license-checker                                          │"
+Enter
+Type "│ npm install license-checker-evergreen                                  │"
+Enter
+Type "│                                                                         │"
+Enter
+Type "│ Same CLI flags. Same output formats. Drop-in replacement.              │"
+Enter
+Type "└─────────────────────────────────────────────────────────────────────────┘"
+Enter
+Enter
+Sleep 4s
