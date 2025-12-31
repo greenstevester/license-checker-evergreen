@@ -1,5 +1,33 @@
 # Changelog
 
+## [6.2.0] - 2025-12-31
+
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+- bump version to 6.2.0
+- bump version to 6.1.0 [skip ci]
+
+### 📚 Documentation
+- update benchmarks with verified empirical data
+- remove redundant benchmark text, let GIF speak for itself
+- update README benchmarks to match actual GIF data
+- show both Playwright and Puppeteer benchmarks in VHS
+- simplify VHS to just show commands, move text to README
+- fix VHS bash errors by using echo commands
+- focus VHS on time savings per build/day/week/month
+- simplify VHS recording to plain text (remove ASCII art)
+- update VHS to show Playwright/Puppeteer benchmarks with time savings
+- add performance comparison VHS recording to README
+- update CHANGELOG.md for v6.1.0
+
+### Other Changes
+
+
+
+
 ## [6.1.0] - 2025-12-30
 
 ### 🚀 Features
