@@ -1,6 +1,6 @@
 # License Checker Comparison: Original vs Evergreen
 
-**Generated:** December 30, 2025
+**Generated:** December 31, 2025
 **Purpose:** Marketing evidence for license-checker-evergreen adoption
 
 ---
@@ -86,14 +86,16 @@ All three packages use compatible open-source licenses:
 
 | Project | Packages | license-checker | license-checker-evergreen | Speedup |
 |---------|----------|-----------------|---------------------------|---------|
-| Playwright | 6,328 | ~4.5s | **1.90s** | **2.4x faster** |
-| Puppeteer | 8,386 | ~2.5s | **0.39s** | **6.4x faster** |
+| Playwright | 551 | 0.93-2.58s | **0.28-0.72s** | **1.7-3.4x faster** |
+| Puppeteer | 784 | 1.09-1.43s | **0.27-1.32s** | **3.0-4.2x faster** |
+
+*Benchmarks: 5 runs each, macOS, warm filesystem cache. Results vary by hardware and project size.*
 
 ### Throughput
 
 | Metric | Original | Evergreen |
 |--------|----------|-----------|
-| Packages/second | ~1,500 | **3,000-4,500** |
+| Packages/second | ~500-700 | **1,000-2,500** |
 | Cold start overhead | Higher | **Lower** |
 | Fast mode available | No | **Yes (default)** |
 
@@ -104,7 +106,7 @@ Evergreen v6.0.0 includes a **parallel package scanner** that bypasses the slow 
 - Parallel file reading (50 concurrent operations)
 - Single-pass directory walking
 - Batched I/O operations
-- 2-5x faster than legacy scanning
+- 2-4x faster than legacy scanning
 
 ---
 
@@ -174,7 +176,7 @@ npm install license-checker-evergreen
 
 | Criteria | Winner | Reason |
 |----------|--------|--------|
-| **Performance** | Evergreen | 2-5x faster with parallel scanner |
+| **Performance** | Evergreen | 2-4x faster with parallel scanner |
 | **Maintenance** | Evergreen | Actively maintained, 0 open issues |
 | **Type Safety** | Evergreen | Native TypeScript |
 | **Security** | Tie | All currently 0 CVEs |
@@ -183,4 +185,4 @@ npm install license-checker-evergreen
 
 ---
 
-*Report auto-generated for marketing purposes. Data accurate as of December 30, 2025.*
+*Report auto-generated for marketing purposes. Data accurate as of December 31, 2025.*

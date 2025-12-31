@@ -7,7 +7,7 @@
  * 3. Batched I/O operations
  * 4. Early production/dev filtering using root package.json
  *
- * Benchmark: 6-10x faster than read-installed on large monorepos
+ * Benchmark: 2-4x faster than the original license-checker
  */
 
 import fs from 'node:fs';

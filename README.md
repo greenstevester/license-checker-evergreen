@@ -16,9 +16,18 @@ A modern, actively maintained fork of the popular [license-checker](https://gith
 
 The original `license-checker` package has **760,000+ weekly downloads** but hasn't been updated since **January 2019**. This fork is actively maintained with significant improvements.
 
-### Performance: 2-5x Faster
+### Performance: 2-4x Faster
 
 ![Performance Comparison](demos/performance-comparison.gif)
+
+#### Benchmark Results
+
+| Project | Packages | license-checker | license-checker-evergreen | Speedup |
+|---------|----------|-----------------|---------------------------|---------|
+| Playwright | 551 | 0.93-2.58s | **0.28-0.72s** | **1.7-3.4x faster** |
+| Puppeteer | 784 | 1.09-1.43s | **0.27-1.32s** | **3.0-4.2x faster** |
+
+*Benchmarks: 5 runs each, macOS, warm filesystem cache. Results vary by hardware and project size.*
 
 ### Quick Comparison
 
@@ -55,7 +64,7 @@ npm install license-checker-evergreen
 ## Features
 
 - ✅ **Active maintenance** - Regular updates, security patches, 0 open issues
-- ✅ **2-5x faster** - Parallel scanning processes 3,000-4,500 packages/second
+- ✅ **2-4x faster** - Parallel scanning with 50 concurrent file operations
 - ✅ **TypeScript native** - Full TypeScript with included type definitions
 - ✅ **Modern stack** - ES Modules, Node.js 18+ optimized
 - ✅ **Comprehensive testing** - Jest test suite with coverage reporting
@@ -435,9 +444,8 @@ dist/                       # Compiled output
 
 ### Version 6.0.0 (Current)
 
-- ✅ **2-5x faster** with new parallel package scanner (default)
+- ✅ **2-4x faster** with new parallel package scanner (default)
 - ✅ **50 concurrent file operations** for maximum throughput
-- ✅ **3,000-4,500 packages/second** processing speed
 - ✅ **`--legacy` flag** available for backward compatibility
 
 ### Version 5.x

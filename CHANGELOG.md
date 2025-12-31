@@ -21,7 +21,7 @@
 ### 📚 Documentation
 
 - Added comprehensive "Why Switch?" section to README with benchmark data
-- Added performance comparison tables (Playwright: 2.4x faster, Puppeteer: 6.4x faster)
+- Added performance comparison tables (Playwright: 1.7-3.4x faster, Puppeteer: 3.0-4.2x faster)
 - Added migration guide showing 30-second switch process
 - Added link to full comparison document (vulnerabilities, dependencies, test coverage)
 - Updated "What's New" section to highlight v6.0.0 parallel scanner
