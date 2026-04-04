@@ -83,26 +83,62 @@ async function readPackageJson(pkgPath: string): Promise<PackageData | null> {
 }
 
 /**
- * Walks node_modules directory and collects all package paths
+ * Walks node_modules directory and collects all package paths.
+ * Handles symlinks (pnpm), circular dependencies, and nested node_modules.
  */
-async function walkNodeModules(nodeModulesPath: string): Promise<string[]> {
+async function walkNodeModules(
+	nodeModulesPath: string,
+	maxDepth: number = 50,
+): Promise<string[]> {
 	const packagePaths: string[] = [];
+	const visitedRealPaths = new Set<string>();
 
-	async function walk(dir: string): Promise<void> {
+	async function walk(dir: string, depth: number): Promise<void> {
+		if (depth > maxDepth) {
+			debugLog('Max depth exceeded at %s, skipping', dir);
+			return;
+		}
+
+		// Resolve symlinks to detect circular references
+		let realDir: string;
+		try {
+			realDir = await fsPromises.realpath(dir);
+		} catch {
+			return; // Broken symlink or inaccessible directory
+		}
+
+		if (visitedRealPaths.has(realDir)) {
+			debugLog('Circular reference detected at %s -> %s, skipping', dir, realDir);
+			return;
+		}
+		visitedRealPaths.add(realDir);
+
 		try {
 			const entries = await fsPromises.readdir(dir, { withFileTypes: true });
 
 			for (const entry of entries) {
-				if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
+				if (entry.name.startsWith('.')) continue;
 
 				const fullPath = path.join(dir, entry.name);
 
+				// Check if entry is a directory or symlink to a directory
+				let isDir = entry.isDirectory();
+				if (!isDir && entry.isSymbolicLink()) {
+					try {
+						const stat = await fsPromises.stat(fullPath);
+						isDir = stat.isDirectory();
+					} catch {
+						continue; // Broken symlink
+					}
+				}
+				if (!isDir) continue;
+
 				if (entry.name.startsWith('@')) {
 					// Scoped packages - recurse one level
-					await walk(fullPath);
+					await walk(fullPath, depth + 1);
 				} else if (entry.name === 'node_modules') {
 					// Nested node_modules - recurse
-					await walk(fullPath);
+					await walk(fullPath, depth + 1);
 				} else {
 					// Regular package directory
 					packagePaths.push(fullPath);
@@ -112,7 +148,7 @@ async function walkNodeModules(nodeModulesPath: string): Promise<string[]> {
 					try {
 						const stat = await fsPromises.stat(nestedNM);
 						if (stat.isDirectory()) {
-							await walk(nestedNM);
+							await walk(nestedNM, depth + 1);
 						}
 					} catch {
 						// No nested node_modules
@@ -124,7 +160,7 @@ async function walkNodeModules(nodeModulesPath: string): Promise<string[]> {
 		}
 	}
 
-	await walk(nodeModulesPath);
+	await walk(nodeModulesPath, 0);
 	return packagePaths;
 }
 
@@ -160,16 +196,22 @@ async function parallelMap<T, R>(
 function getProductionDeps(rootPkg: any): Set<string> {
 	const prodDeps = new Set<string>();
 
-	// Add all production dependencies
 	if (rootPkg.dependencies) {
 		for (const name of Object.keys(rootPkg.dependencies)) {
 			prodDeps.add(name);
 		}
 	}
 
-	// Optionally include peer dependencies
 	if (rootPkg.peerDependencies) {
 		for (const name of Object.keys(rootPkg.peerDependencies)) {
+			prodDeps.add(name);
+		}
+	}
+
+	// bundledDependencies (or bundleDependencies) are always production deps
+	const bundled = rootPkg.bundledDependencies || rootPkg.bundleDependencies;
+	if (Array.isArray(bundled)) {
+		for (const name of bundled) {
 			prodDeps.add(name);
 		}
 	}
