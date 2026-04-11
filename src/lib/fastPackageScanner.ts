@@ -193,7 +193,7 @@ async function parallelMap<T, R>(
 /**
  * Gets production dependencies from root package.json
  */
-function getProductionDeps(rootPkg: any): Set<string> {
+function getProductionDeps(rootPkg: any, nopeer: boolean = false): Set<string> {
 	const prodDeps = new Set<string>();
 
 	if (rootPkg.dependencies) {
@@ -202,7 +202,7 @@ function getProductionDeps(rootPkg: any): Set<string> {
 		}
 	}
 
-	if (rootPkg.peerDependencies) {
+	if (rootPkg.peerDependencies && !nopeer) {
 		for (const name of Object.keys(rootPkg.peerDependencies)) {
 			prodDeps.add(name);
 		}
@@ -268,7 +268,7 @@ export async function scanPackages(options: ScanOptions): Promise<ScanResult> {
 	};
 
 	// Determine which dependencies to include based on production/dev flags
-	const prodDeps = getProductionDeps(rootPkg);
+	const prodDeps = getProductionDeps(rootPkg, options.nopeer);
 	const devDeps = getDevDeps(rootPkg);
 	const allRootDeps = new Set([...prodDeps, ...devDeps]);
 
@@ -309,18 +309,27 @@ export async function scanPackages(options: ScanOptions): Promise<ScanResult> {
 		const isProdDep = prodDeps.has(pkg.name);
 		const isDevDep = devDeps.has(pkg.name);
 
-		// For non-direct deps, we need to check if they're required by prod or dev deps
-		// For now, mark as extraneous only if it's not a direct dependency
 		pkg.extraneous = !isDirectDep;
 
 		// Apply production/development filtering
-		if (options.production && !isProdDep && isDirectDep) {
-			// Skip dev-only direct dependencies in production mode
-			continue;
+		if (options.production) {
+			if (isDirectDep && !isProdDep) {
+				// Skip dev-only direct dependencies in production mode
+				continue;
+			}
+			// Transitive deps: skip if only reachable through dev dependencies.
+			// Since we don't have full dependency graph resolution, we include
+			// transitive deps (conservative: may include some dev-only transitives).
 		}
-		if (options.development && !isDevDep && isDirectDep) {
-			// Skip prod-only direct dependencies in development mode
-			continue;
+		if (options.development) {
+			if (isDirectDep && !isDevDep) {
+				// Skip prod-only direct dependencies in development mode
+				continue;
+			}
+			if (!isDirectDep) {
+				// Skip transitive deps in development mode — they belong to prod deps
+				continue;
+			}
 		}
 
 		// Skip duplicates (keep first found)

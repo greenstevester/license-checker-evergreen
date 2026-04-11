@@ -5,6 +5,24 @@ import os from 'node:os';
 
 import { scanPackages } from '../dist/lib/fastPackageScanner.js';
 
+// Detect symlink support once at module level for conditional test blocks
+const CAN_SYMLINK = (() => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lce-symlink-check-'));
+  try {
+    const target = path.join(tmp, 'target');
+    const link = path.join(tmp, 'link');
+    fs.mkdirSync(target);
+    fs.symlinkSync(target, link, 'dir');
+    return true;
+  } catch {
+    return false;
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+})();
+
+const describeWithSymlinks = CAN_SYMLINK ? describe : describe.skip;
+
 /**
  * Creates a temporary directory with a fake node_modules layout for testing.
  */
@@ -166,9 +184,8 @@ describe('fastPackageScanner', () => {
     });
   });
 
-  describe('symlinked packages (pnpm-style)', () => {
+  describeWithSymlinks('symlinked packages (pnpm-style)', () => {
     let tmpDir: string;
-    let canSymlink = true;
 
     beforeAll(() => {
       tmpDir = createTempDir();
@@ -195,30 +212,21 @@ describe('fastPackageScanner', () => {
       const nmDir = path.join(tmpDir, 'node_modules');
       fs.mkdirSync(nmDir, { recursive: true });
 
-      // Symlink packages into node_modules (pnpm style)
-      try {
-        fs.symlinkSync(
-          path.join(storePath, 'pkg-a'),
-          path.join(nmDir, 'pkg-a'),
-          'dir',
-        );
-        fs.symlinkSync(
-          path.join(storePath, 'pkg-b'),
-          path.join(nmDir, 'pkg-b'),
-          'dir',
-        );
-      } catch {
-        canSymlink = false;
-      }
+      fs.symlinkSync(
+        path.join(storePath, 'pkg-a'),
+        path.join(nmDir, 'pkg-a'),
+        'dir',
+      );
+      fs.symlinkSync(
+        path.join(storePath, 'pkg-b'),
+        path.join(nmDir, 'pkg-b'),
+        'dir',
+      );
     });
 
     afterAll(() => cleanup(tmpDir));
 
     test('should follow symlinks to find packages', async () => {
-      if (!canSymlink) {
-        console.log('Skipping symlink test - OS does not support symlinks');
-        return;
-      }
       const result = await scanPackages({ startPath: tmpDir });
       expect(result.packages.has('pkg-a@1.0.0')).toBe(true);
       expect(result.packages.has('pkg-b@2.0.0')).toBe(true);
@@ -226,9 +234,8 @@ describe('fastPackageScanner', () => {
     });
   });
 
-  describe('circular symlink protection', () => {
+  describeWithSymlinks('circular symlink protection', () => {
     let tmpDir: string;
-    let canSymlink = true;
 
     beforeAll(() => {
       tmpDir = createTempDir();
@@ -248,20 +255,12 @@ describe('fastPackageScanner', () => {
       // Create a circular symlink: pkg-a/node_modules -> ../../node_modules
       const nestedNm = path.join(nmDir, 'pkg-a', 'node_modules');
       fs.mkdirSync(nestedNm, { recursive: true });
-      try {
-        fs.symlinkSync(nmDir, path.join(nestedNm, 'circular'), 'dir');
-      } catch {
-        canSymlink = false;
-      }
+      fs.symlinkSync(nmDir, path.join(nestedNm, 'circular'), 'dir');
     });
 
     afterAll(() => cleanup(tmpDir));
 
     test('should not infinite loop on circular symlinks', async () => {
-      if (!canSymlink) {
-        console.log('Skipping circular symlink test - OS does not support symlinks');
-        return;
-      }
       // If circular protection is broken, this will timeout
       const result = await scanPackages({ startPath: tmpDir });
       expect(result.packages.has('pkg-a@1.0.0')).toBe(true);

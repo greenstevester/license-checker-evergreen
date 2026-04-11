@@ -51,6 +51,16 @@ function initOptimizedPromise(args: any): Promise<CheckerOutput> {
   });
 }
 
+/**
+ * Extracts package name from a "name@version" key, handling scoped packages.
+ * e.g. "@scope/pkg@1.0.0" -> "@scope/pkg", "pkg@1.0.0" -> "pkg"
+ */
+function parsePackageName(key: string): string {
+  const lastAt = key.lastIndexOf('@');
+  if (lastAt <= 0) return key;
+  return key.substring(0, lastAt);
+}
+
 describe('index.ts coverage - initFast', () => {
   const fixtureDir = path.join(__dirname, './fixtures/includeBSD');
 
@@ -78,7 +88,7 @@ describe('index.ts coverage - initFast', () => {
 
   test('should support excludePackages in fast mode', async () => {
     const allResult = await initFastPromise({ start: fixtureDir });
-    const firstPkg = Object.keys(allResult)[0].split('@')[0];
+    const firstPkg = parsePackageName(Object.keys(allResult)[0]);
     const filteredResult = await initFastPromise({
       start: fixtureDir,
       excludePackages: firstPkg,
@@ -88,7 +98,7 @@ describe('index.ts coverage - initFast', () => {
 
   test('should support includePackages in fast mode', async () => {
     const allResult = await initFastPromise({ start: fixtureDir });
-    const firstPkg = Object.keys(allResult)[0].split('@')[0];
+    const firstPkg = parsePackageName(Object.keys(allResult)[0]);
     const filteredResult = await initFastPromise({
       start: fixtureDir,
       includePackages: firstPkg,
@@ -153,7 +163,7 @@ describe('index.ts coverage - filtering in legacy init', () => {
 
   test('should support excludePackages in legacy init', async () => {
     const allResult = await initPromise({ start: fixtureDir });
-    const firstPkg = Object.keys(allResult)[0].split('@')[0];
+    const firstPkg = parsePackageName(Object.keys(allResult)[0]);
     const filteredResult = await initPromise({
       start: fixtureDir,
       excludePackages: firstPkg,
@@ -163,7 +173,7 @@ describe('index.ts coverage - filtering in legacy init', () => {
 
   test('should support includePackages in legacy init', async () => {
     const allResult = await initPromise({ start: fixtureDir });
-    const firstPkg = Object.keys(allResult)[0].split('@')[0];
+    const firstPkg = parsePackageName(Object.keys(allResult)[0]);
     const filteredResult = await initPromise({
       start: fixtureDir,
       includePackages: firstPkg,
