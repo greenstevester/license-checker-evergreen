@@ -143,16 +143,9 @@ async function walkNodeModules(
 					// Regular package directory
 					packagePaths.push(fullPath);
 
-					// Check for nested node_modules
-					const nestedNM = path.join(fullPath, 'node_modules');
-					try {
-						const stat = await fsPromises.stat(nestedNM);
-						if (stat.isDirectory()) {
-							await walk(nestedNM, depth + 1);
-						}
-					} catch {
-						// No nested node_modules
-					}
+					// Recurse into nested node_modules if present
+					// walk() handles missing dirs via realpath/readdir error paths
+					await walk(path.join(fullPath, 'node_modules'), depth + 1);
 				}
 			}
 		} catch {
@@ -312,24 +305,11 @@ export async function scanPackages(options: ScanOptions): Promise<ScanResult> {
 		pkg.extraneous = !isDirectDep;
 
 		// Apply production/development filtering
-		if (options.production) {
-			if (isDirectDep && !isProdDep) {
-				// Skip dev-only direct dependencies in production mode
-				continue;
-			}
-			// Transitive deps: skip if only reachable through dev dependencies.
-			// Since we don't have full dependency graph resolution, we include
-			// transitive deps (conservative: may include some dev-only transitives).
+		if (options.production && isDirectDep && !isProdDep) {
+			continue;
 		}
-		if (options.development) {
-			if (isDirectDep && !isDevDep) {
-				// Skip prod-only direct dependencies in development mode
-				continue;
-			}
-			if (!isDirectDep) {
-				// Skip transitive deps in development mode — they belong to prod deps
-				continue;
-			}
+		if (options.development && (!isDevDep || !isDirectDep)) {
+			continue;
 		}
 
 		// Skip duplicates (keep first found)
