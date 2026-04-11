@@ -7,6 +7,22 @@
 ### 🐛 Bug Fixes
 
 ### 🔧 Improvements
+
+### 📚 Documentation
+- update CHANGELOG.md for v6.2.1
+
+### Other Changes
+
+
+
+
+## [6.2.1] - 2026-04-11
+
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
 - bump version to 6.2.1
 
 ### 📚 Documentation
