@@ -263,7 +263,8 @@ export async function scanPackages(options: ScanOptions): Promise<ScanResult> {
 	// Determine which dependencies to include based on production/dev flags
 	const prodDeps = getProductionDeps(rootPkg, options.nopeer);
 	const devDeps = getDevDeps(rootPkg);
-	const allRootDeps = new Set([...prodDeps, ...devDeps]);
+	// allRootDeps includes ALL declared deps (ignoring nopeer) for accurate isDirectDep checks
+	const allRootDeps = new Set([...getProductionDeps(rootPkg, false), ...devDeps]);
 
 	// Walk node_modules
 	const walkStartTime = performance.now();

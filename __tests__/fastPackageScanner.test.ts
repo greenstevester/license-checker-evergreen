@@ -430,4 +430,140 @@ describe('fastPackageScanner', () => {
       expect(result.packages.size).toBe(2);
     });
   });
+
+  describe('nopeer option', () => {
+    let tmpDir: string;
+
+    beforeAll(() => {
+      tmpDir = createTempDir();
+      writePackageJson(tmpDir, {
+        name: 'test-nopeer',
+        version: '1.0.0',
+        dependencies: { 'pkg-a': '1.0.0' },
+        peerDependencies: { 'pkg-peer': '2.0.0' },
+        devDependencies: { 'pkg-dev': '1.0.0' },
+      });
+      writePackageJson(path.join(tmpDir, 'node_modules', 'pkg-a'), {
+        name: 'pkg-a',
+        version: '1.0.0',
+        license: 'MIT',
+      });
+      writePackageJson(path.join(tmpDir, 'node_modules', 'pkg-peer'), {
+        name: 'pkg-peer',
+        version: '2.0.0',
+        license: 'Apache-2.0',
+      });
+      writePackageJson(path.join(tmpDir, 'node_modules', 'pkg-dev'), {
+        name: 'pkg-dev',
+        version: '1.0.0',
+        license: 'ISC',
+      });
+    });
+
+    afterAll(() => cleanup(tmpDir));
+
+    test('should include peer deps in production mode by default', async () => {
+      const result = await scanPackages({
+        startPath: tmpDir,
+        production: true,
+      });
+      expect(result.packages.has('pkg-a@1.0.0')).toBe(true);
+      expect(result.packages.has('pkg-peer@2.0.0')).toBe(true);
+      expect(result.packages.has('pkg-dev@1.0.0')).toBe(false);
+    });
+
+    test('should exclude peer deps in production mode with nopeer', async () => {
+      const result = await scanPackages({
+        startPath: tmpDir,
+        production: true,
+        nopeer: true,
+      });
+      expect(result.packages.has('pkg-a@1.0.0')).toBe(true);
+      expect(result.packages.has('pkg-peer@2.0.0')).toBe(false);
+      expect(result.packages.has('pkg-dev@1.0.0')).toBe(false);
+    });
+
+    test('nopeer without production flag still includes peer deps', async () => {
+      const result = await scanPackages({
+        startPath: tmpDir,
+        nopeer: true,
+      });
+      // nopeer only affects filtering when combined with production mode;
+      // without a filter, all installed packages appear
+      expect(result.packages.has('pkg-a@1.0.0')).toBe(true);
+      expect(result.packages.has('pkg-dev@1.0.0')).toBe(true);
+      expect(result.packages.has('pkg-peer@2.0.0')).toBe(true);
+    });
+  });
+
+  describe('development mode transitive dep filtering', () => {
+    let tmpDir: string;
+
+    beforeAll(() => {
+      tmpDir = createTempDir();
+      writePackageJson(tmpDir, {
+        name: 'test-dev-transitive',
+        version: '1.0.0',
+        dependencies: { 'pkg-prod': '1.0.0' },
+        devDependencies: { 'pkg-dev': '1.0.0' },
+      });
+      writePackageJson(path.join(tmpDir, 'node_modules', 'pkg-prod'), {
+        name: 'pkg-prod',
+        version: '1.0.0',
+        license: 'MIT',
+      });
+      writePackageJson(path.join(tmpDir, 'node_modules', 'pkg-dev'), {
+        name: 'pkg-dev',
+        version: '1.0.0',
+        license: 'ISC',
+      });
+      // Transitive dep of pkg-prod (not listed in root deps)
+      writePackageJson(path.join(tmpDir, 'node_modules', 'pkg-transitive'), {
+        name: 'pkg-transitive',
+        version: '3.0.0',
+        license: 'BSD-2-Clause',
+      });
+      // Nested transitive dep of pkg-dev
+      writePackageJson(
+        path.join(tmpDir, 'node_modules', 'pkg-dev', 'node_modules', 'pkg-dev-transitive'),
+        { name: 'pkg-dev-transitive', version: '1.0.0', license: 'MIT' },
+      );
+    });
+
+    afterAll(() => cleanup(tmpDir));
+
+    test('should show all packages when no filter is set', async () => {
+      const result = await scanPackages({ startPath: tmpDir });
+      expect(result.packages.size).toBe(4);
+      expect(result.packages.has('pkg-prod@1.0.0')).toBe(true);
+      expect(result.packages.has('pkg-dev@1.0.0')).toBe(true);
+      expect(result.packages.has('pkg-transitive@3.0.0')).toBe(true);
+      expect(result.packages.has('pkg-dev-transitive@1.0.0')).toBe(true);
+    });
+
+    test('should only include direct dev deps in development mode', async () => {
+      const result = await scanPackages({
+        startPath: tmpDir,
+        development: true,
+      });
+      expect(result.packages.has('pkg-dev@1.0.0')).toBe(true);
+      // prod direct dep excluded
+      expect(result.packages.has('pkg-prod@1.0.0')).toBe(false);
+      // transitive deps excluded (not direct dev deps)
+      expect(result.packages.has('pkg-transitive@3.0.0')).toBe(false);
+      expect(result.packages.has('pkg-dev-transitive@1.0.0')).toBe(false);
+    });
+
+    test('should include transitive deps in production mode', async () => {
+      const result = await scanPackages({
+        startPath: tmpDir,
+        production: true,
+      });
+      expect(result.packages.has('pkg-prod@1.0.0')).toBe(true);
+      // transitive deps are included (conservative approach)
+      expect(result.packages.has('pkg-transitive@3.0.0')).toBe(true);
+      // dev dep excluded
+      expect(result.packages.has('pkg-dev@1.0.0')).toBe(false);
+    });
+  });
 });
