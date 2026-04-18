@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### 🚀 Features
+- Add opt-in `--spdxSemantics` flag for SPDX-expression-aware `--failOn` and `--onlyAllow` evaluation. Correctly handles dual-licensed packages; default behavior unchanged. ([#2](https://github.com/danshome/license-checker-evergreen/issues/2))
+
 ## [6.2.1] - 2026-04-11
 
 ### 🚀 Features

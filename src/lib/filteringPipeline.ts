@@ -367,9 +367,7 @@ export class FilteringPipeline {
 
 		// Check failOn conditions
 		if (failOn?.length) {
-			const shouldFail = spdx
-				? this.evaluateSpdxDeny(licenseString)
-				: failOn.includes(licenseString);
+			const shouldFail = spdx ? this.evaluateSpdxDeny(licenseString) : failOn.includes(licenseString);
 			if (shouldFail) {
 				console.error(`Found license defined by the --failOn flag: "${licenseString}". Exiting.`);
 				process.exit(1);

@@ -260,6 +260,33 @@ license-checker-evergreen --markdown
 |--------|-------------|
 | `--failOn [list]` | Exit with code 1 if these licenses found (semicolon-separated) |
 | `--onlyAllow [list]` | Exit with code 1 if licenses NOT in this list (semicolon-separated) |
+| `--spdxSemantics` | Evaluate `--failOn` and `--onlyAllow` as SPDX expressions (opt-in; default is literal string match). Only applies to the default scanner, not `--legacy`. |
+
+#### `--spdxSemantics` (opt-in SPDX-expression semantics)
+
+By default, `--failOn` uses literal string equality and `--onlyAllow` uses substring
+matching. Both are unreliable for dual-licensed packages (`(MIT OR GPL-2.0)`,
+`(MIT AND Apache-2.0)`, etc.). Pass `--spdxSemantics` to evaluate both lists as
+SPDX expressions:
+
+- `--failOn "GPL-2.0" --spdxSemantics` fails any package whose license expression
+  contains `GPL-2.0` anywhere in an OR/AND tree. Example: `(BSD-3-Clause OR GPL-2.0)` fails.
+- `--onlyAllow "MIT;Apache-2.0" --spdxSemantics` allows `(MIT OR CC0-1.0)` (any
+  OR-alternative suffices) but rejects `(MIT AND GPL-2.0)` (all AND-terms must be
+  allowed).
+
+Scope:
+- Only affects `--failOn` and `--onlyAllow`. `--includeLicenses` and
+  `--excludeLicenses` were already SPDX-aware.
+- No effect under `--legacy` (prints a warning if combined).
+- Legacy array license field `"licenses": [...]` is treated as `(A OR B OR ...)`.
+
+Examples always quote the list to avoid shell `;` interpretation:
+
+```bash
+license-checker-evergreen --failOn "GPL-2.0;AGPL" --spdxSemantics
+license-checker-evergreen --onlyAllow "MIT;Apache-2.0;BSD-3-Clause" --spdxSemantics
+```
 
 ### Output Options
 
@@ -315,6 +342,7 @@ license-checker-evergreen --markdown
 - `--production` - Show only production dependencies
 - `--relativeLicensePath` - Use relative paths for license files
 - `--relativeModulePath` - Use relative paths for module files
+- `--spdxSemantics` - Evaluate `--failOn`/`--onlyAllow` as SPDX expressions (opt-in)
 - `--start [filepath]` - Starting directory path
 - `--summary` - Show license usage summary
 - `--unknown` - Report guessed licenses as unknown
