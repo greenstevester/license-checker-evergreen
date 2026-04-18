@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { FilteringPipeline } from '../dist/lib/filteringPipeline.js';
 
 describe('FilteringPipeline', () => {
@@ -357,6 +357,241 @@ describe('FilteringPipeline', () => {
 			expect(gplResult).toBeNull();
 			expect(typesResult).toBeNull();
 			expect(privateResult).toBeNull();
+		});
+	});
+
+	describe('spdxSemantics classification', () => {
+		test('populates spdxDenyNormalized and literalDenySet from failOn', () => {
+			const pipeline: any = new FilteringPipeline({
+				spdxSemantics: true,
+				failOn: ['MIT', 'custom-thing', 'gpl-2.0'],
+			} as any);
+			expect(pipeline.literalDenySet).toBeInstanceOf(Set);
+			expect(pipeline.literalDenySet.has('custom-thing')).toBe(true);
+			expect(pipeline.literalDenySet.has('MIT')).toBe(false);
+			expect(pipeline.literalDenySet.has('gpl-2.0')).toBe(false);
+			expect(pipeline.spdxDenyNormalized.has('MIT')).toBe(true);
+			expect(pipeline.spdxDenyNormalized.has('GPL-2.0-only')).toBe(true);
+		});
+
+		test('does not populate SPDX sets when spdxSemantics is false', () => {
+			const pipeline: any = new FilteringPipeline({
+				spdxSemantics: false,
+				failOn: ['MIT', 'custom-thing'],
+				onlyAllow: ['MIT'],
+			} as any);
+			const literalDeny = pipeline.literalDenySet;
+			const spdxDeny = pipeline.spdxDenyNormalized;
+			const literalAllow = pipeline.literalAllowSet;
+			const spdxAllow = pipeline.spdxAllowNormalized;
+			expect((literalDeny?.size ?? 0) + (spdxDeny?.size ?? 0)).toBe(0);
+			expect((literalAllow?.size ?? 0) + (spdxAllow?.size ?? 0)).toBe(0);
+		});
+
+		test('initializes empty sets and cache when spdxSemantics true but no lists', () => {
+			const pipeline: any = new FilteringPipeline({ spdxSemantics: true } as any);
+			expect(pipeline.spdxAllowNormalized).toBeInstanceOf(Set);
+			expect(pipeline.literalAllowSet).toBeInstanceOf(Set);
+			expect(pipeline.spdxDenyNormalized).toBeInstanceOf(Set);
+			expect(pipeline.literalDenySet).toBeInstanceOf(Set);
+			expect(pipeline.spdxAllowNormalized.size).toBe(0);
+			expect(pipeline.literalAllowSet.size).toBe(0);
+			expect(pipeline.spdxDenyNormalized.size).toBe(0);
+			expect(pipeline.literalDenySet.size).toBe(0);
+			expect(pipeline.spdxExprCache).toBeInstanceOf(Map);
+			expect(pipeline.spdxExprCache.size).toBe(0);
+		});
+	});
+
+	describe('spdxSemantics DoS guard', () => {
+		test('evaluateSpdxDeny returns false for >4KB license string', () => {
+			const pipeline: any = new FilteringPipeline({
+				spdxSemantics: true,
+				failOn: ['MIT'],
+			} as any);
+			const huge = 'A'.repeat(5000);
+			expect(pipeline.evaluateSpdxDeny(huge)).toBe(false);
+		});
+
+		test('evaluateSpdxAllow returns false for >4KB license string', () => {
+			const pipeline: any = new FilteringPipeline({
+				spdxSemantics: true,
+				onlyAllow: ['MIT'],
+			} as any);
+			const huge = 'A'.repeat(5000);
+			expect(pipeline.evaluateSpdxAllow(huge)).toBe(false);
+		});
+	});
+
+	describe('spdxSemantics helpers — evaluateSpdxDeny truth table', () => {
+		const makePipeline = (failOn: string[]) =>
+			new FilteringPipeline({ spdxSemantics: true, failOn } as any) as any;
+
+		test('T1: (BSD-3-Clause OR GPL-2.0) + deny [GPL-2.0] → true', () => {
+			expect(makePipeline(['GPL-2.0']).evaluateSpdxDeny('(BSD-3-Clause OR GPL-2.0)')).toBe(true);
+		});
+
+		test('T2: (MIT OR Apache-2.0) + deny [GPL-2.0] → false', () => {
+			expect(makePipeline(['GPL-2.0']).evaluateSpdxDeny('(MIT OR Apache-2.0)')).toBe(false);
+		});
+
+		test('T9: (MIT AND GPL-2.0) + deny [GPL-2.0] → true', () => {
+			expect(makePipeline(['GPL-2.0']).evaluateSpdxDeny('(MIT AND GPL-2.0)')).toBe(true);
+		});
+
+		test('T10: (MIT OR (Apache-2.0 AND GPL-2.0)) + deny [GPL-2.0] → true', () => {
+			expect(
+				makePipeline(['GPL-2.0']).evaluateSpdxDeny('(MIT OR (Apache-2.0 AND GPL-2.0))'),
+			).toBe(true);
+		});
+
+		test('case-norm: deny [gpl-2.0] matches GPL-2.0', () => {
+			expect(makePipeline(['gpl-2.0']).evaluateSpdxDeny('GPL-2.0')).toBe(true);
+		});
+
+		test('literal-hit: deny [Custom] + license "Custom" → true', () => {
+			expect(makePipeline(['Custom']).evaluateSpdxDeny('Custom')).toBe(true);
+		});
+
+		test('literal-miss: deny [MIT] + license "Custom" → false', () => {
+			expect(makePipeline(['MIT']).evaluateSpdxDeny('Custom')).toBe(false);
+		});
+
+		test('empty license string → false', () => {
+			expect(makePipeline(['MIT']).evaluateSpdxDeny('')).toBe(false);
+		});
+	});
+
+	describe('spdxSemantics helpers — evaluateSpdxAllow truth table', () => {
+		const makePipeline = (onlyAllow: string[]) =>
+			new FilteringPipeline({ spdxSemantics: true, onlyAllow } as any) as any;
+
+		test('T3: (MIT OR CC0-1.0) + allow [MIT, ISC] → true', () => {
+			expect(makePipeline(['MIT', 'ISC']).evaluateSpdxAllow('(MIT OR CC0-1.0)')).toBe(true);
+		});
+
+		test('T4: MIT-restricted-do-not-use + allow [MIT, ISC] → false', () => {
+			expect(makePipeline(['MIT', 'ISC']).evaluateSpdxAllow('MIT-restricted-do-not-use')).toBe(false);
+		});
+
+		test('T5: (MIT AND Apache-2.0) + allow [MIT, ISC] → false', () => {
+			expect(makePipeline(['MIT', 'ISC']).evaluateSpdxAllow('(MIT AND Apache-2.0)')).toBe(false);
+		});
+
+		test('T6: (MIT AND Apache-2.0) + allow [MIT, ISC, Apache-2.0] → true', () => {
+			expect(
+				makePipeline(['MIT', 'ISC', 'Apache-2.0']).evaluateSpdxAllow('(MIT AND Apache-2.0)'),
+			).toBe(true);
+		});
+
+		test('T7: UNKNOWN + allow [MIT] → false', () => {
+			expect(makePipeline(['MIT']).evaluateSpdxAllow('UNKNOWN')).toBe(false);
+		});
+
+		test('case-norm: allow [gpl-2.0] matches GPL-2.0', () => {
+			expect(makePipeline(['gpl-2.0']).evaluateSpdxAllow('GPL-2.0')).toBe(true);
+		});
+
+		test('literal-allow: allow [SEE LICENSE IN README] + same literal → true', () => {
+			expect(
+				makePipeline(['SEE LICENSE IN README']).evaluateSpdxAllow('SEE LICENSE IN README'),
+			).toBe(true);
+		});
+
+		test('empty license string → false', () => {
+			expect(makePipeline(['MIT']).evaluateSpdxAllow('')).toBe(false);
+		});
+	});
+
+	describe('checkFailConditions legacy mode', () => {
+		let exitSpy: any;
+		let errorSpy: any;
+
+		beforeEach(() => {
+			exitSpy = jest.spyOn(process, 'exit').mockImplementation(((code?: number) => {
+				throw new Error(`process.exit:${code}`);
+			}) as never);
+			errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			exitSpy.mockRestore();
+			errorSpy.mockRestore();
+		});
+
+		test('T8: --failOn MIT legacy mode on MIT license → exit 1', () => {
+			const pipeline: any = new FilteringPipeline({ failOn: ['MIT'] });
+			expect(() => pipeline.checkFailConditions('pkg@1.0.0', { licenses: 'MIT' })).toThrow(
+				'process.exit:1',
+			);
+		});
+
+		test('legacy case-sensitive: --failOn MIT on "mit" → no exit', () => {
+			const pipeline: any = new FilteringPipeline({ failOn: ['MIT'] });
+			expect(() =>
+				pipeline.checkFailConditions('pkg@1.0.0', { licenses: 'mit' }),
+			).not.toThrow();
+		});
+
+		test('legacy substring: --onlyAllow MIT on "MIT-like-thing" → no exit', () => {
+			const pipeline: any = new FilteringPipeline({ onlyAllow: ['MIT'] });
+			expect(() =>
+				pipeline.checkFailConditions('pkg@1.0.0', { licenses: 'MIT-like-thing' }),
+			).not.toThrow();
+		});
+	});
+
+	describe('checkFailConditions spdxSemantics mode', () => {
+		let exitSpy: any;
+		let errorSpy: any;
+		let errorMessages: string[];
+
+		beforeEach(() => {
+			errorMessages = [];
+			exitSpy = jest.spyOn(process, 'exit').mockImplementation(((code?: number) => {
+				throw new Error(`process.exit:${code}`);
+			}) as never);
+			errorSpy = jest
+				.spyOn(console, 'error')
+				.mockImplementation(((msg: string) => {
+					errorMessages.push(msg);
+				}) as never);
+		});
+
+		afterEach(() => {
+			exitSpy.mockRestore();
+			errorSpy.mockRestore();
+		});
+
+		test('spdxSemantics licenseString for array: (A OR B)', () => {
+			const pipeline: any = new FilteringPipeline({
+				spdxSemantics: true,
+				failOn: ['MIT'],
+			} as any);
+			expect(() =>
+				pipeline.checkFailConditions('pkg', { licenses: ['MIT', 'Apache-2.0'] }),
+			).toThrow('process.exit:1');
+			expect(errorMessages.join(' ')).toContain('(MIT OR Apache-2.0)');
+		});
+
+		test('legacy licenseString for array: "A, B"', () => {
+			const pipeline: any = new FilteringPipeline({
+				failOn: ['MIT, Apache-2.0'],
+			});
+			expect(() =>
+				pipeline.checkFailConditions('pkg', { licenses: ['MIT', 'Apache-2.0'] }),
+			).toThrow('process.exit:1');
+			expect(errorMessages.join(' ')).toContain('MIT, Apache-2.0');
+		});
+
+		test('defensive String() coercion on non-string license', () => {
+			const pipeline: any = new FilteringPipeline({
+				spdxSemantics: true,
+				failOn: ['MIT'],
+			} as any);
+			expect(() =>
+				pipeline.checkFailConditions('pkg', { licenses: 0 as any }),
+			).not.toThrow();
 		});
 	});
 
