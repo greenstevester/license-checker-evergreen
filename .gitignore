@@ -26,3 +26,5 @@ data/
 settings.local.json
 scripts/generate-outreach.ts
 todos.md
+/.env.local
+/planning/
