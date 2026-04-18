@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### 🔒 Security
+- Resolve 26 `npm audit` advisories (2 critical, 21 high, 2 moderate, 1 low) via in-range updates to the lockfile. All fixes are semver-compatible; the `dependencies` block is unchanged, so published CLI behavior is unaffected ([#1](https://github.com/danshome/license-checker-evergreen/issues/1)).
+- Pin the `read-installed` → `glob@7` → `minimatch` → `brace-expansion` prod-path via scoped `overrides` to lock the patched transitive versions against future re-resolution.
+
 ## [6.2.1] - 2026-04-11
 
 ### 🚀 Features
