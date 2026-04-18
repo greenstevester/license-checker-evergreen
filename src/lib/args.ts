@@ -40,6 +40,7 @@ interface ParsedArguments {
 	production?: boolean;
 	relativeLicensePath?: boolean;
 	relativeModulePath?: boolean;
+	spdxSemantics?: boolean;
 	start?: string;
 	summary?: boolean;
 	unknownOpts?: boolean;
@@ -83,6 +84,7 @@ const knownOptions = {
 	production: Boolean,
 	relativeLicensePath: Boolean,
 	relativeModulePath: Boolean,
+	spdxSemantics: Boolean,
 	start: String,
 	summary: Boolean,
 	unknownOpts: Boolean,

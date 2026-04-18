@@ -519,6 +519,7 @@ const initOptimized = async (args: any, callback: (error: Error | null, result?:
 		colorize: args.color,
 		relativeModulePath: args.relativeModulePath,
 		startPath: args.start,
+		spdxSemantics: args.spdxSemantics,
 	});
 
 	// Clarifications processing (same as original)
@@ -685,6 +686,7 @@ const initFast = async (args: any, callback: (error: Error | null, result?: any)
 			colorize: args.color,
 			relativeModulePath: args.relativeModulePath,
 			startPath: args.start,
+			spdxSemantics: args.spdxSemantics,
 		});
 
 		// Process packages with single-pass collection

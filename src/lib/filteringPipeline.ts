@@ -25,6 +25,7 @@ interface FilterOptions {
 	colorize?: boolean;
 	relativeModulePath?: boolean;
 	startPath?: string;
+	spdxSemantics?: boolean;
 }
 
 interface PackageData {
