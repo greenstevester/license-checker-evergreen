@@ -342,7 +342,13 @@ export class FilteringPipeline {
 	}
 
 	/**
-	 * Check fail conditions that can exit the process
+	 * Check fail conditions that can exit the process.
+	 *
+	 * In legacy mode (no --spdxSemantics), keeps today's behavior byte-identically:
+	 * literal equality for --failOn, substring match for --onlyAllow.
+	 *
+	 * In spdxSemantics mode, delegates to evaluateSpdxDeny / evaluateSpdxAllow.
+	 * Array licenses are reshaped as "(A OR B)" for SPDX parsing (vs "A, B" in legacy).
 	 */
 	private checkFailConditions(packageName: string, packageData: PackageData): void {
 		const { failOn, onlyAllow } = this.options;
@@ -350,10 +356,21 @@ export class FilteringPipeline {
 
 		if (!currentLicense) return;
 
+		const spdx = this.options.spdxSemantics === true;
+		const licenseString = spdx
+			? Array.isArray(currentLicense)
+				? `(${currentLicense.join(' OR ')})`
+				: String(currentLicense)
+			: Array.isArray(currentLicense)
+				? currentLicense.join(', ')
+				: String(currentLicense);
+
 		// Check failOn conditions
 		if (failOn?.length) {
-			const licenseString = Array.isArray(currentLicense) ? currentLicense.join(', ') : currentLicense;
-			if (failOn.includes(licenseString)) {
+			const shouldFail = spdx
+				? this.evaluateSpdxDeny(licenseString)
+				: failOn.includes(licenseString);
+			if (shouldFail) {
 				console.error(`Found license defined by the --failOn flag: "${licenseString}". Exiting.`);
 				process.exit(1);
 			}
@@ -361,17 +378,10 @@ export class FilteringPipeline {
 
 		// Check onlyAllow conditions
 		if (onlyAllow?.length) {
-			const licenseString = Array.isArray(currentLicense) ? currentLicense.join(', ') : currentLicense;
-			let containsAllowedLicense = false;
-
-			for (const allowedLicense of onlyAllow) {
-				if (licenseString.includes(allowedLicense)) {
-					containsAllowedLicense = true;
-					break;
-				}
-			}
-
-			if (!containsAllowedLicense) {
+			const allowed = spdx
+				? this.evaluateSpdxAllow(licenseString)
+				: onlyAllow.some((a) => licenseString.includes(a));
+			if (!allowed) {
 				console.error(
 					`Package "${packageName}" is licensed under "${licenseString}" which is not permitted by the --onlyAllow flag. Exiting.`,
 				);
