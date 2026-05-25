@@ -2,8 +2,22 @@
 
 ## [Unreleased]
 
+## [6.3.0] - 2026-05-25
+
 ### 🚀 Features
-- Add opt-in `--spdxSemantics` flag for SPDX-expression-aware `--failOn` and `--onlyAllow` evaluation. Correctly handles dual-licensed packages; default behavior unchanged. ([#2](https://github.com/danshome/license-checker-evergreen/issues/2))
+- Add opt-in `--spdxSemantics` flag for SPDX-expression-aware `--failOn` and `--onlyAllow` evaluation. Correctly handles dual-licensed packages; default behavior unchanged. ([#12](https://github.com/greenstevester/license-checker-evergreen/pull/12))
+- Add `--failOnUnavoidableOnly` (used with `--spdxSemantics`): `--failOn` fails only when a denied license is unavoidable, so `(MIT OR GPL-3.0)` passes when only `GPL-3.0` is denied — the De Morgan dual of `--onlyAllow`. ([#12](https://github.com/greenstevester/license-checker-evergreen/pull/12))
+- Add a GitHub composite action (`action.yml`) for license checking in CI, with inputs mapped to CLI flags and `report` / `packages-count` outputs. ([#11](https://github.com/greenstevester/license-checker-evergreen/pull/11))
+
+### 🐛 Bug Fixes
+- Resolve all 26 `npm audit` advisories (2 critical, 5 high, 18 moderate, 1 low) via non-breaking transitive dependency updates; `package.json` unchanged. ([#10](https://github.com/greenstevester/license-checker-evergreen/pull/10))
+
+### 🔧 Improvements
+- Pin all GitHub Actions to full commit SHAs across every workflow (supply-chain hardening). ([#11](https://github.com/greenstevester/license-checker-evergreen/pull/11))
+- Resolve all ESLint errors (225 → 0) and fix the Jest `read-installed` transform pattern. ([#9](https://github.com/greenstevester/license-checker-evergreen/pull/9))
+
+### 📚 Documentation
+- Rewrite `CLAUDE.md` for the current dual-scanner architecture and document the SPDX flags. ([#9](https://github.com/greenstevester/license-checker-evergreen/pull/9), [#13](https://github.com/greenstevester/license-checker-evergreen/pull/13))
 
 ## [6.2.1] - 2026-04-11
 
