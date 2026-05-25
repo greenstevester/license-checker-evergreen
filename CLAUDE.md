@@ -49,6 +49,8 @@ Both modes converge on the same downstream pipeline: `recursivelyCollectAllDepen
 
 Beyond the originals: `--legacy` (slow/compatible scanner), `--failOn <list>` and `--onlyAllow <list>` (semicolon-separated SPDX, fail the run on violation), `--summary`, `--nopeer` (drop peerDependencies), `--excludePrivatePackages`, `--production` / `--development`, `--depth`. Full list: `knownOptions` in `src/lib/args.ts`.
 
+**SPDX-aware allow/deny (opt-in):** `--spdxSemantics` evaluates `--failOn`/`--onlyAllow` as SPDX expressions rather than literal strings (default scanner only — it's a no-op under `--legacy`). By default `--failOn` fails if a denied license appears *anywhere* in an expression, so `(MIT OR GPL-3.0)` fails when `GPL-3.0` is denied. Adding `--failOnUnavoidableOnly` makes `--failOn` fail only when the denied license is *unavoidable* — `(MIT OR GPL-3.0)` then passes, since the package is usable under MIT — which makes `--failOn` the De Morgan dual of `--onlyAllow` (the two flags agree on the same expression). The evaluation lives in `evaluateSpdxDeny` (strict: `walkSpdxLeaves`; unavoidable-only: `reduceSpdxBool`) in `filteringPipeline.ts`.
+
 ### GitHub Action
 
 `action.yml` is a **composite** action wrapping the published CLI (`npm install -g license-checker-evergreen@latest` then runs it). Inputs map to CLI flags (`fail-on`, `only-allow`, `exclude-packages`, `output-format`, etc.); outputs are `report` and `packages-count`. `.github/workflows/action-test.yml` exercises it across Node 18/20/22. Editing `action.yml`'s shell step is editing user-facing behavior — keep it aligned with the CLI flags it shells out to.
