@@ -62,7 +62,7 @@ import { licenseFiles } from './license-files.js';
 import * as helpers from './indexHelpers.js';
 import { licenseFileCache } from './licenseFileCache.js';
 import { FilteringPipeline } from './filteringPipeline.js';
-import { scanPackagesAsync, type PackageData } from './fastPackageScanner.js';
+import { scanPackagesAsync } from './fastPackageScanner.js';
 
 // Set up debug logging
 // https://www.npmjs.com/package/debug#stderr-vs-stdout
