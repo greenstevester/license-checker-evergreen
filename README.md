@@ -151,8 +151,10 @@ license-checker-evergreen --failOn 'GPL;AGPL'
 <summary><b>🎯 Scan only direct dependencies</b></summary>
 
 ```bash
-license-checker-evergreen --direct
+license-checker-evergreen --depth 0 --legacy
 ```
+
+> Note: the default scanner currently ignores `--depth` ([#15](https://github.com/greenstevester/license-checker-evergreen/issues/15)); use `--legacy` until that's fixed.
 
 ![Direct Dependencies Demo](demos/direct-deps.gif)
 </details>
@@ -232,8 +234,7 @@ license-checker-evergreen --markdown
 |--------|-------------|
 | `--production` | Show only production dependencies |
 | `--development` | Show only development dependencies |
-| `--direct` | Show only direct dependencies (no sub-dependencies) |
-| `--depth [number]` | Limit dependency depth (e.g., `--depth 2`) |
+| `--depth [number]` | Limit dependency depth (e.g., `--depth 2`). ⚠️ Currently effective only with `--legacy`; ignored by the default scanner ([#15](https://github.com/greenstevester/license-checker-evergreen/issues/15)). |
 | `--nopeer` | Exclude peer dependencies |
 
 ### Filtering Licenses
@@ -261,6 +262,7 @@ license-checker-evergreen --markdown
 | `--failOn [list]` | Exit with code 1 if these licenses found (semicolon-separated) |
 | `--onlyAllow [list]` | Exit with code 1 if licenses NOT in this list (semicolon-separated) |
 | `--spdxSemantics` | Evaluate `--failOn` and `--onlyAllow` as SPDX expressions (opt-in; default is literal string match). Only applies to the default scanner, not `--legacy`. |
+| `--failOnUnavoidableOnly` | With `--spdxSemantics`, make `--failOn` fail only when a denied license is *unavoidable* (e.g. `(MIT OR GPL-3.0)` passes when only `GPL-3.0` is denied). |
 
 #### `--spdxSemantics` (opt-in SPDX-expression semantics)
 
@@ -274,6 +276,12 @@ SPDX expressions:
 - `--onlyAllow "MIT;Apache-2.0" --spdxSemantics` allows `(MIT OR CC0-1.0)` (any
   OR-alternative suffices) but rejects `(MIT AND GPL-2.0)` (all AND-terms must be
   allowed).
+
+Add `--failOnUnavoidableOnly` to soften `--failOn` to "fail only if the denied
+license is *unavoidable*": `(MIT OR GPL-2.0) --failOn "GPL-2.0"` then **passes**
+(the package is usable under MIT), while `(MIT AND GPL-2.0)` still fails. This makes
+`--failOn` the De Morgan dual of `--onlyAllow`, so the two flags agree on the same
+expression. The strict any-leaf behavior above is the default.
 
 Scope:
 - Only affects `--failOn` and `--onlyAllow`. `--includeLicenses` and
@@ -314,20 +322,19 @@ license-checker-evergreen --onlyAllow "MIT;Apache-2.0;BSD-3-Clause" --spdxSemant
 <details>
 <summary><b>View all options (alphabetical reference)</b></summary>
 
-- `--angularCli` - Synonym for `--plainVertical`
 - `--clarificationsFile [filepath]` - License clarifications file (see [Clarifications](#clarifications))
 - `--clarificationsMatchAll [boolean]` - Require all clarifications to be used
 - `--csv` - Output in CSV format
 - `--csvComponentPrefix` - Prefix column for component in CSV format
 - `--customPath [filepath]` - Custom format file in JSON (see [Custom Format](#custom-format))
-- `--depth [number]` - Dependency depth limit (overrides `--direct`)
+- `--depth [number]` - Dependency depth limit. ⚠️ Currently effective only with `--legacy`; ignored by the default scanner ([#15](https://github.com/greenstevester/license-checker-evergreen/issues/15)).
 - `--development` - Show only development dependencies
-- `--direct [boolean|number]` - Show only direct dependencies or specific depth
 - `--excludeLicenses [list]` - Exclude packages by license (comma-separated)
 - `--excludePackages [list]` - Exclude specific packages (semicolon-separated)
 - `--excludePackagesStartingWith [list]` - Exclude packages by prefix (comma-separated)
 - `--excludePrivatePackages` - Exclude private packages
 - `--failOn [list]` - Fail if these licenses found (semicolon-separated)
+- `--failOnUnavoidableOnly` - With `--spdxSemantics`, fail `--failOn` only when a denied license is unavoidable
 - `--files [path]` - Copy license files to directory
 - `--includeLicenses [list]` - Include only these licenses (comma-separated)
 - `--includePackages [list]` - Include only these packages (semicolon-separated)
@@ -470,11 +477,17 @@ dist/                       # Compiled output
 
 ## What's New
 
-### Version 6.0.0 (Current)
+### Version 6.3.0 (Current)
 
-- ✅ **2-4x faster** with new parallel package scanner (default)
-- ✅ **50 concurrent file operations** for maximum throughput
-- ✅ **`--legacy` flag** available for backward compatibility
+- ✅ **SPDX-aware compliance** — `--spdxSemantics` evaluates `--failOn`/`--onlyAllow` as SPDX expressions, correctly handling dual-licensed packages like `(MIT OR GPL-3.0)`
+- ✅ **`--failOnUnavoidableOnly`** — fail only when a denied license is *unavoidable* (the De Morgan dual of `--onlyAllow`)
+- ✅ **GitHub Action** — composite `action.yml` for license checking in CI
+- ✅ **Supply-chain hardening** — all workflow actions pinned to commit SHAs; `npm audit` clean
+
+### Version 6.1–6.2
+
+- ✅ **Parallel package scanner** is the default (legacy `read-installed` scanner still available via `--legacy`)
+- ✅ Scanner reliability improvements and expanded test coverage
 
 ### Version 5.x
 
