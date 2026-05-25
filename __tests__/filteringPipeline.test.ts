@@ -462,6 +462,41 @@ describe('FilteringPipeline', () => {
 		});
 	});
 
+	describe('spdxSemantics helpers — evaluateSpdxDeny with --failOnUnavoidableOnly', () => {
+		const makePipeline = (failOn: string[]) =>
+			new FilteringPipeline({ spdxSemantics: true, failOnUnavoidableOnly: true, failOn } as any) as any;
+
+		// OR with a clean alternative → denied license AVOIDABLE → pass (opposite of strict default T1)
+		test('(BSD-3-Clause OR GPL-2.0) + deny [GPL-2.0] → false (avoidable via BSD)', () => {
+			expect(makePipeline(['GPL-2.0']).evaluateSpdxDeny('(BSD-3-Clause OR GPL-2.0)')).toBe(false);
+		});
+
+		// nested: top-level OR offers a GPL-free choice (MIT) → avoidable → pass (opposite of strict default T10)
+		test('(MIT OR (Apache-2.0 AND GPL-2.0)) + deny [GPL-2.0] → false (avoidable via MIT)', () => {
+			expect(makePipeline(['GPL-2.0']).evaluateSpdxDeny('(MIT OR (Apache-2.0 AND GPL-2.0))')).toBe(false);
+		});
+
+		// AND → denied license UNAVOIDABLE → fail (same as strict default)
+		test('(MIT AND GPL-2.0) + deny [GPL-2.0] → true (unavoidable)', () => {
+			expect(makePipeline(['GPL-2.0']).evaluateSpdxDeny('(MIT AND GPL-2.0)')).toBe(true);
+		});
+
+		// every OR branch denied → no clean choice → fail
+		test('(GPL-2.0 OR GPL-3.0) + deny [GPL-2.0, GPL-3.0] → true (every branch denied)', () => {
+			expect(makePipeline(['GPL-2.0', 'GPL-3.0']).evaluateSpdxDeny('(GPL-2.0 OR GPL-3.0)')).toBe(true);
+		});
+
+		// one OR branch denied, the other clean → avoidable → pass
+		test('(GPL-2.0 OR GPL-3.0) + deny [GPL-3.0] → false (GPL-2.0 still available)', () => {
+			expect(makePipeline(['GPL-3.0']).evaluateSpdxDeny('(GPL-2.0 OR GPL-3.0)')).toBe(false);
+		});
+
+		// single denied license → fail (unavoidable)
+		test('GPL-2.0 + deny [GPL-2.0] → true', () => {
+			expect(makePipeline(['GPL-2.0']).evaluateSpdxDeny('GPL-2.0')).toBe(true);
+		});
+	});
+
 	describe('spdxSemantics helpers — evaluateSpdxAllow truth table', () => {
 		const makePipeline = (onlyAllow: string[]) =>
 			new FilteringPipeline({ spdxSemantics: true, onlyAllow } as any) as any;

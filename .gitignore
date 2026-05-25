@@ -28,3 +28,9 @@ scripts/generate-outreach.ts
 todos.md
 /.env.local
 /planning/
+
+# Local Playwright session/profile dump
+playwright-profile
+
+# CodeGraph local index
+.codegraph/

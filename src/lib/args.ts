@@ -24,6 +24,7 @@ interface ParsedArguments {
 	excludePackagesStartingWith?: string;
 	excludePrivatePackages?: boolean;
 	failOn?: string;
+	failOnUnavoidableOnly?: boolean;
 	files?: string;
 	help?: boolean;
 	includeLicenses?: string;
@@ -68,6 +69,7 @@ const knownOptions = {
 	excludePackagesStartingWith: String,
 	excludePrivatePackages: Boolean,
 	failOn: String,
+	failOnUnavoidableOnly: Boolean,
 	files: path,
 	help: Boolean,
 	includeLicenses: String,

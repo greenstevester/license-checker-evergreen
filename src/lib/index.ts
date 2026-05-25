@@ -520,6 +520,7 @@ const initOptimized = async (args: any, callback: (error: Error | null, result?:
 		relativeModulePath: args.relativeModulePath,
 		startPath: args.start,
 		spdxSemantics: args.spdxSemantics,
+		failOnUnavoidableOnly: args.failOnUnavoidableOnly,
 	});
 
 	// Clarifications processing (same as original)
@@ -687,6 +688,7 @@ const initFast = async (args: any, callback: (error: Error | null, result?: any)
 			relativeModulePath: args.relativeModulePath,
 			startPath: args.start,
 			spdxSemantics: args.spdxSemantics,
+			failOnUnavoidableOnly: args.failOnUnavoidableOnly,
 		});
 
 		// Process packages with single-pass collection

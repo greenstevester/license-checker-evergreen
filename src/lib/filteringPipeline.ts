@@ -34,6 +34,7 @@ interface FilterOptions {
 	relativeModulePath?: boolean;
 	startPath?: string;
 	spdxSemantics?: boolean;
+	failOnUnavoidableOnly?: boolean;
 }
 
 interface PackageData {
@@ -169,6 +170,24 @@ export class FilteringPipeline {
 		if (!parsed.ok) return false; // non-SPDX + no literal match → pass under failOn
 
 		const denySet = this.spdxDenyNormalized;
+
+		if (this.options.failOnUnavoidableOnly === true) {
+			// Fail only if the denied license is UNAVOIDABLE: there is no way to satisfy
+			// the expression without it. `avoidable` is true when some satisfying choice
+			// uses no denied license (OR lets you pick the clean branch; AND requires every
+			// branch clean) — the De Morgan dual of the onlyAllow evaluation, so --failOn
+			// and --onlyAllow agree on the same expression. e.g. "(MIT OR GPL-3.0)" + deny
+			// GPL-3.0 passes, because the package is usable under MIT.
+			const avoidable = this.reduceSpdxBool(parsed.ast, (leaf) => {
+				const normalized = spdxCorrect(leaf) ?? leaf;
+				return !denySet.has(normalized);
+			});
+			return !avoidable;
+		}
+
+		// Default (strict): fail if the denied license appears ANYWHERE in the
+		// expression, regardless of AND/OR structure. e.g. "(MIT OR GPL-3.0)" + deny
+		// GPL-3.0 fails, even though the package is usable under MIT.
 		return this.walkSpdxLeaves(parsed.ast, (leaf) => {
 			const normalized = spdxCorrect(leaf) ?? leaf;
 			return denySet.has(normalized);
