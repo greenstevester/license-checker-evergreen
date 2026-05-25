@@ -1,7 +1,12 @@
+import { createRequire } from 'node:module';
 import { usageMessage } from './usageMessage.js';
 import type { ParsedArguments } from './args.js';
 
-const version = '6.0.0';
+// Read the version from package.json so it can't drift from the published version
+// the way the previous hardcoded constant did (#20). Resolves to the package root
+// in both src (../../package.json) and the compiled dist/lib layout.
+const requireCjs = createRequire(import.meta.url);
+const { version } = requireCjs('../../package.json') as { version: string };
 
 interface ExitProcessParams {
 	unknownArgs: string[];
