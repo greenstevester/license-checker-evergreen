@@ -69,4 +69,90 @@ describe('bin/license-checker-evergreen', (): void => {
 			done();
 		});
 	});
+
+	// --- --spdxSemantics E2E tests (issue #2) ---
+
+	const CLI = path.join(__dirname, '../dist/bin/license-checker-evergreen.js');
+	const FIX = (name: string): string => path.join(__dirname, 'fixtures', name);
+	const REPO_ROOT: string = path.join(__dirname, '../');
+
+	type RunResult = { code: number | null; stdout: string; stderr: string };
+	const run = (args: string[]): Promise<RunResult> =>
+		new Promise((resolve) => {
+			const proc: ChildProcess = spawn('node', [CLI, ...args], {
+				cwd: REPO_ROOT,
+				stdio: 'pipe',
+			});
+			let stdout = '';
+			let stderr = '';
+			proc.stdout?.on('data', (d: Buffer) => {
+				stdout += d.toString();
+			});
+			proc.stderr?.on('data', (d: Buffer) => {
+				stderr += d.toString();
+			});
+			proc.on('close', (code: number | null) => {
+				resolve({ code, stdout, stderr });
+			});
+		});
+
+	test('T1: --failOn GPL-2.0 --spdxSemantics fails on (BSD-3-Clause OR GPL-2.0)', async () => {
+		const r = await run([
+			'--failOn',
+			'GPL-2.0',
+			'--spdxSemantics',
+			'--start',
+			FIX('spdx-or-bsd-gpl'),
+		]);
+		expect(r.code).toBe(1);
+		expect(r.stderr).toContain('(BSD-3-Clause OR GPL-2.0)');
+	});
+
+	test('T2: --failOn GPL-2.0 --spdxSemantics passes on (MIT OR Apache-2.0)', async () => {
+		const r = await run([
+			'--failOn',
+			'GPL-2.0',
+			'--spdxSemantics',
+			'--json',
+			'--start',
+			FIX('spdx-or-mit-apache'),
+		]);
+		expect(r.code).toBe(0);
+		expect(r.stdout).toContain('target-pkg@1.0.0');
+	});
+
+	test('T8: --failOn MIT (no flag) fails on MIT fixture (legacy regression)', async () => {
+		const r = await run(['--failOn', 'MIT', '--start', FIX('spdx-mit')]);
+		expect(r.code).toBe(1);
+		expect(r.stderr).toContain('MIT');
+	});
+
+	test('T9: --failOn GPL-2.0 --spdxSemantics fails on (MIT AND GPL-2.0)', async () => {
+		const r = await run([
+			'--failOn',
+			'GPL-2.0',
+			'--spdxSemantics',
+			'--start',
+			FIX('spdx-and-mit-gpl'),
+		]);
+		expect(r.code).toBe(1);
+		expect(r.stderr).toContain('(MIT AND GPL-2.0)');
+	});
+
+	test('T10: --failOn GPL-2.0 --spdxSemantics fails on (MIT OR (Apache-2.0 AND GPL-2.0))', async () => {
+		const r = await run([
+			'--failOn',
+			'GPL-2.0',
+			'--spdxSemantics',
+			'--start',
+			FIX('spdx-nested-or-and'),
+		]);
+		expect(r.code).toBe(1);
+		expect(r.stderr).toContain('GPL-2.0');
+	});
+
+	test('--legacy --spdxSemantics emits stderr warning about no-op', async () => {
+		const r = await run(['--legacy', '--spdxSemantics', '--start', FIX('spdx-mit')]);
+		expect(r.stderr).toContain('--spdxSemantics has no effect under --legacy');
+	});
 });
