@@ -1,5 +1,42 @@
 # Changelog
 
+## [6.2.1] - 2026-04-11
+
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+
+### 📚 Documentation
+- update CHANGELOG.md for v6.2.1
+
+### Other Changes
+
+
+
+
+## [6.2.1] - 2026-04-11
+
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+- bump version to 6.2.1
+
+### 📚 Documentation
+- update CHANGELOG.md for v6.2.0
+
+### Other Changes
+- test(scanner): add nopeer and dev-mode transitive filtering tests
+- refactor(scanner): simplify filtering and remove redundant stat
+- fix(scanner): address review findings in fast scanner and tests
+- test: increase coverage from 49% to 76% with 104 new tests
+- fix(scanner): harden fast scanner for symlinks and circular deps
+
+
+
 ## [6.2.0] - 2025-12-31
 
 ### 🚀 Features
