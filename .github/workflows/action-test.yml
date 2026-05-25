@@ -1,0 +1,75 @@
+name: Test GitHub Action
+
+on:
+  push:
+    paths:
+      - 'action.yml'
+  pull_request:
+    paths:
+      - 'action.yml'
+  workflow_dispatch:
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: npm install
+
+      - name: Test default (JSON output)
+        id: json-test
+        uses: ./
+        with:
+          start: '.'
+
+      - name: Verify JSON output
+        run: |
+          echo "Packages found: ${{ steps.json-test.outputs.packages-count }}"
+          test -n "${{ steps.json-test.outputs.packages-count }}"
+
+      - name: Test production-only
+        uses: ./
+        with:
+          start: '.'
+          production: 'true'
+          output-format: 'summary'
+
+      - name: Test CSV output to file
+        uses: ./
+        with:
+          start: '.'
+          output-format: 'csv'
+          output-path: 'licenses.csv'
+
+      - name: Verify CSV file
+        run: |
+          test -f licenses.csv
+          head -1 licenses.csv | grep -q "module name"
+
+      - name: Test markdown output
+        uses: ./
+        with:
+          start: '.'
+          output-format: 'markdown'
+
+      - name: Test only-allow (should pass)
+        uses: ./
+        with:
+          start: '__tests__/fixtures/includeBSD'
+          only-allow: 'MIT;BSD-3-Clause;ISC;Apache-2.0;BSD-2-Clause;0BSD;Unlicense;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Python-2.0;BlueOak-1.0.0'
+
+      - name: Test exclude-private-packages
+        uses: ./
+        with:
+          start: '.'
+          exclude-private-packages: 'true'
+          output-format: 'json'
