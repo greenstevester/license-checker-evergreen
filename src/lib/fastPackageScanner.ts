@@ -10,7 +10,6 @@
  * Benchmark: 2-4x faster than the original license-checker
  */
 
-import fs from 'node:fs';
 import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 import debug from 'debug';
@@ -86,10 +85,7 @@ async function readPackageJson(pkgPath: string): Promise<PackageData | null> {
  * Walks node_modules directory and collects all package paths.
  * Handles symlinks (pnpm), circular dependencies, and nested node_modules.
  */
-async function walkNodeModules(
-	nodeModulesPath: string,
-	maxDepth: number = 50,
-): Promise<string[]> {
+async function walkNodeModules(nodeModulesPath: string, maxDepth: number = 50): Promise<string[]> {
 	const packagePaths: string[] = [];
 	const visitedRealPaths = new Set<string>();
 
@@ -160,11 +156,7 @@ async function walkNodeModules(
 /**
  * Processes items in parallel with concurrency limit
  */
-async function parallelMap<T, R>(
-	items: T[],
-	fn: (item: T) => Promise<R>,
-	concurrency: number,
-): Promise<R[]> {
+async function parallelMap<T, R>(items: T[], fn: (item: T) => Promise<R>, concurrency: number): Promise<R[]> {
 	const results: R[] = [];
 	let index = 0;
 
@@ -282,11 +274,7 @@ export async function scanPackages(options: ScanOptions): Promise<ScanResult> {
 
 	// Read all package.json files in parallel
 	const readStartTime = performance.now();
-	const packageDataList = await parallelMap(
-		packagePaths,
-		async (pkgPath) => readPackageJson(pkgPath),
-		concurrency,
-	);
+	const packageDataList = await parallelMap(packagePaths, async (pkgPath) => readPackageJson(pkgPath), concurrency);
 	const readTime = performance.now() - readStartTime;
 	debugLog('Read %d package.json files in %dms', packageDataList.length, readTime.toFixed(0));
 
@@ -359,10 +347,7 @@ export function scanPackagesSync(
 /**
  * Async version that returns a Promise
  */
-export async function scanPackagesAsync(
-	startPath: string,
-	options: Partial<ScanOptions> = {},
-): Promise<PackageData> {
+export async function scanPackagesAsync(startPath: string, options: Partial<ScanOptions> = {}): Promise<PackageData> {
 	const result = await scanPackages({ startPath, ...options });
 	return result.root;
 }

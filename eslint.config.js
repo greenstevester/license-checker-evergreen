@@ -6,7 +6,7 @@ import prettierConfig from 'eslint-config-prettier';
 
 export default [
 	{
-		ignores: ['artifacts/**', 'build/**', 'coverage/**', 'node_modules/**', '__tests__/**', 'dist/**', 'lib/**', 'scripts/**', 'eslint.config.js']
+		ignores: ['artifacts/**', 'build/**', 'coverage/**', 'node_modules/**', '__tests__/**', 'dist/**', 'lib/**', 'scripts/**', 'marketing/**', 'eslint.config.js']
 	},
 	js.configs.recommended,
 	{
@@ -21,6 +21,7 @@ export default [
 			globals: {
 				console: 'readonly',
 				process: 'readonly',
+				performance: 'readonly',
 				Buffer: 'readonly',
 				__dirname: 'readonly',
 				__filename: 'readonly',
@@ -44,7 +45,9 @@ export default [
 			'no-console': 0,
 			'no-irregular-whitespace': 2,
 			'no-useless-escape': 0,
-			indent: ['error', 'tab'],
+			// Indentation is enforced by Prettier (useTabs: true); the core `indent` rule
+			// conflicts with Prettier on inline multi-line type literals, so it stays off
+			// (eslint-config-prettier disables it above for the same reason).
 			'space-before-function-paren': [
 				'error',
 				{

@@ -5,71 +5,65 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Essential Commands
 
 - **Install dependencies**: `npm install`
-- **Build project**: `npm run build` (compiles TypeScript to dist/ directory)
-- **Run tests**: `npm test` (runs Jest tests with ES module support)
+- **Build project**: `npm run build` (`tsc` → `dist/` with `.d.ts` type definitions)
+- **Run tests**: `npm test` (ts-jest under `NODE_OPTIONS=--experimental-vm-modules`)
 - **Run tests with coverage**: `npm run test:coverage`
 - **Watch tests**: `npm run test:watch`
-- **Run single test**: `npm test -- --testNamePattern="test name"` or `npm test tests/specific-test.js`
-- **Lint code**: `npm run lint` or `npm run lint:fix`
-- **Format code**: `npm run format` (prettier + eslint fix) or `npm run format:dry` (check only)
-- **Check formatting**: `npm run prettier`
-- **CLI binary**: Located at `dist/bin/license-checker-evergreen.js` after build
-- **Debug mode**: `DEBUG=license-checker-evergreen* npm test` or when running CLI
+- **Run a single test file**: `npm test -- __tests__/args.test.ts`
+- **Run tests by name**: `npm test -- --testNamePattern="reject expired"`
+- **Lint**: `npm run lint` (`eslint --ext ts,js .`) / `npm run lint:fix`
+- **Format**: `npm run prettier` (check) / `npm run prettier:fix` (write) / `npm run lint-prettier` (prettier:fix + lint:fix)
+- **Run the CLI from source after build**: `node dist/bin/license-checker-evergreen.js [flags]`
+- **Debug logging**: `DEBUG=license-checker-evergreen:* node dist/bin/license-checker-evergreen.js` (namespaces `:log` and `:error`)
+
+> ESLint uses the flat-config file `eslint.config.js` (not `.eslintrc.json`). Jest config is `jest.config.cjs`; tests live in `__tests__/` and are written in **TypeScript** (`*.test.ts`), with a 120s timeout.
 
 ## Architecture
 
-This is a Node.js CLI tool (`license-checker-evergreen`) for extracting and analyzing NPM package licenses. It's a feature-enhanced fork of the original license-checker that uses ES modules.
+A Node.js CLI tool (`license-checker-evergreen`) for extracting and analyzing NPM package licenses. Feature-enhanced, TypeScript, ES-module fork of the original `license-checker`. Requires Node >=18, npm >=8 (`engine-strict`).
 
-### Key Components
+### Two scanning modes (the key thing to understand)
 
-- **src/bin/license-checker-evergreen.ts**: CLI entry point that parses arguments via `args.ts` and delegates to `index.ts`
-- **src/lib/index.ts**: Core license scanning engine with `recursivelyCollectAllDependencies` function and `init()` main entry point
-- **src/lib/args.ts**: Command-line argument parsing using `nopt` with `knownOptions` definitions
-- **src/lib/licenseCheckerHelpers.ts**: Output formatting utilities (JSON, CSV, Markdown, plain vertical)
-- **src/lib/getLicenseTitle.ts**: License detection and normalization using SPDX validation
-- **src/lib/license-files.ts**: License file discovery patterns and known license file names
-- **src/lib/indexHelpers.ts**: Utility functions for package data extraction and path processing
+`src/bin/license-checker-evergreen.ts` branches on the `--legacy` flag:
 
-### Core Workflow
+- **Fast mode (default)** → `index.ts:initFast()` → `scanPackagesAsync()` in `fastPackageScanner.ts`. A custom parallel `node_modules` walker (claims ~8–12x faster than legacy). Computes the prod/dev dependency sets itself (with `--nopeer` handling) and reads each `package.json` concurrently via a bounded `parallelMap`.
+- **Legacy mode (`--legacy`)** → `index.ts:init()` → the `read-installed` package (note: the dep is `read-installed`, **not** `read-installed-packages`, despite a stale reference in `jest.config.cjs`'s `transformIgnorePatterns`). Slower but resolves the tree the way npm itself does.
 
-The main process (`init` → `recursivelyCollectAllDependencies`) works as follows:
-1. Uses `read-installed-packages` to walk dependency tree recursively
-2. For each module, extracts license info from package.json or clarification files
-3. Scans for license files using patterns from `license-files.js` (LICENSE, COPYING, README)
-4. Validates SPDX compliance with `spdx-correct` and applies transformations
-5. Supports filtering (include/exclude packages/licenses), depth limits, and custom output formats
-6. Handles clarification files for overriding detected license information
+Both modes converge on the same downstream pipeline: `recursivelyCollectAllDependencies()` (in `index.ts`) enriches each module with license info, then a `FilteringPipeline` applies include/exclude/allow/fail rules, then `licenseCheckerHelpers.ts` formats output. When changing scan behavior, check whether the change belongs in the shared path or only one mode — and keep the two modes' results consistent.
 
-### Development Setup
+### Module map (`src/lib/`)
 
-- **TypeScript**: Full TypeScript codebase in `src/` directory, compiles to `dist/` with type definitions
-- **ES Modules**: Uses `"type": "module"` in package.json, imports in TypeScript use `.js` extensions for compatibility
-- **Build Process**: `npm run build` compiles TypeScript using `tsc`, output goes to `dist/` directory
-- **ESLint**: `.eslintrc.json` with TypeScript support, tab indentation, and Prettier integration
-- **Node.js**: Requires Node >=18, npm >=8 (enforced via `engine-strict`)
+- **index.ts** (~1500 lines): orchestrator. `initFast`, `init`, `recursivelyCollectAllDependencies`, license-file scanning, SPDX correction, and the result-shaping logic. Exports the public library API.
+- **fastPackageScanner.ts**: the fast walker — `scanPackages` / `scanPackagesAsync`, prod/dev dep-set resolution, bounded parallel reads.
+- **filteringPipeline.ts**: `FilteringPipeline` class — applies `includePackages`/`excludePackages`/`excludeLicenses`/`onlyAllow`/`failOn`/`excludePrivatePackages` etc.
+- **packageInfo.ts** / **packageCollection.ts**: `PackageInfo` and `PackageCollection` value types modeling a scanned module and the set of them.
+- **licenseFileCache.ts**: `LicenseFileCache` (exported as a `licenseFileCache` singleton) — caches license-file reads/lookups across modules.
+- **getLicenseTitle.ts**: license detection/normalization via SPDX validation.
+- **license-files.ts**: known license filenames and discovery patterns (LICENSE, LICENCE, COPYING, README…).
+- **licenseCheckerHelpers.ts**: output formatting — JSON, CSV, Markdown, tree, plain-vertical (Angular CLI), summary; plus colorization.
+- **args.ts**: `nopt`-based parsing; `knownOptions` is the source of truth for valid flags.
+- **exitProcessOrWarnIfNeeded.ts**: validates parsed args / unknown-flag handling before running.
+- **indexHelpers.ts**, **usageMessage.ts**: shared helpers and `--help` text.
 
-### Testing Strategy
+### Notable CLI flags
 
-- **Test Runner**: Jest with Node.js environment via `jest.config.cjs`
-- **Test Structure**: Tests in `/tests/` directory, written in JavaScript
-- **Test Commands**: `npm test` (basic), `npm run test:coverage` (with coverage), `npm run test:watch` (watch mode)
-- **Fixtures**: Mock package.json files and license scenarios in test fixtures
-- **ES Module Support**: Jest configured with `--experimental-vm-modules` for ES module compatibility
-- **Test Timeout**: 10 second default timeout for complex dependency operations
+Beyond the originals: `--legacy` (slow/compatible scanner), `--failOn <list>` and `--onlyAllow <list>` (semicolon-separated SPDX, fail the run on violation), `--summary`, `--nopeer` (drop peerDependencies), `--excludePrivatePackages`, `--production` / `--development`, `--depth`. Full list: `knownOptions` in `src/lib/args.ts`.
 
-### Key Dependencies
+### GitHub Action
 
-- **`read-installed-packages`**: Recursive npm dependency tree traversal
-- **`nopt`**: Command-line argument parsing with type validation
-- **`spdx-correct`**: SPDX license identifier validation and normalization
-- **`spdx-expression-parse`**: SPDX license expression parsing and validation
-- **`chalk`**: Terminal color output for formatted display
-- **`debug`**: Debug logging with `license-checker-evergreen:*` namespace
+`action.yml` is a **composite** action wrapping the published CLI (`npm install -g license-checker-evergreen@latest` then runs it). Inputs map to CLI flags (`fail-on`, `only-allow`, `exclude-packages`, `output-format`, etc.); outputs are `report` and `packages-count`. `.github/workflows/action-test.yml` exercises it across Node 18/20/22. Editing `action.yml`'s shell step is editing user-facing behavior — keep it aligned with the CLI flags it shells out to.
 
-### Special Features
+### Special features
 
-- **Clarification Files**: JSON files for overriding detected license information with checksum verification
-- **Custom Output Formats**: Supports JSON, CSV, Markdown, Tree, and Plain Vertical (Angular CLI) formats
-- **Advanced Filtering**: Include/exclude by packages, licenses, or package name patterns
-- **License File Detection**: Prioritized scanning of LICENSE, LICENCE, COPYING, README files
-- **SPDX Compliance**: Full SPDX license expression validation and correction
+- **Clarification files**: JSON overrides for detected license info, with checksum verification (`--clarificationsFile`).
+- **SPDX compliance**: expression parsing/validation/correction via `spdx-correct`, `spdx-expression-parse`, `spdx-satisfies`.
+- **Custom output**: `--customFormat` / `--customPath` for user-defined fields.
+
+### Conventions
+
+- **ES modules**: `"type": "module"`. TypeScript source imports use `.js` extensions (e.g. `import … from './args.js'`) so emitted ESM resolves correctly. `read-installed` is pulled in via `createRequire` because it ships no types.
+- **Indentation**: tabs (see `.editorconfig` / `.prettierrc`).
+
+### Non-core tooling (don't confuse with the product)
+
+`scripts/` (marketing-automation, competitor-tracker, generate-outreach — run via `npm run marketing:*` / `track:competitors`), `marketing/`, `vhs/`, `demos/`, and `data/` are project/marketing automation, not part of the shipped library. The published package only includes `dist/`, `src/`, `CHANGELOG.md`, `SECURITY.md` (see `files` in package.json).
