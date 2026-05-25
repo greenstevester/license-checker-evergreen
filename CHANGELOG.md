@@ -1,5 +1,26 @@
 # Changelog
 
+## [6.3.0] - 2026-05-25
+
+### 🚀 Features
+- SPDX-aware --failOn/--onlyAllow + opt-in --failOnUnavoidableOnly (extends #8) (#12)
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+- fix lint errors, correct configs, refresh CLAUDE.md (#9)
+
+### 📚 Documentation
+- document --spdxSemantics and --failOnUnavoidableOnly in CLAUDE.md (#13)
+- update CHANGELOG.md for v6.2.1
+- update CHANGELOG.md for v6.2.1
+
+### Other Changes
+- chore(release): 6.3.0 (#14)
+- fix(deps): resolve all npm audit vulnerabilities (26 -> 0) (#10)
+
+
+
 ## [Unreleased]
 
 ## [6.3.0] - 2026-05-25
