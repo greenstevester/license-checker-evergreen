@@ -305,9 +305,12 @@ export async function scanPackages(options: ScanOptions): Promise<ScanResult> {
 		if (!packages.has(key)) {
 			packages.set(key, pkg);
 
-			// Add to root dependencies for tree compatibility
+			// Add to root dependencies for tree compatibility.
+			// Key by name@version (not name) so that multiple installed versions of
+			// the same package are preserved in the output tree rather than the later
+			// one overwriting the earlier — read-installed reports every version (#16).
 			if (rootData.dependencies) {
-				rootData.dependencies[pkg.name] = pkg;
+				rootData.dependencies[key] = pkg;
 			}
 		}
 	}

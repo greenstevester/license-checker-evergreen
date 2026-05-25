@@ -182,6 +182,30 @@ describe('fastPackageScanner', () => {
       expect(result.packages.has('pkg-b@2.0.0')).toBe(true);
       expect(result.packages.size).toBe(3);
     });
+
+    // Regression for #16: scanPackagesAsync returns result.root, so the OUTPUT
+    // path is result.root.dependencies — not the internal packages Map. Both
+    // versions of pkg-b must survive into result.root, not just the Map.
+    test('keeps both versions in result.root (the shipped output), not just the Map', async () => {
+      const result = await scanPackages({ startPath: tmpDir });
+      const pkgBVersions = Object.values(result.root.dependencies ?? {})
+        .filter((d) => d.name === 'pkg-b')
+        .map((d) => d.version)
+        .sort();
+      expect(pkgBVersions).toEqual(['1.0.0', '2.0.0']);
+    });
+
+    // Invariant: every name@version in the Map must also appear in the shipped
+    // output tree. Directly catches the two-structure divergence behind #16.
+    test('every scanned name@version appears in result.root (Map↔output invariant)', async () => {
+      const result = await scanPackages({ startPath: tmpDir });
+      const outputIds = new Set(
+        Object.values(result.root.dependencies ?? {}).map((d) => `${d.name}@${d.version}`),
+      );
+      for (const key of result.packages.keys()) {
+        expect(outputIds.has(key)).toBe(true);
+      }
+    });
   });
 
   describeWithSymlinks('symlinked packages (pnpm-style)', () => {
