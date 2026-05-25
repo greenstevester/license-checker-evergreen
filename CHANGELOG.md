@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.3.1] - 2026-05-25
+
+### 🚀 Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Improvements
+
+### 📚 Documentation
+- refresh for 6.3.0 — remove phantom flags, document new options (#19)
+- update CHANGELOG.md for v6.3.0
+
+### Other Changes
+- chore(release): 6.3.1 (#22)
+- fix(cli): read version from package.json instead of hardcoded constant (#20) (#21)
+- fix(scanner): preserve all installed versions in fast scanner output (#16) (#17)
+
+
+
 ## [Unreleased]
 
 ## [6.3.1] - 2026-05-25
