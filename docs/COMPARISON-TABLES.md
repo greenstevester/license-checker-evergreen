@@ -101,7 +101,7 @@ All three packages use compatible open-source licenses:
 
 ### What Changed
 
-Evergreen v6.0.0 includes a **parallel package scanner** that bypasses the slow `read-installed` bottleneck:
+Evergreen's default **parallel package scanner** bypasses the slow `read-installed` bottleneck:
 
 - Parallel file reading (50 concurrent operations)
 - Single-pass directory walking
