@@ -16,7 +16,7 @@ module.exports = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(chalk|spdx-.*|read-installed-packages)/)',
+    'node_modules/(?!(chalk|spdx-.*|read-installed)/)',
     'dist/'
   ],
   setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts']
