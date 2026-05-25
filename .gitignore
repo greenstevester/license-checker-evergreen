@@ -29,3 +29,6 @@ todos.md
 
 # Local Playwright session/profile dump
 playwright-profile
+
+# CodeGraph local index
+.codegraph/
