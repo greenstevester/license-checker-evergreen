@@ -1,0 +1,137 @@
+name: 'License Checker Evergreen'
+description: 'Scan, validate, and enforce open source license compliance in your project'
+author: 'greenstevester'
+
+branding:
+  icon: 'shield'
+  color: 'green'
+
+inputs:
+  start:
+    description: 'Path to the project to scan (default: current directory)'
+    required: false
+    default: '.'
+  production:
+    description: 'Only check production dependencies'
+    required: false
+    default: 'false'
+  fail-on:
+    description: 'Semicolon-separated list of licenses to fail on (e.g. "GPL-3.0;AGPL-3.0")'
+    required: false
+    default: ''
+  only-allow:
+    description: 'Semicolon-separated list of allowed licenses (e.g. "MIT;Apache-2.0;BSD-3-Clause")'
+    required: false
+    default: ''
+  exclude-packages:
+    description: 'Semicolon-separated list of packages to exclude'
+    required: false
+    default: ''
+  exclude-private-packages:
+    description: 'Exclude private packages from the check'
+    required: false
+    default: 'false'
+  output-format:
+    description: 'Output format: json, csv, markdown, tree, summary'
+    required: false
+    default: 'json'
+  output-path:
+    description: 'Write license report to this file path'
+    required: false
+    default: ''
+
+outputs:
+  report:
+    description: 'License report output (JSON string)'
+    value: ${{ steps.scan.outputs.report }}
+  packages-count:
+    description: 'Number of packages scanned'
+    value: ${{ steps.scan.outputs.packages_count }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install license-checker-evergreen
+      shell: bash
+      run: npm install -g license-checker-evergreen@latest
+
+    - name: Run license check
+      id: scan
+      shell: bash
+      env:
+        INPUT_START: ${{ inputs.start }}
+        INPUT_PRODUCTION: ${{ inputs.production }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_ONLY_ALLOW: ${{ inputs.only-allow }}
+        INPUT_EXCLUDE_PACKAGES: ${{ inputs.exclude-packages }}
+        INPUT_EXCLUDE_PRIVATE: ${{ inputs.exclude-private-packages }}
+        INPUT_OUTPUT_FORMAT: ${{ inputs.output-format }}
+        INPUT_OUTPUT_PATH: ${{ inputs.output-path }}
+      run: |
+        set -euo pipefail
+
+        # Build CLI arguments
+        ARGS="--start ${INPUT_START}"
+
+        if [[ "${INPUT_PRODUCTION}" == "true" ]]; then
+          ARGS="${ARGS} --production"
+        fi
+
+        if [[ -n "${INPUT_FAIL_ON}" ]]; then
+          ARGS="${ARGS} --failOn ${INPUT_FAIL_ON}"
+        fi
+
+        if [[ -n "${INPUT_ONLY_ALLOW}" ]]; then
+          ARGS="${ARGS} --onlyAllow ${INPUT_ONLY_ALLOW}"
+        fi
+
+        if [[ -n "${INPUT_EXCLUDE_PACKAGES}" ]]; then
+          ARGS="${ARGS} --excludePackages ${INPUT_EXCLUDE_PACKAGES}"
+        fi
+
+        if [[ "${INPUT_EXCLUDE_PRIVATE}" == "true" ]]; then
+          ARGS="${ARGS} --excludePrivatePackages"
+        fi
+
+        # Set output format flag
+        case "${INPUT_OUTPUT_FORMAT}" in
+          csv)      ARGS="${ARGS} --csv" ;;
+          markdown) ARGS="${ARGS} --markdown" ;;
+          tree)     ARGS="${ARGS}" ;;
+          summary)  ARGS="${ARGS} --summary" ;;
+          *)        ARGS="${ARGS} --json" ;;
+        esac
+
+        # Set output file if specified
+        if [[ -n "${INPUT_OUTPUT_PATH}" ]]; then
+          ARGS="${ARGS} --out ${INPUT_OUTPUT_PATH}"
+        fi
+
+        echo "::group::License Check"
+        echo "Running: license-checker-evergreen ${ARGS}"
+
+        # Capture output for the report
+        OUTPUT=$(license-checker-evergreen ${ARGS} 2>&1) || {
+          EXIT_CODE=$?
+          echo "${OUTPUT}"
+          echo "::endgroup::"
+          echo "::error::License check failed (exit code ${EXIT_CODE})"
+          exit ${EXIT_CODE}
+        }
+
+        echo "${OUTPUT}"
+        echo "::endgroup::"
+
+        # Count packages from JSON output
+        if [[ "${INPUT_OUTPUT_FORMAT}" == "json" || "${INPUT_OUTPUT_FORMAT}" == "" ]]; then
+          PKG_COUNT=$(echo "${OUTPUT}" | jq 'length' 2>/dev/null || echo "unknown")
+          echo "packages_count=${PKG_COUNT}" >> "${GITHUB_OUTPUT}"
+        fi
+
+        # Store report output (truncate for GitHub Actions 1MB limit)
+        TRUNCATED=$(echo "${OUTPUT}" | head -c 900000)
+        {
+          echo "report<<REPORT_EOF"
+          echo "${TRUNCATED}"
+          echo "REPORT_EOF"
+        } >> "${GITHUB_OUTPUT}"
