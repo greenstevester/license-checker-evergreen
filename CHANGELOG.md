@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [6.3.1] - 2026-05-25
+
+### 🐛 Bug Fixes
+- Fast scanner no longer collapses multiple installed versions of a package — it now reports every `name@version` like the legacy scanner, fixing under-reported licenses for packages installed at more than one version. ([#17](https://github.com/greenstevester/license-checker-evergreen/pull/17), closes [#16](https://github.com/greenstevester/license-checker-evergreen/issues/16))
+- `--version` now reports the actual package version instead of a hardcoded `6.0.0`. ([#21](https://github.com/greenstevester/license-checker-evergreen/pull/21), closes [#20](https://github.com/greenstevester/license-checker-evergreen/issues/20))
+
+### 📚 Documentation
+- Refresh README/CHANGELOG: remove phantom flags (`--direct`, `--angularCli`), document `--failOnUnavoidableOnly`, add a `--depth` caveat (see [#15](https://github.com/greenstevester/license-checker-evergreen/issues/15)). ([#19](https://github.com/greenstevester/license-checker-evergreen/pull/19))
+
 ## [6.3.0] - 2026-05-25
 
 ### 🚀 Features
