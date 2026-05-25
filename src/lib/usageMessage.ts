@@ -26,6 +26,7 @@ const usageMessage: string = [
 	'   --production: only show production dependencies',
 	'   --relativeLicensePath: output the location of the license files as relative paths',
 	'   --relativeModulePath: output the location of the module files as relative paths',
+	'   --spdxSemantics: evaluate --failOn and --onlyAllow as SPDX expressions (opt-in). Default is literal string match. Only applies to the default scanner (not --legacy).',
 	'   --start [filepath]: path of the initial json to look for',
 	'   --summary: output a summary of the license usage',
 	'   --unknown: report guessed licenses as unknown licenses',

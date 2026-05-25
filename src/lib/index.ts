@@ -519,6 +519,7 @@ const initOptimized = async (args: any, callback: (error: Error | null, result?:
 		colorize: args.color,
 		relativeModulePath: args.relativeModulePath,
 		startPath: args.start,
+		spdxSemantics: args.spdxSemantics,
 	});
 
 	// Clarifications processing (same as original)
@@ -685,6 +686,7 @@ const initFast = async (args: any, callback: (error: Error | null, result?: any)
 			colorize: args.color,
 			relativeModulePath: args.relativeModulePath,
 			startPath: args.start,
+			spdxSemantics: args.spdxSemantics,
 		});
 
 		// Process packages with single-pass collection
@@ -841,6 +843,12 @@ const initFast = async (args: any, callback: (error: Error | null, result?: any)
 
 const init = (args: any, callback: (error: Error | null, result?: any) => void) => {
 	debugLog('scanning %s', args.start);
+
+	if (args.spdxSemantics) {
+		console.error(
+			'[license-checker-evergreen] warning: --spdxSemantics has no effect under --legacy scanner. See README.',
+		);
+	}
 
 	// customPath is a path to a JSON file that defined a custom format
 	if (args.customPath) {
